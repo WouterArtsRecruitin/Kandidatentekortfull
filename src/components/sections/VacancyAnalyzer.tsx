@@ -14,17 +14,23 @@ const getCreatePopup = () => {
   return typeformEmbed.createPopup || (typeformEmbed.default && typeformEmbed.default.createPopup);
 };
 
-// Load Typeform CSS dynamically
-const loadTypeformCSS = () => {
+// Load Typeform CSS and Script dynamically only when needed
+const loadTypeformResources = () => {
   if (typeof document === 'undefined') return;
-  const id = 'typeform-popup-css';
-  if (!document.getElementById(id)) {
+
+  // Load CSS
+  const cssId = 'typeform-popup-css';
+  if (!document.getElementById(cssId)) {
     const link = document.createElement('link');
-    link.id = id;
+    link.id = cssId;
     link.rel = 'stylesheet';
     link.href = 'https://embed.typeform.com/next/css/popup.css';
     document.head.appendChild(link);
   }
+
+  // Remove any auto-loading Typeform embeds
+  const autoEmbeds = document.querySelectorAll('[data-tf-live], [data-tf-widget], [data-tf-slider], [data-tf-popover], [data-tf-popup]');
+  autoEmbeds.forEach(embed => embed.remove());
 };
 
 // Example templates
@@ -119,6 +125,21 @@ export const VacancyAnalyzer = () => {
   const [score, setScore] = useState("0.0");
   const [findings, setFindings] = useState<{title: string, desc: string, type: 'warning' | 'error' | 'success'}[]>([]);
 
+  // Prevent auto-loading Typeform embeds on component mount
+  React.useEffect(() => {
+    const removeAutoEmbeds = () => {
+      const autoEmbeds = document.querySelectorAll('[data-tf-live], [data-tf-widget], [data-tf-slider], [data-tf-popover], [data-tf-popup]');
+      autoEmbeds.forEach(embed => embed.remove());
+    };
+
+    // Run immediately and set up observer for dynamic additions
+    removeAutoEmbeds();
+    const observer = new MutationObserver(removeAutoEmbeds);
+    observer.observe(document.body, { childList: true, subtree: true });
+
+    return () => observer.disconnect();
+  }, []);
+
   const loadDemo = (type: string) => {
     // @ts-ignore
     const fullText = EXAMPLE_TEMPLATES[type] || "";
@@ -182,7 +203,9 @@ export const VacancyAnalyzer = () => {
   };
 
   const openFullAnalysisForm = () => {
-    loadTypeformCSS();
+    // Load resources and clean up any auto-embeds first
+    loadTypeformResources();
+
     try {
       const createPopup = getCreatePopup();
       if (typeof createPopup === 'function') {
