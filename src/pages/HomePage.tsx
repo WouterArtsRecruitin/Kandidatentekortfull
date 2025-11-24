@@ -37,15 +37,8 @@ export const HomePage = () => {
       {/* Typeform Embed */}
       <section className="py-16 bg-slate-50">
         <div className="container mx-auto px-4 md:px-6">
-          <div className="w-full max-w-4xl mx-auto" style={{ height: '600px' }}>
-            <div
-              data-tf-widget="01KARGCADMYDCG24PA4FWVKZJ2"
-              data-tf-opacity="0"
-              data-tf-iframe-props="title=Typeform"
-              data-tf-transitive-search-params
-              data-tf-medium="snippet"
-              style={{ width: '100%', height: '100%' }}
-            ></div>
+          <div className="w-full max-w-4xl mx-auto min-h-[600px]">
+            <div data-tf-live="01K25SKWYTKZ05DAHER9D52J94"></div>
           </div>
         </div>
       </section>
