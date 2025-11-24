@@ -186,18 +186,23 @@ export const VacancyAnalyzer = () => {
     try {
       const createPopup = getCreatePopup();
       if (typeof createPopup === 'function') {
+        // Use responsive dimensions based on viewport size
+        const isMobile = window.innerWidth < 768;
+        const popupWidth = isMobile ? Math.min(window.innerWidth - 32, 500) : Math.min(window.innerWidth - 64, 800);
+        const popupHeight = isMobile ? Math.min(window.innerHeight - 64, 600) : Math.min(window.innerHeight - 100, 700);
+
         const { toggle } = createPopup(TYPEFORM_ID, {
           hidden: { vacature_text: vacancyText.substring(0, 8000) },
           autoClose: 3000,
-          width: 800,
-          height: 600,
+          width: popupWidth,
+          height: popupHeight,
           onSubmit: () => {
              trackEvent('complete_registration', { content_name: 'Recruitment Quickscan' });
              setShowResults(false);
           }
         });
         toggle();
-      } 
+      }
     } catch (error) {
       const encodedText = encodeURIComponent(vacancyText.substring(0, 1500));
       window.open(`https://form.typeform.com/to/${TYPEFORM_ID}#vacature_text=${encodedText}`, '_blank');
