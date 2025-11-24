@@ -3,22 +3,34 @@ import { motion, AnimatePresence } from "motion/react";
 import { trackEvent } from "../../lib/analytics";
 import { Loader2, AlertTriangle, CheckCircle2, Sparkles, FileText, BarChart2, ShieldCheck, ArrowRight } from "lucide-react";
 import { Button } from "../ui/button";
+import * as typeformEmbed from '@typeform/embed';
 
-// Pipedrive webform URL
-const PIPEDRIVE_FORM_URL = "https://webforms.pipedrive.com/f/63f1b2o8FTfnSTcTphL7JutBbyo0EFSGeHaGtPNt7nLUWuYJnn9uiSJkLXPLLiXKtd";
+// Typeform ID
+const TYPEFORM_ID = "01KAV0K6BAXNNS3EKARCH35R20";
 
-// Load Pipedrive webform script
-const loadPipedriveScript = () => {
+// Helper to safely access createPopup
+const getCreatePopup = () => {
+  // @ts-ignore
+  return typeformEmbed.createPopup || (typeformEmbed.default && typeformEmbed.default.createPopup);
+};
+
+// Load Typeform CSS dynamically only when needed
+const loadTypeformResources = () => {
   if (typeof document === 'undefined') return;
 
-  const scriptId = 'pipedrive-webform-script';
-  if (!document.getElementById(scriptId)) {
-    const script = document.createElement('script');
-    script.id = scriptId;
-    script.src = 'https://webforms.pipedrive.com/f/loader';
-    script.async = true;
-    document.body.appendChild(script);
+  // Load CSS
+  const cssId = 'typeform-popup-css';
+  if (!document.getElementById(cssId)) {
+    const link = document.createElement('link');
+    link.id = cssId;
+    link.rel = 'stylesheet';
+    link.href = 'https://embed.typeform.com/next/css/popup.css';
+    document.head.appendChild(link);
   }
+
+  // Remove any auto-loading Typeform embeds
+  const autoEmbeds = document.querySelectorAll('[data-tf-live], [data-tf-widget], [data-tf-slider], [data-tf-popover], [data-tf-popup]');
+  autoEmbeds.forEach(embed => embed.remove());
 };
 
 // Example templates
@@ -110,7 +122,6 @@ export const VacancyAnalyzer = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisStep, setAnalysisStep] = useState(0);
   const [showResults, setShowResults] = useState(false);
-  const [showWebform, setShowWebform] = useState(false);
   const [score, setScore] = useState("0.0");
   const [findings, setFindings] = useState<{title: string, desc: string, type: 'warning' | 'error' | 'success'}[]>([]);
 
@@ -192,17 +203,34 @@ export const VacancyAnalyzer = () => {
   };
 
   const openFullAnalysisForm = () => {
-    trackEvent('form_opened', { content_name: 'Recruitment Quickscan' });
-    setShowWebform(true);
-    setShowResults(false);
-  };
+    // Load resources and clean up any auto-embeds first
+    loadTypeformResources();
 
-  // Load Pipedrive script when webform is shown
-  useEffect(() => {
-    if (showWebform) {
-      loadPipedriveScript();
+    try {
+      const createPopup = getCreatePopup();
+      if (typeof createPopup === 'function') {
+        // Use responsive dimensions based on viewport size
+        const isMobile = window.innerWidth < 768;
+        const popupWidth = isMobile ? Math.min(window.innerWidth - 32, 500) : Math.min(window.innerWidth - 64, 800);
+        const popupHeight = isMobile ? Math.min(window.innerHeight - 64, 600) : Math.min(window.innerHeight - 100, 700);
+
+        const { toggle } = createPopup(TYPEFORM_ID, {
+          hidden: { vacature_text: vacancyText.substring(0, 8000) },
+          autoClose: 3000,
+          width: popupWidth,
+          height: popupHeight,
+          onSubmit: () => {
+             trackEvent('complete_registration', { content_name: 'Recruitment Quickscan' });
+             setShowResults(false);
+          }
+        });
+        toggle();
+      }
+    } catch (error) {
+      const encodedText = encodeURIComponent(vacancyText.substring(0, 1500));
+      window.open(`https://form.typeform.com/to/${TYPEFORM_ID}#vacature_text=${encodedText}`, '_blank');
     }
-  }, [showWebform]);
+  };
 
   return (
     <section className="py-24 relative overflow-hidden bg-slate-50" id="analyse-tool">
@@ -362,48 +390,6 @@ export const VacancyAnalyzer = () => {
                         Ontvang mijn geoptimaliseerde tekst (Gratis)
                     </Button>
                  </div>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {/* Pipedrive Webform Modal */}
-      <AnimatePresence>
-        {showWebform && (
-          <motion.div
-            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 bg-slate-900/90 z-[100] flex items-center justify-center p-4 backdrop-blur-md overflow-y-auto"
-          >
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-              className="bg-white rounded-2xl p-6 md:p-8 max-w-3xl w-full shadow-2xl relative my-4"
-            >
-              <button
-                onClick={() => {
-                  setShowWebform(false);
-                  trackEvent('form_closed', { content_name: 'Recruitment Quickscan' });
-                }}
-                className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-2xl font-bold leading-none"
-              >
-                ✕
-              </button>
-
-              <div className="text-center mb-6">
-                <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-2">
-                  🚀 Ontvang je geoptimaliseerde vacaturetekst
-                </h2>
-                <p className="text-slate-600">
-                  Vul het formulier in en ontvang binnen 24 uur je verbeterde tekst
-                </p>
-              </div>
-
-              {/* Pipedrive Webform Embed */}
-              <div className="w-full overflow-auto" style={{ minHeight: '500px', maxHeight: '70vh' }}>
-                <div
-                  className="pipedriveWebForms"
-                  data-pd-webforms={PIPEDRIVE_FORM_URL}
-                />
               </div>
             </motion.div>
           </motion.div>
