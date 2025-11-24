@@ -202,9 +202,12 @@ export const VacancyAnalyzer = () => {
     }, 3500);
   };
 
-  const openFullAnalysisForm = () => {
+  const openFullAnalysisForm = async () => {
     // Load resources and clean up any auto-embeds first
     loadTypeformResources();
+
+    // Small delay to ensure resources are loaded
+    await new Promise(resolve => setTimeout(resolve, 100));
 
     try {
       const createPopup = getCreatePopup();
@@ -214,7 +217,7 @@ export const VacancyAnalyzer = () => {
         const popupWidth = isMobile ? Math.min(window.innerWidth - 32, 500) : Math.min(window.innerWidth - 64, 800);
         const popupHeight = isMobile ? Math.min(window.innerHeight - 64, 600) : Math.min(window.innerHeight - 100, 700);
 
-        const { toggle } = createPopup(TYPEFORM_ID, {
+        const popup = createPopup(TYPEFORM_ID, {
           hidden: { vacature_text: vacancyText.substring(0, 8000) },
           autoClose: 3000,
           width: popupWidth,
@@ -224,11 +227,19 @@ export const VacancyAnalyzer = () => {
              setShowResults(false);
           }
         });
-        toggle();
+
+        if (popup && popup.toggle) {
+          popup.toggle();
+        } else if (popup && popup.open) {
+          popup.open();
+        }
+      } else {
+        throw new Error('Typeform popup not available');
       }
     } catch (error) {
-      const encodedText = encodeURIComponent(vacancyText.substring(0, 1500));
-      window.open(`https://form.typeform.com/to/${TYPEFORM_ID}#vacature_text=${encodedText}`, '_blank');
+      console.error('Typeform popup error:', error);
+      // Fallback: open in new tab with correct format
+      window.open(`https://form.typeform.com/to/${TYPEFORM_ID}`, '_blank');
     }
   };
 
