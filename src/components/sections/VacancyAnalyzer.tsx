@@ -3,35 +3,9 @@ import { motion, AnimatePresence } from "motion/react";
 import { trackEvent } from "../../lib/analytics";
 import { Loader2, AlertTriangle, CheckCircle2, Sparkles, FileText, BarChart2, ShieldCheck, ArrowRight } from "lucide-react";
 import { Button } from "../ui/button";
-import * as typeformEmbed from '@typeform/embed';
 
 // Typeform ID
 const TYPEFORM_ID = "01KAV0K6BAXNNS3EKARCH35R20";
-
-// Helper to safely access createPopup
-const getCreatePopup = () => {
-  // @ts-ignore
-  return typeformEmbed.createPopup || (typeformEmbed.default && typeformEmbed.default.createPopup);
-};
-
-// Load Typeform CSS dynamically only when needed
-const loadTypeformResources = () => {
-  if (typeof document === 'undefined') return;
-
-  // Load CSS
-  const cssId = 'typeform-popup-css';
-  if (!document.getElementById(cssId)) {
-    const link = document.createElement('link');
-    link.id = cssId;
-    link.rel = 'stylesheet';
-    link.href = 'https://embed.typeform.com/next/css/popup.css';
-    document.head.appendChild(link);
-  }
-
-  // Remove any auto-loading Typeform embeds
-  const autoEmbeds = document.querySelectorAll('[data-tf-live], [data-tf-widget], [data-tf-slider], [data-tf-popover], [data-tf-popup]');
-  autoEmbeds.forEach(embed => embed.remove());
-};
 
 // Example templates
 const EXAMPLE_TEMPLATES = {
@@ -122,17 +96,27 @@ export const VacancyAnalyzer = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisStep, setAnalysisStep] = useState(0);
   const [showResults, setShowResults] = useState(false);
+  const [showTypeform, setShowTypeform] = useState(false);
   const [score, setScore] = useState("0.0");
   const [findings, setFindings] = useState<{title: string, desc: string, type: 'warning' | 'error' | 'success'}[]>([]);
 
-  // Prevent auto-loading Typeform embeds on component mount
+  // Prevent auto-loading Typeform embeds and remove any unwanted buttons
   useEffect(() => {
     const removeTypeformEmbeds = () => {
-      const typeformEmbeds = document.querySelectorAll('[data-tf-live], [data-tf-widget], [data-tf-slider], [data-tf-popover], [data-tf-popup]');
+      // Remove Typeform auto-embeds
+      const typeformEmbeds = document.querySelectorAll('[data-tf-live], [data-tf-widget], [data-tf-slider], [data-tf-popover], [data-tf-popup], .tf-v1-popup-button, [data-tf-button]');
       typeformEmbeds.forEach(embed => embed.remove());
+
+      // Remove Typeform scripts that auto-load
+      const scripts = document.querySelectorAll('script[src*="typeform.com"]');
+      scripts.forEach(script => {
+        if (!script.hasAttribute('data-keep')) {
+          script.remove();
+        }
+      });
     };
 
-    // Run immediately and set up observer for Typeform additions only
+    // Run immediately and set up observer
     removeTypeformEmbeds();
     const observer = new MutationObserver(removeTypeformEmbeds);
     observer.observe(document.body, { childList: true, subtree: true });
@@ -202,45 +186,10 @@ export const VacancyAnalyzer = () => {
     }, 3500);
   };
 
-  const openFullAnalysisForm = async () => {
-    // Load resources and clean up any auto-embeds first
-    loadTypeformResources();
-
-    // Small delay to ensure resources are loaded
-    await new Promise(resolve => setTimeout(resolve, 100));
-
-    try {
-      const createPopup = getCreatePopup();
-      if (typeof createPopup === 'function') {
-        // Use responsive dimensions based on viewport size
-        const isMobile = window.innerWidth < 768;
-        const popupWidth = isMobile ? Math.min(window.innerWidth - 32, 500) : Math.min(window.innerWidth - 64, 800);
-        const popupHeight = isMobile ? Math.min(window.innerHeight - 64, 600) : Math.min(window.innerHeight - 100, 700);
-
-        const popup = createPopup(TYPEFORM_ID, {
-          hidden: { vacature_text: vacancyText.substring(0, 8000) },
-          autoClose: 3000,
-          width: popupWidth,
-          height: popupHeight,
-          onSubmit: () => {
-             trackEvent('complete_registration', { content_name: 'Recruitment Quickscan' });
-             setShowResults(false);
-          }
-        });
-
-        if (popup && popup.toggle) {
-          popup.toggle();
-        } else if (popup && popup.open) {
-          popup.open();
-        }
-      } else {
-        throw new Error('Typeform popup not available');
-      }
-    } catch (error) {
-      console.error('Typeform popup error:', error);
-      // Fallback: open in new tab with correct format
-      window.open(`https://form.typeform.com/to/${TYPEFORM_ID}`, '_blank');
-    }
+  const openFullAnalysisForm = () => {
+    trackEvent('form_opened', { content_name: 'Recruitment Quickscan' });
+    setShowTypeform(true);
+    setShowResults(false);
   };
 
   return (
@@ -402,6 +351,42 @@ export const VacancyAnalyzer = () => {
                     </Button>
                  </div>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Typeform Iframe Modal */}
+      <AnimatePresence>
+        {showTypeform && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-900/90 z-[100] flex items-center justify-center p-4 backdrop-blur-md"
+            onClick={() => setShowTypeform(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+              className="bg-white rounded-2xl w-full max-w-3xl shadow-2xl relative overflow-hidden"
+              style={{ height: '90vh', maxHeight: '800px' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => {
+                  setShowTypeform(false);
+                  trackEvent('form_closed', { content_name: 'Recruitment Quickscan' });
+                }}
+                className="absolute top-4 right-4 z-10 bg-white/90 hover:bg-white text-slate-600 hover:text-slate-900 rounded-full w-10 h-10 flex items-center justify-center text-2xl font-bold shadow-lg transition-all"
+              >
+                ✕
+              </button>
+
+              <iframe
+                src={`https://form.typeform.com/to/${TYPEFORM_ID}?typeform-embed-id=form`}
+                className="w-full h-full"
+                frameBorder="0"
+                allow="camera; microphone; autoplay; encrypted-media;"
+                title="Typeform"
+              />
             </motion.div>
           </motion.div>
         )}
