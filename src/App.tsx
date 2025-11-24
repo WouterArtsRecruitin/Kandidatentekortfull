@@ -1,8 +1,10 @@
 import React from 'react';
-import { Hero } from './components/sections/Hero';
-import { VacancyAnalyzer } from './components/sections/VacancyAnalyzer';
+import { Routes, Route } from 'react-router-dom';
+import { HomePage } from './pages/HomePage';
+import { MetaCampaignPage } from './pages/MetaCampaignPage';
 import { Footer } from './components/layout/Footer';
 import { SocialProofNotification } from './components/ui/SocialProofNotification';
+import { Toaster } from './components/ui/sonner';
 import { initAnalytics } from './lib/analytics';
 
 function App() {
@@ -13,11 +15,14 @@ function App() {
   return (
     <div className="min-h-screen bg-slate-50 font-sans text-slate-900 antialiased selection:bg-orange-500/30">
       <main>
-        <Hero />
-        <VacancyAnalyzer />
+        <Routes>
+          <Route path="/" element={<HomePage />} />
+          <Route path="/meta" element={<MetaCampaignPage />} />
+        </Routes>
       </main>
       <Footer />
       <SocialProofNotification />
+      <Toaster />
     </div>
   );
 }
