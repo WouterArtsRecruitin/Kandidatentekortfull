@@ -5,7 +5,7 @@ import { Loader2, AlertTriangle, CheckCircle2, Sparkles, FileText, BarChart2, Sh
 import { Button } from "../ui/button";
 
 // Typeform ID
-const TYPEFORM_ID = "01KAV0K6BAXNNS3EKARCH35R20";
+const TYPEFORM_ID = "kalFRTCA";
 
 // Example templates
 const EXAMPLE_TEMPLATES = {
