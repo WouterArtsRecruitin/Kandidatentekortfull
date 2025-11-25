@@ -1333,3 +1333,39 @@ a:focus-visible {
     border-width: 2px;
   }
 }
+
+/* ===============================================
+   TYPEFORM INTEGRATION STYLES
+   =============================================== */
+
+.typeform-upload-btn {
+  background: linear-gradient(135deg, #FF6B35 0%, #F7931E 100%);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(255, 107, 53, 0.3);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.typeform-upload-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(255, 107, 53, 0.4);
+}
+
+.typeform-upload-btn:active {
+  transform: translateY(0);
+}
+
+@media (max-width: 768px) {
+  .typeform-upload-btn {
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+  }
+}
