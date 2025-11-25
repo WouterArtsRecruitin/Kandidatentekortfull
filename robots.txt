@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+# Sitemap
+Sitemap: https://nederlandse-vacature-optimizer.netlify.app/sitemap.xml
+
+# Optimization for Nederlandse recruitment
+# AI-powered vacature analysis tool
+# Focused on Dutch job market

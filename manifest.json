@@ -1,0 +1,40 @@
+{
+  "name": "Nederlandse Vacature Optimizer",
+  "short_name": "NL Vacature Tool",
+  "description": "AI-powered Nederlandse vacature optimalisatie voor betere recruitment resultaten",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#1E3A8A",
+  "theme_color": "#FF6B35",
+  "orientation": "portrait-primary",
+  "lang": "nl-NL",
+  "icons": [
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🇳🇱%3C/text%3E%3C/svg%3E",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🇳🇱%3C/text%3E%3C/svg%3E",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["business", "productivity", "utilities"],
+  "screenshots": [
+    {
+      "src": "/assets/screenshots/desktop-demo.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "platform": "wide"
+    },
+    {
+      "src": "/assets/screenshots/mobile-demo.png", 
+      "sizes": "390x844",
+      "type": "image/png",
+      "platform": "narrow"
+    }
+  ]
+}

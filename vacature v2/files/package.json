@@ -1,0 +1,23 @@
+{
+  "name": "kandidatentekort-tracking",
+  "version": "1.0.0",
+  "description": "Kandidatentekort.nl with GA4 + Facebook Conversions API",
+  "main": "index.html",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'No build needed - static HTML'"
+  },
+  "keywords": [
+    "recruitment",
+    "vacature",
+    "analytics"
+  ],
+  "author": "Recruitin",
+  "license": "MIT",
+  "dependencies": {
+    "node-fetch": "^2.6.1"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.0.0"
+  }
+}

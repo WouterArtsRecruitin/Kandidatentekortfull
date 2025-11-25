@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nederlandse Vacature Optimizer - TalentFlow Pro MVP</title>
+    <meta name="description" content="Optimaliseer je vacatures voor de Nederlandse arbeidsmarkt met AI. Verhoog je respons met 40-60% door slimme analyse en verbeterpunten.">
+    <meta name="keywords" content="vacature optimalisatie, Nederlandse recruitment, AI recruitment tool, vacature verbeteren">
+    
+    <!-- Favicon & PWA -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🇳🇱%3C/text%3E%3C/svg%3E">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#FF6B35">
+    
+    <!-- SEO & Social -->
+    <meta property="og:title" content="Nederlandse Vacature Optimizer - AI-Powered Recruitment">
+    <meta property="og:description" content="Optimaliseer je vacatures voor de Nederlandse arbeidsmarkt. Verhoog response rates met 89% door AI-powered analyse.">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://nederlandse-vacature-optimizer.netlify.app">
+    <meta property="og:image" content="https://nederlandse-vacature-optimizer.netlify.app/assets/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Nederlandse Vacature Optimizer">
+    <meta name="twitter:description" content="AI-powered vacature optimalisatie voor Nederlandse recruitment">
+    <meta name="twitter:image" content="https://nederlandse-vacature-optimizer.netlify.app/assets/twitter-card.png">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- CSS -->
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Google Analytics (Environmental) -->
+    <script>
+      if(typeof GA_MEASUREMENT_ID !== 'undefined' && GA_MEASUREMENT_ID) {
+        const script = document.createElement('script');
+        script.async = true;
+        script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
+        document.head.appendChild(script);
+        
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', GA_MEASUREMENT_ID);
+      }
+    </script>
+</head>
+<body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-logo">🇳🇱</div>
+            <div class="loading-text">TalentFlow Pro wordt geladen...</div>
+            <div class="loading-bar">
+                <div class="loading-progress"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Application -->
+    <div id="app" class="app-container" style="display: none;">
+        <!-- Header -->
+        <header class="hero-section">
+            <div class="hero-content">
+                <div class="hero-badge">
+                    <span class="badge-text">🚀 AI-Powered</span>
+                    <span class="badge-highlight">Nederlandse Recruitment</span>
+                </div>
+                
+                <h1 class="hero-title">
+                    <span class="title-main">Nederlandse Vacature</span>
+                    <span class="title-highlight">Optimizer</span>
+                </h1>
+                
+                <p class="hero-subtitle">
+                    Verhoog je sollicitaties met <strong>40-60%</strong> door AI-powered optimalisatie 
+                    voor de Nederlandse arbeidsmarkt
+                </p>
+                
+                <div class="hero-stats">
+                    <div class="stat-item">
+                        <div class="stat-number">180%</div>
+                        <div class="stat-label">Meer Sollicitaties</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">2 min</div>
+                        <div class="stat-label">Analyse Tijd</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number">95%</div>
+                        <div class="stat-label">Tevredenheid</div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Hero Background Animation -->
+            <div class="hero-background">
+                <div class="floating-element" style="--delay: 0s; --duration: 6s;">💼</div>
+                <div class="floating-element" style="--delay: 1s; --duration: 8s;">📊</div>
+                <div class="floating-element" style="--delay: 2s; --duration: 7s;">🎯</div>
+                <div class="floating-element" style="--delay: 3s; --duration: 9s;">⚡</div>
+            </div>
+        </header>
+
+        <!-- Demo Buttons Section -->
+        <section class="demo-section">
+            <div class="container">
+                <h3 class="demo-title">🎮 Probeer Direct met Demo Vacatures</h3>
+                <div class="demo-buttons">
+                    <button onclick="loadDemoVacature('slecht')" class="demo-btn demo-btn-bad">
+                        <span class="demo-icon">📉</span>
+                        <span class="demo-text">Slechte Vacature</span>
+                        <span class="demo-score">Score: 3.2/10</span>
+                    </button>
+                    <button onclick="loadDemoVacature('gemiddeld')" class="demo-btn demo-btn-average">
+                        <span class="demo-icon">📊</span>
+                        <span class="demo-text">Gemiddelde Vacature</span>
+                        <span class="demo-score">Score: 6.5/10</span>
+                    </button>
+                    <button onclick="loadDemoVacature('goed')" class="demo-btn demo-btn-good">
+                        <span class="demo-icon">📈</span>
+                        <span class="demo-text">Goede Vacature</span>
+                        <span class="demo-score">Score: 8.8/10</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- Main Tool Section -->
+        <main class="optimizer-tool">
+            <div class="container">
+                <div class="tool-header">
+                    <h2 class="tool-title">
+                        <span class="tool-icon">🔍</span>
+                        Analyseer je Vacaturetekst
+                    </h2>
+                    <p class="tool-subtitle">
+                        Plak je volledige vacature hieronder en ontvang binnen 60 seconden 
+                        een complete analyse met concrete verbeterpunten
+                    </p>
+                </div>
+
+                <div class="input-section">
+                    <div class="input-header">
+                        <label for="vacatureInput" class="input-label">
+                            📝 Vacaturetekst
+                            <span class="input-counter">
+                                <span id="charCount">0</span> / 8000 karakters
+                            </span>
+                        </label>
+                        
+                        <div class="input-actions">
+                            <button onclick="clearInput()" class="action-btn action-btn-clear">
+                                🗑️ Wissen
+                            </button>
+                            <button onclick="pasteFromClipboard()" class="action-btn action-btn-paste">
+                                📋 Plakken
+                            </button>
+                        </div>
+                    </div>
+                    
+                    <div class="textarea-container">
+                        <textarea 
+                            id="vacatureInput" 
+                            class="vacature-textarea"
+                            placeholder="Plak hier je volledige vacaturetekst...
+
+Bijvoorbeeld:
+Senior Developer bij TechStart BV
+
+Wij zoeken een ervaren developer voor ons groeiende team...
+
+📍 Tip: Inclusief functietitel, taken, eisen, salaris en contactgegevens voor beste resultaten!"
+                            maxlength="8000"
+                            oninput="updateCharCounter()"
+                        ></textarea>
+                        
+                        <div class="textarea-footer">
+                            <div class="quality-indicators">
+                                <div class="quality-indicator" id="lengthIndicator">
+                                    <span class="indicator-icon">📏</span>
+                                    <span class="indicator-text">Lengte: Te kort</span>
+                                </div>
+                                <div class="quality-indicator" id="structureIndicator">
+                                    <span class="indicator-icon">🏗️</span>
+                                    <span class="indicator-text">Structuur: Controleren...</span>
+                                </div>
+                                <div class="quality-indicator" id="keywordIndicator">
+                                    <span class="indicator-icon">🔑</span>
+                                    <span class="indicator-text">Keywords: Analyseren...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button id="analyzeBtn" onclick="analyzeVacature()" class="analyze-btn">
+                        <span class="btn-icon">🚀</span>
+                        <span class="btn-text">Analyseer Vacature</span>
+                        <span class="btn-subtitle">AI-powered Nederlandse analyse</span>
+                    </button>
+                </div>
+
+                <!-- Results Section -->
+                <div id="results" class="results-section" style="display: none;">
+                    <!-- Results worden hier dynamisch ingeladen -->
+                </div>
+            </div>
+        </main>
+
+        <!-- Features Section -->
+        <section class="features-section">
+            <div class="container">
+                <h3 class="features-title">⚡ Waarom Nederlandse Vacature Optimizer?</h3>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">🇳🇱</div>
+                        <h4 class="feature-title">Nederlandse Expertise</h4>
+                        <p class="feature-description">
+                            Geoptimaliseerd voor Nederlandse arbeidsmarkt, AVG-compliant, 
+                            en afgestemd op lokale recruitment praktijken
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">⚡</div>
+                        <h4 class="feature-title">Razendsnel</h4>
+                        <p class="feature-description">
+                            Volledige analyse in minder dan 60 seconden. 
+                            Bespaar 2+ uur per vacature optimalisatie
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">🎯</div>
+                        <h4 class="feature-title">Concrete Verbeterpunten</h4>
+                        <p class="feature-description">
+                            Krijg 3-5 specifieke, actionable aanbevelingen 
+                            die direct meer sollicitaties opleveren
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">📊</div>
+                        <h4 class="feature-title">Bewezen Resultaten</h4>
+                        <p class="feature-description">
+                            40-60% meer sollicitaties, 30% snellere invulling, 
+                            95% tevredenheidsscore van recruiters
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">🔒</div>
+                        <h4 class="feature-title">Privacy & Veiligheid</h4>
+                        <p class="feature-description">
+                            Geen opslag van data, AVG-compliant, 
+                            enterprise-grade beveiliging
+                        </p>
+                    </div>
+                    
+                    <div class="feature-card">
+                        <div class="feature-icon">💰</div>
+                        <h4 class="feature-title">Gratis te Proberen</h4>
+                        <p class="feature-description">
+                            Test de tool zonder kosten. 
+                            Zie direct de waarde voordat je investeert
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Process Section -->
+        <section class="process-section">
+            <div class="container">
+                <h3 class="process-title">🔄 Hoe het Werkt</h3>
+                <div class="process-steps">
+                    <div class="process-step">
+                        <div class="step-number">1</div>
+                        <div class="step-content">
+                            <h4 class="step-title">Plak Vacaturetekst</h4>
+                            <p class="step-description">
+                                Kopieer je volledige vacature en plak in het tekstveld. 
+                                Minimaal 100 woorden voor beste resultaten.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="process-arrow">➡️</div>
+                    
+                    <div class="process-step">
+                        <div class="step-number">2</div>
+                        <div class="step-content">
+                            <h4 class="step-title">AI Analyse</h4>
+                            <p class="step-description">
+                                Claude AI analyseert op 10+ criteria: aantrekkelijkheid, 
+                                duidelijkheid, salaris transparantie, en meer.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="process-arrow">➡️</div>
+                    
+                    <div class="process-step">
+                        <div class="step-number">3</div>
+                        <div class="step-content">
+                            <h4 class="step-title">Ontvang Verbeterpunten</h4>
+                            <p class="step-description">
+                                Krijg een score (1-10), top 3 verbeterpunten, 
+                                en een volledig geoptimaliseerde versie.
+                            </p>
+                        </div>
+                    </div>
+                    
+                    <div class="process-arrow">➡️</div>
+                    
+                    <div class="process-step">
+                        <div class="step-number">4</div>
+                        <div class="step-content">
+                            <h4 class="step-title">Implementeer & Meet</h4>
+                            <p class="step-description">
+                                Kopieer de geoptimaliseerde versie, plaats online, 
+                                en zie 40-60% meer sollicitaties.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer-section">
+            <div class="container">
+                <div class="footer-content">
+                    <div class="footer-main">
+                        <div class="footer-logo">
+                            <span class="logo-icon">🇳🇱</span>
+                            <span class="logo-text">TalentFlow Pro</span>
+                        </div>
+                        <p class="footer-description">
+                            Nederlandse Vacature Optimizer - Powered by AI
+                            <br>
+                            Verhoog je recruitment succes met slimme technologie
+                        </p>
+                    </div>
+                    
+                    <div class="footer-links">
+                        <div class="footer-column">
+                            <h4 class="footer-title">Product</h4>
+                            <ul class="footer-list">
+                                <li><a href="#features">Features</a></li>
+                                <li><a href="#process">Hoe het Werkt</a></li>
+                                <li><a href="#demo">Demo</a></li>
+                                <li><a href="#pricing">Prijzen</a></li>
+                            </ul>
+                        </div>
+                        
+                        <div class="footer-column">
+                            <h4 class="footer-title">Support</h4>
+                            <ul class="footer-list">
+                                <li><a href="#help">Help Center</a></li>
+                                <li><a href="#contact">Contact</a></li>
+                                <li><a href="#feedback">Feedback</a></li>
+                                <li><a href="#status">Status</a></li>
+                            </ul>
+                        </div>
+                        
+                        <div class="footer-column">
+                            <h4 class="footer-title">Legal</h4>
+                            <ul class="footer-list">
+                                <li><a href="#privacy">Privacy</a></li>
+                                <li><a href="#terms">Voorwaarden</a></li>
+                                <li><a href="#security">Beveiliging</a></li>
+                                <li><a href="#compliance">AVG</a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="footer-bottom">
+                    <div class="footer-credit">
+                        <p>
+                            © 2025 TalentFlow Pro • Nederlandse Recruitment Innovation
+                            <br>
+                            <small>Powered by Claude AI • Gebouwd voor Nederlandse Recruitment Professionals</small>
+                        </p>
+                    </div>
+                    
+                    <div class="footer-social">
+                        <a href="#" class="social-link" title="LinkedIn">💼</a>
+                        <a href="#" class="social-link" title="Twitter">🐦</a>
+                        <a href="#" class="social-link" title="Email">📧</a>
+                    </div>
+                </div>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toastContainer" class="toast-container"></div>
+
+    <!-- JavaScript -->
+    <script src="script.js"></script>
+    
+    <!-- Initialize App -->
+    <script>
+        // Initialize app when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeApp();
+        });
+    </script>
+</body>
+</html>

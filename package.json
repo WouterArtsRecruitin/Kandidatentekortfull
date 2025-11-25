@@ -1,0 +1,87 @@
+{
+  "name": "nederlandse-vacature-optimizer",
+  "version": "1.0.0",
+  "description": "AI-powered Nederlandse vacature optimalisatie tool - TalentFlow Pro MVP",
+  "main": "index.html",
+  "type": "module",
+  "scripts": {
+    "dev": "netlify dev",
+    "build": "echo 'Static site - no build step required'",
+    "start": "netlify dev --live",
+    "test": "echo 'Tests not implemented yet'",
+    "lint": "echo 'Linting not configured yet'",
+    "deploy": "netlify deploy --prod",
+    "preview": "netlify deploy",
+    "analyze": "npx lighthouse http://localhost:8888 --output html --output-path ./reports/lighthouse.html",
+    "serve": "npx http-server . -p 3000 -c-1"
+  },
+  "keywords": [
+    "recruitment",
+    "vacature",
+    "AI",
+    "optimization",
+    "claude",
+    "nederlands",
+    "HR",
+    "talent",
+    "jobs",
+    "hiring"
+  ],
+  "author": {
+    "name": "Wouter Arts",
+    "email": "wouter.arts@recruitin.nl",
+    "url": "https://talentflow-pro.netlify.app"
+  },
+  "license": "MIT",
+  "homepage": "https://nederlandse-vacature-optimizer.netlify.app",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/wouterarts/nederlandse-vacature-optimizer.git"
+  },
+  "bugs": {
+    "url": "https://github.com/wouterarts/nederlandse-vacature-optimizer/issues"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "dependencies": {
+    "@netlify/functions": "^2.4.1"
+  },
+  "devDependencies": {
+    "netlify-cli": "^17.10.1",
+    "http-server": "^14.1.1",
+    "lighthouse": "^11.4.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie 11"
+  ],
+  "funding": {
+    "type": "individual",
+    "url": "https://github.com/sponsors/wouterarts"
+  },
+  "config": {
+    "netlify": {
+      "functions": "netlify/functions",
+      "publish": ".",
+      "edge_functions": "netlify/edge-functions"
+    }
+  },
+  "peerDependencies": {},
+  "optionalDependencies": {},
+  "overrides": {},
+  "private": false,
+  "workspaces": [],
+  "files": [
+    "index.html",
+    "styles.css", 
+    "script.js",
+    "netlify/",
+    "assets/",
+    "README.md",
+    "LICENSE"
+  ]
+}

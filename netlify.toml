@@ -1,0 +1,199 @@
+# ===============================================
+# Netlify Configuration - Nederlandse Vacature Optimizer
+# TalentFlow Pro MVP Deployment Settings
+# ===============================================
+
+[build]
+  # Build settings
+  functions = "netlify/functions"
+  publish = "."
+  
+  # Environment
+  environment = { NODE_VERSION = "18" }
+
+[build.processing]
+  # Skip processing for static files (faster deploys)
+  skip_processing = false
+
+[build.processing.css]
+  bundle = true
+  minify = true
+
+[build.processing.js]
+  bundle = false
+  minify = true
+
+[build.processing.html]
+  pretty_urls = true
+
+# ===============================================
+# FUNCTIONS CONFIGURATION
+# ===============================================
+
+[functions]
+  # Node.js runtime settings
+  node_bundler = "esbuild"
+  
+  # Function directory
+  directory = "netlify/functions"
+
+[functions."claude-analyze"]
+  # Claude API function settings
+  timeout = 60
+  memory = 1024
+
+# ===============================================
+# HEADERS & SECURITY
+# ===============================================
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    # Security headers
+    X-Frame-Options = "DENY"
+    X-Content-Type-Options = "nosniff"
+    X-XSS-Protection = "1; mode=block"
+    Referrer-Policy = "strict-origin-when-cross-origin"
+    
+    # CORS headers for API
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "GET, POST, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type, Authorization"
+
+[[headers]]
+  for = "/.netlify/functions/*"
+  [headers.values]
+    # Function-specific headers
+    Access-Control-Allow-Origin = "*"
+    Access-Control-Allow-Methods = "POST, OPTIONS"
+    Access-Control-Allow-Headers = "Content-Type"
+    Cache-Control = "no-cache"
+
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    # Asset caching
+    Cache-Control = "public, max-age=31536000, immutable"
+
+[[headers]]
+  for = "*.css"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+    Content-Type = "text/css"
+
+[[headers]]
+  for = "*.js"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000"
+    Content-Type = "application/javascript"
+
+# ===============================================
+# REDIRECTS & ROUTING
+# ===============================================
+
+# API endpoint redirects
+[[redirects]]
+  from = "/api/analyze"
+  to = "/.netlify/functions/claude-analyze"
+  status = 200
+
+[[redirects]]
+  from = "/api/health"
+  to = "/.netlify/functions/claude-analyze/health"
+  status = 200
+
+# Force HTTPS
+[[redirects]]
+  from = "http://nederlandse-vacature-optimizer.netlify.app/*"
+  to = "https://nederlandse-vacature-optimizer.netlify.app/:splat"
+  status = 301
+  force = true
+
+# SPA fallback (if we add routing later)
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  conditions = {Role = ["admin"]}
+
+# ===============================================
+# ENVIRONMENT VARIABLES (TEMPLATE)
+# ===============================================
+
+# These should be set in Netlify dashboard:
+# CLAUDE_API_KEY = "your_claude_api_key_here"
+# NODE_ENV = "production"
+# GA_MEASUREMENT_ID = "your_google_analytics_id" (optional)
+
+# ===============================================
+# EDGE FUNCTIONS (Future Enhancement)
+# ===============================================
+
+# [[edge_functions]]
+#   function = "rate-limit"
+#   path = "/api/*"
+
+# ===============================================
+# FORM HANDLING (If needed later)
+# ===============================================
+
+# [[forms]]
+#   name = "feedback"
+#   action = "/feedback"
+#   method = "POST"
+
+# ===============================================
+# PLUGIN CONFIGURATION
+# ===============================================
+
+[[plugins]]
+  package = "@netlify/plugin-lighthouse"
+  
+  [plugins.inputs.audits]
+    performance = true
+    accessibility = true
+    best-practices = true
+    seo = true
+    
+  [plugins.inputs.settings]
+    output_path = "reports/lighthouse.html"
+
+# ===============================================
+# DEVELOPMENT SETTINGS
+# ===============================================
+
+[dev]
+  # Local development settings
+  framework = "#static"
+  command = "npx http-server . -p 8888 -c-1"
+  port = 8888
+  publish = "."
+  functions = "netlify/functions"
+
+# ===============================================
+# CONTEXT-SPECIFIC SETTINGS
+# ===============================================
+
+[context.production]
+  # Production-only settings
+  environment = { NODE_ENV = "production", LOG_LEVEL = "error" }
+
+[context.deploy-preview]
+  # Deploy preview settings
+  environment = { NODE_ENV = "staging", LOG_LEVEL = "debug" }
+
+[context.branch-deploy]
+  # Branch deploy settings  
+  environment = { NODE_ENV = "development", LOG_LEVEL = "debug" }
+
+# ===============================================
+# SPLIT TESTING (Future Feature)
+# ===============================================
+
+# [[split_tests]]
+#   name = "landing-page-test"
+#   path = "/"
+#   branches = [
+#     { branch = "main", percentage = 50 },
+#     { branch = "variant-a", percentage = 50 }
+#   ]
