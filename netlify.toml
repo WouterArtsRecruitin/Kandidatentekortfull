@@ -4,7 +4,8 @@
 # ===============================================
 
 [build]
-  # Build settings
+  # Build settings - Static site, no build needed
+  command = ""
   functions = "netlify/functions"
   publish = "."
   
