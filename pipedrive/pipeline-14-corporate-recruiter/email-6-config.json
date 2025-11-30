@@ -1,0 +1,43 @@
+{
+  "email": {
+    "sequence_number": 6,
+    "name": "The Breakup",
+    "day": 42,
+    "wait_after_previous": "14 dagen",
+    "goal": "Laatste kans, eerlijk afscheid nemen"
+  },
+  "subject_line": {
+    "template": "Re: {{E5_subject}}",
+    "note": "REPLY op Email 5"
+  },
+  "body": {
+    "plain_text": "{{first_name}},\n\nDit is mijn laatste mail over jullie recruiter vacature.\n\nIk heb je 5x gemaild de afgelopen 6 weken. Geen reactie.\n\nDat kan drie dingen betekenen:\n\n1. Jullie hebben de vacature al ingevuld → Gefeliciteerd! 🎉\n2. De timing is niet goed → Snap ik. Hou mijn gegevens voor later.\n3. Ik ben niet de juiste partij → Ook prima. Hopelijk vinden jullie snel de juiste.\n\nHoe dan ook: ik stop met mailen.\n\nAls er ooit een moment komt dat jullie wél hulp nodig hebben bij recruitment posities, dan weet je me te vinden.\n\nSucces met de search.\n\nWouter\n\nPS: Reply \"LATER\" als je wilt dat ik over 3 maanden nog eens check. Geen probleem.",
+    "word_count": 112,
+    "html_template": "email-6-breakup.html"
+  },
+  "cta": {
+    "type": "Trigger word voor re-engagement",
+    "trigger_word": "LATER",
+    "description": "Reply 'LATER' voor check over 3 maanden"
+  },
+  "send_as": "REPLY op Email 5",
+  "timing": {
+    "day_in_sequence": 42,
+    "recommended_days": ["Monday", "Tuesday", "Wednesday", "Thursday"],
+    "recommended_time": "09:30",
+    "timezone": "Europe/Amsterdam",
+    "note": "Any weekday"
+  },
+  "metrics": {
+    "expected_open_rate": "45%",
+    "expected_reply_rate": "5%",
+    "cumulative_reply_rate": "32%"
+  },
+  "variables_used": [
+    "{{first_name}}"
+  ],
+  "psychology": {
+    "technique": "Breakup email",
+    "why_it_works": "FOMO + respect for their time + clear exit"
+  }
+}

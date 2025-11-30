@@ -3,17 +3,85 @@
     "id": 14,
     "name": "Corporate Recruiter Vacatures",
     "description": "JobDigger leads - HR Directors / Hiring Managers met openstaande recruiter vacature",
-    "goal": "Gesprek plannen over invulling recruiter positie"
+    "goal": "Gesprek → Deal → Plaatsing (€7,990 fee)"
   },
   "email_sequence": {
     "name": "Award-Winning Cold Email Sequence",
-    "total_emails": 2,
+    "total_emails": 7,
+    "duration_days": 90,
+    "emails": [
+      {
+        "number": 1,
+        "name": "The Opener",
+        "day": 0,
+        "goal": "Pattern interrupt + nieuwsgierigheid + vraag",
+        "send_as": "New thread",
+        "template": "email-1-opener.html"
+      },
+      {
+        "number": 2,
+        "name": "The Follow-up",
+        "day": 4,
+        "goal": "Case study + methode + soft urgentie",
+        "send_as": "Reply to E1",
+        "template": "email-2-followup.html"
+      },
+      {
+        "number": 3,
+        "name": "The Value Drop",
+        "day": 11,
+        "goal": "Waarde geven zonder iets terug te vragen",
+        "send_as": "Reply to E1",
+        "template": "email-3-value-drop.html"
+      },
+      {
+        "number": 4,
+        "name": "The Social Proof",
+        "day": 18,
+        "goal": "Testimonial + resultaten van anderen",
+        "send_as": "Reply to E1",
+        "template": "email-4-social-proof.html"
+      },
+      {
+        "number": 5,
+        "name": "The Reality Check",
+        "day": 28,
+        "goal": "Kosten van niet-handelen concreet maken",
+        "send_as": "New thread",
+        "template": "email-5-reality-check.html"
+      },
+      {
+        "number": 6,
+        "name": "The Breakup",
+        "day": 42,
+        "goal": "Laatste kans + eerlijk afscheid",
+        "send_as": "Reply to E5",
+        "template": "email-6-breakup.html"
+      },
+      {
+        "number": 7,
+        "name": "The Resurrection",
+        "day": 90,
+        "goal": "Re-engagement na lange stilte",
+        "send_as": "New thread",
+        "template": "email-7-resurrection.html"
+      }
+    ],
     "expected_results": {
-      "open_rate_email_1": "45%+",
-      "reply_rate_email_1": "8-12%",
-      "open_rate_email_2": "50%+",
-      "reply_rate_email_2": "15%+",
-      "combined_reply_rate": "20%+"
+      "email_1": { "open_rate": "45%", "reply_rate": "8%", "cumulative": "8%" },
+      "email_2": { "open_rate": "50%", "reply_rate": "7%", "cumulative": "15%" },
+      "email_3": { "open_rate": "40%", "reply_rate": "5%", "cumulative": "20%" },
+      "email_4": { "open_rate": "38%", "reply_rate": "4%", "cumulative": "24%" },
+      "email_5": { "open_rate": "35%", "reply_rate": "3%", "cumulative": "27%" },
+      "email_6": { "open_rate": "45%", "reply_rate": "5%", "cumulative": "32%" },
+      "email_7": { "open_rate": "30%", "reply_rate": "3%", "cumulative": "35%" }
+    },
+    "target_conversion": {
+      "per_100_leads": {
+        "replies": 35,
+        "deals": 10,
+        "revenue": "€79,900"
+      }
     }
   },
   "variables": {
@@ -30,6 +98,10 @@
       "description": "Aantal dagen dat de vacature open staat",
       "calculation": "Berekend vanaf JobDigger posting date"
     },
+    "days_open_updated": {
+      "description": "Days open + dagen sinds Email 1",
+      "calculation": "days_open + sequence_day"
+    },
     "region": {
       "pipedrive_field": "organization.address_region",
       "description": "Regio (Gelderland/Overijssel/Noord-Brabant)",
@@ -38,38 +110,89 @@
     "industry": {
       "pipedrive_field": "organization.custom_field_sector",
       "description": "Sector/branche van het bedrijf"
+    },
+    "calculated_cost": {
+      "description": "Gemiste recruitment capaciteit in euro",
+      "calculation": "days_open_updated × (6560 / 30)"
     }
+  },
+  "pipedrive_stages": [
+    { "order": 1, "name": "New Lead", "api_name": "new_lead" },
+    { "order": 2, "name": "Email 1 Sent", "api_name": "email_1_sent" },
+    { "order": 3, "name": "Email 2 Sent", "api_name": "email_2_sent" },
+    { "order": 4, "name": "Email 3 Sent", "api_name": "email_3_sent" },
+    { "order": 5, "name": "Email 4 Sent", "api_name": "email_4_sent" },
+    { "order": 6, "name": "Email 5 Sent", "api_name": "email_5_sent" },
+    { "order": 7, "name": "Email 6 Sent (Breakup)", "api_name": "email_6_sent" },
+    { "order": 8, "name": "Replied - Positive", "api_name": "replied_positive" },
+    { "order": 9, "name": "Replied - Negative", "api_name": "replied_negative" },
+    { "order": 10, "name": "Call Scheduled", "api_name": "call_scheduled" },
+    { "order": 11, "name": "Meeting Done", "api_name": "meeting_done" },
+    { "order": 12, "name": "Proposal Sent", "api_name": "proposal_sent" },
+    { "order": 13, "name": "Won", "api_name": "won" },
+    { "order": 14, "name": "Lost", "api_name": "lost" }
+  ],
+  "custom_fields": {
+    "deal": [
+      { "name": "Email Sequence Stage", "key": "email_sequence_stage", "type": "enum", "options": ["E1", "E2", "E3", "E4", "E5", "E6", "E7", "Replied", "Stopped"] },
+      { "name": "Days Open", "key": "days_open", "type": "number" },
+      { "name": "Import Date", "key": "import_date", "type": "date" },
+      { "name": "Last Email Sent", "key": "last_email_sent", "type": "date" },
+      { "name": "Reply Sentiment", "key": "reply_sentiment", "type": "enum", "options": ["Positive", "Negative", "Neutral", "None"] },
+      { "name": "Vacature URL", "key": "vacature_url", "type": "text" },
+      { "name": "Subject Variant", "key": "subject_variant", "type": "enum", "options": ["A", "B", "C"] }
+    ],
+    "organization": [
+      { "name": "Sector", "key": "sector", "type": "text" },
+      { "name": "Region", "key": "address_region", "type": "enum", "options": ["Gelderland", "Overijssel", "Noord-Brabant", "Other"] }
+    ]
   },
   "timing": {
-    "optimal_days": ["Tuesday", "Wednesday", "Monday"],
-    "optimal_time": "09:30",
-    "timezone": "Europe/Amsterdam",
-    "open_rate_by_day": {
-      "Tuesday": "44%",
-      "Monday": "42%",
-      "Wednesday": "41%"
-    }
-  },
-  "checklist": {
-    "pre_send": [
-      "Domain warmed up (min. 2 weken, 20-50 emails/dag opbouw)",
-      "SPF/DKIM/DMARC correct geconfigureerd",
-      "Subject line A/B test opgezet (min. 50 per variant)",
-      "Alle variabelen correct gevuld (geen null/lege waarden)",
-      "Days_open berekend vanaf JobDigger posting date"
+    "schedule": [
+      { "email": 1, "day": 0, "wait": "-", "send_day": "Tue/Wed", "time": "09:30" },
+      { "email": 2, "day": 4, "wait": "4d", "send_day": "Mon/Tue", "time": "09:30" },
+      { "email": 3, "day": 11, "wait": "7d", "send_day": "Tue/Wed", "time": "09:30" },
+      { "email": 4, "day": 18, "wait": "7d", "send_day": "Tue/Wed", "time": "09:30" },
+      { "email": 5, "day": 28, "wait": "10d", "send_day": "Tue/Wed", "time": "09:30" },
+      { "email": 6, "day": 42, "wait": "14d", "send_day": "Any weekday", "time": "09:30" },
+      { "email": 7, "day": 90, "wait": "48d", "send_day": "Monday", "time": "09:30" }
     ],
-    "email_2_specific": [
-      "Alleen versturen naar non-responders Email 1",
-      "Verstuur als REPLY (niet nieuwe thread)",
-      "Minimum 4 dagen wachttijd",
-      "Niet op vrijdag/weekend versturen"
+    "timezone": "Europe/Amsterdam",
+    "rules": [
+      "Nooit op vrijdag/weekend versturen",
+      "Max 50 emails/dag"
     ]
+  },
+  "stop_conditions": [
+    "Reply ontvangen (positive, negative, of neutral)",
+    "Bounce (email niet bezorgd)",
+    "Unsubscribe (reply 'stop' of 'uitschrijven')",
+    "Deal status = Won of Lost",
+    "Manual override (sales zet 'Stopped')"
+  ],
+  "trigger_words": {
+    "email_3": { "word": "JA", "action": "Stuur checklist" },
+    "email_5": { "word": "BELLEN", "action": "Schedule call" },
+    "email_6": { "word": "LATER", "action": "Re-engage na 3 maanden" }
+  },
+  "warmup_protocol": {
+    "week_1": "10 emails/dag",
+    "week_2": "20 emails/dag",
+    "week_3": "35 emails/dag",
+    "week_4_plus": "50 emails/dag max"
+  },
+  "domain_health": {
+    "spf": "v=spf1 include:_spf.google.com ~all",
+    "dkim": "Enabled via Google Workspace",
+    "dmarc": "v=DMARC1; p=none; rua=mailto:dmarc@recruitin.nl",
+    "tracking_domain": "track.recruitin.nl"
   },
   "research_sources": [
     "Belkins: 16.5M cold emails analysis",
     "Reply.io: Email length optimization",
     "SalesBread: CTA effectiveness",
     "Lemlist: Personalization impact",
-    "Intelligence Group 2024: Dutch recruitment market data"
+    "Intelligence Group 2024: Dutch recruitment market data",
+    "SHRM: Cost of vacancy calculations"
   ]
 }
