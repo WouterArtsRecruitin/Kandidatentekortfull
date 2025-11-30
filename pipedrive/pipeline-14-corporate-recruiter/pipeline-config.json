@@ -1,0 +1,75 @@
+{
+  "pipeline": {
+    "id": 14,
+    "name": "Corporate Recruiter Vacatures",
+    "description": "JobDigger leads - HR Directors / Hiring Managers met openstaande recruiter vacature",
+    "goal": "Gesprek plannen over invulling recruiter positie"
+  },
+  "email_sequence": {
+    "name": "Award-Winning Cold Email Sequence",
+    "total_emails": 2,
+    "expected_results": {
+      "open_rate_email_1": "45%+",
+      "reply_rate_email_1": "8-12%",
+      "open_rate_email_2": "50%+",
+      "reply_rate_email_2": "15%+",
+      "combined_reply_rate": "20%+"
+    }
+  },
+  "variables": {
+    "first_name": {
+      "pipedrive_field": "person.first_name",
+      "description": "Voornaam van de contactpersoon"
+    },
+    "company": {
+      "pipedrive_field": "organization.name",
+      "description": "Bedrijfsnaam"
+    },
+    "days_open": {
+      "pipedrive_field": "deal.custom_field_days_open",
+      "description": "Aantal dagen dat de vacature open staat",
+      "calculation": "Berekend vanaf JobDigger posting date"
+    },
+    "region": {
+      "pipedrive_field": "organization.address_region",
+      "description": "Regio (Gelderland/Overijssel/Noord-Brabant)",
+      "fallback": "Nederland"
+    },
+    "industry": {
+      "pipedrive_field": "organization.custom_field_sector",
+      "description": "Sector/branche van het bedrijf"
+    }
+  },
+  "timing": {
+    "optimal_days": ["Tuesday", "Wednesday", "Monday"],
+    "optimal_time": "09:30",
+    "timezone": "Europe/Amsterdam",
+    "open_rate_by_day": {
+      "Tuesday": "44%",
+      "Monday": "42%",
+      "Wednesday": "41%"
+    }
+  },
+  "checklist": {
+    "pre_send": [
+      "Domain warmed up (min. 2 weken, 20-50 emails/dag opbouw)",
+      "SPF/DKIM/DMARC correct geconfigureerd",
+      "Subject line A/B test opgezet (min. 50 per variant)",
+      "Alle variabelen correct gevuld (geen null/lege waarden)",
+      "Days_open berekend vanaf JobDigger posting date"
+    ],
+    "email_2_specific": [
+      "Alleen versturen naar non-responders Email 1",
+      "Verstuur als REPLY (niet nieuwe thread)",
+      "Minimum 4 dagen wachttijd",
+      "Niet op vrijdag/weekend versturen"
+    ]
+  },
+  "research_sources": [
+    "Belkins: 16.5M cold emails analysis",
+    "Reply.io: Email length optimization",
+    "SalesBread: CTA effectiveness",
+    "Lemlist: Personalization impact",
+    "Intelligence Group 2024: Dutch recruitment market data"
+  ]
+}
