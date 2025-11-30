@@ -1,0 +1,43 @@
+{
+  "email": {
+    "sequence_number": 5,
+    "name": "The Reality Check",
+    "day": 28,
+    "wait_after_previous": "10 dagen",
+    "goal": "Kosten van niet-handelen concreet maken"
+  },
+  "subject_line": {
+    "template": "{{first_name}}, wat kost jullie lege recruiter stoel?",
+    "note": "NIEUWE thread (frisse start)"
+  },
+  "body": {
+    "plain_text": "{{first_name}},\n\nEven een rekensommetje.\n\nJullie recruiter vacature staat nu {{days_open_updated}} dagen open.\n\nWat kost dat?\n\nStel: die recruiter had 2 vacatures per maand kunnen invullen.\nGemiddelde time-to-fill besparing: 20 dagen per vacature.\nGemiddeld salaris openstaande posities: €60.000/jaar.\n\nKosten per dag dat een vacature onvervuld is: €164/dag\n(Bron: SHRM, aangepast naar NL markt)\n\n2 vacatures × 20 dagen × €164 = €6.560/maand\n\nJullie missen nu al {{days_open_updated}} dagen × (indirect: €6.560/30) = €{{calculated_cost}} aan recruitment capaciteit.\n\nEn dat is conservatief gerekend.\n\nIk snap dat dit geen prettige email is. Maar iemand moet het zeggen.\n\nAls je wilt sparren over hoe dit sneller kan, reply gewoon met \"BELLEN\".\n\nWouter\n\nPS: Geen recruitment fee nodig om te praten. Eerste gesprek is altijd vrijblijvend.",
+    "word_count": 142,
+    "html_template": "email-5-reality-check.html"
+  },
+  "cta": {
+    "type": "Trigger word",
+    "trigger_word": "BELLEN",
+    "description": "Reply 'BELLEN' voor gesprek"
+  },
+  "send_as": "NIEUWE thread",
+  "timing": {
+    "day_in_sequence": 28,
+    "recommended_days": ["Tuesday", "Wednesday"],
+    "recommended_time": "09:30",
+    "timezone": "Europe/Amsterdam"
+  },
+  "metrics": {
+    "expected_open_rate": "35%",
+    "expected_reply_rate": "3%",
+    "cumulative_reply_rate": "27%"
+  },
+  "variables_used": [
+    "{{first_name}}",
+    "{{days_open_updated}}",
+    "{{calculated_cost}}"
+  ],
+  "variable_calculation": {
+    "calculated_cost": "{{days_open_updated}} × (6560 / 30) = rounded to nearest euro"
+  }
+}

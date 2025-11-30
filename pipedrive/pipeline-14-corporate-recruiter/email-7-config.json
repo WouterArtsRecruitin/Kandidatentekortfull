@@ -1,0 +1,45 @@
+{
+  "email": {
+    "sequence_number": 7,
+    "name": "The Resurrection",
+    "day": 90,
+    "wait_after_previous": "48 dagen",
+    "goal": "Re-engagement na lange stilte"
+  },
+  "subject_line": {
+    "template": "{{first_name}}, nog steeds aan het zoeken?",
+    "note": "NIEUWE thread"
+  },
+  "body": {
+    "plain_text": "{{first_name}},\n\n3 maanden geleden mailde ik je over jullie recruiter vacature.\n\nIk check even in:\n\n□ Ingevuld? → Top, negeer deze mail\n□ Nog open? → Dan hebben we iets te bespreken\n□ Nieuwe vacature? → Laat me weten, ik help graag\n\nSinds mijn laatste mail heb ik 7 recruiter posities ingevuld voor bedrijven in {{region}}.\n\nGemiddelde time-to-fill: 21 dagen.\nGemiddelde fee: €7.990 (no cure, no pay).\n\nAls jullie nog zoeken, stuur ik je graag 2-3 profielen. Vrijblijvend, zodat je ziet wat ik kan leveren.\n\nInteresse?\n\nWouter",
+    "word_count": 98,
+    "html_template": "email-7-resurrection.html"
+  },
+  "cta": {
+    "type": "Profielen aanbod",
+    "description": "Concrete waarde (2-3 profielen vrijblijvend)"
+  },
+  "send_as": "NIEUWE thread",
+  "trigger_conditions": [
+    "Vacature nog open staat",
+    "OF nieuwe vacature gespot"
+  ],
+  "timing": {
+    "day_in_sequence": 90,
+    "recommended_days": ["Monday"],
+    "recommended_time": "09:30",
+    "timezone": "Europe/Amsterdam"
+  },
+  "metrics": {
+    "expected_open_rate": "30%",
+    "expected_reply_rate": "3%",
+    "cumulative_reply_rate": "35%"
+  },
+  "variables_used": [
+    "{{first_name}}",
+    "{{region}}"
+  ],
+  "post_sequence": {
+    "on_reply": "Sales handoff → Terug naar begin indien nieuwe vacature"
+  }
+}
