@@ -840,6 +840,24 @@ def create_app() -> Optional[Any]:
 
     app = Flask(__name__)
 
+    @app.route('/', methods=['GET'])
+    def index():
+        """Root endpoint - API info and status."""
+        return jsonify({
+            'service': 'Kandidatentekort API',
+            'version': '2.0',
+            'status': 'running',
+            'description': 'Nederlandse Technische Vacature Analyse API',
+            'endpoints': {
+                'health': 'GET /health - Service health check',
+                'analyze': 'POST /webhook/analyze - Analyze vacancy text',
+                'sector': 'POST /api/sector-detect - Detect sector from text',
+                'typeform': 'POST /webhook/typeform - Typeform webhook'
+            },
+            'frontend': 'https://nederlandse-vacature-optimizer.netlify.app',
+            'timestamp': datetime.now().isoformat()
+        })
+
     @app.route('/health', methods=['GET'])
     def health_check():
         return jsonify({
