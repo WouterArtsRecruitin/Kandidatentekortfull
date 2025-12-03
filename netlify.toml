@@ -152,17 +152,9 @@
 # PLUGIN CONFIGURATION
 # ===============================================
 
-[[plugins]]
-  package = "@netlify/plugin-lighthouse"
-  
-  [plugins.inputs.audits]
-    performance = true
-    accessibility = true
-    best-practices = true
-    seo = true
-    
-  [plugins.inputs.settings]
-    output_path = "reports/lighthouse.html"
+# Lighthouse plugin disabled - optional, install separately if needed
+# [[plugins]]
+#   package = "@netlify/plugin-lighthouse"
 
 # ===============================================
 # DEVELOPMENT SETTINGS
