@@ -70,7 +70,7 @@ export const initAnalytics = () => {
   // @ts-ignore
   gtag('js', new Date());
   // @ts-ignore
-  gtag('config', 'G-W6G1NY28BD');
+  gtag('config', 'G-67PJ02SXVN');
 
   // Initialize FB Pixel
   // @ts-ignore
