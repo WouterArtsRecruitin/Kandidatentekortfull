@@ -3,8 +3,8 @@ import { motion } from 'motion/react';
 import { MessageCircle } from 'lucide-react';
 import { trackEvent } from '../../lib/analytics';
 
-// WhatsApp number - update this with Recruitin's number
-const WHATSAPP_NUMBER = '31313410507';
+// WhatsApp Business number
+const WHATSAPP_NUMBER = '31614314593';
 const WHATSAPP_MESSAGE = 'Hoi! Ik heb een vraag over de vacature analyse.';
 
 export const WhatsAppButton = () => {

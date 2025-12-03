@@ -7,8 +7,8 @@ import { Button } from "../ui/button";
 // Updated Typeform ID from user snippet
 const TYPEFORM_ID = "01KARQKA6091587B0YQE19KZB5";
 
-// Calendly URL - update with Recruitin's Calendly link
-const CALENDLY_URL = "https://calendly.com/recruitin/vacature-gesprek";
+// Calendly URL
+const CALENDLY_URL = "https://calendly.com/wouter-arts-/vacature-analyse-advies";
 
 // Example templates
 const EXAMPLE_TEMPLATES = {
@@ -351,9 +351,12 @@ export const VacancyAnalyzer = () => {
                  <div className="relative z-10">
                     <h4 className="font-bold text-lg mb-2">🚀 Ontvang je verbeterde vacaturetekst</h4>
                     <p className="text-slate-300 text-sm mb-4">Inclusief volledige analyse en direct toepasbare tips.</p>
-                    <Button onClick={openFullAnalysisForm} className="bg-orange-600 hover:bg-orange-500 text-white font-bold w-full py-3 rounded-lg">
-                        Ontvang mijn geoptimaliseerde tekst (Gratis)
-                    </Button>
+                    <button
+                      onClick={openFullAnalysisForm}
+                      className="bg-orange-600 hover:bg-orange-500 text-white font-bold w-full py-4 px-6 rounded-lg text-base sm:text-lg transition-colors"
+                    >
+                      Gratis geoptimaliseerde tekst ontvangen
+                    </button>
                  </div>
               </div>
             </motion.div>
@@ -399,15 +402,13 @@ export const VacancyAnalyzer = () => {
                 <p className="text-sm text-slate-600 mb-4">
                   Plan een gratis 15-minuten gesprek en ontvang direct persoonlijk advies.
                 </p>
-                <Button
+                <button
                   onClick={openCalendly}
-                  className="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 rounded-lg"
+                  className="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-4 px-6 rounded-lg transition-colors flex items-center justify-center gap-2"
                 >
-                  <span className="flex items-center justify-center gap-2">
-                    <Calendar className="w-4 h-4" />
-                    Plan een gesprek
-                  </span>
-                </Button>
+                  <Calendar className="w-5 h-5" />
+                  Plan een gesprek
+                </button>
               </div>
 
               <button
