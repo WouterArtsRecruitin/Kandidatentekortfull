@@ -1,31 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "motion/react";
 import { trackEvent } from "../../lib/analytics";
 import { Loader2, AlertTriangle, CheckCircle2, Sparkles, FileText, BarChart2, ShieldCheck, ArrowRight } from "lucide-react";
 import { Button } from "../ui/button";
-import * as typeformEmbed from '@typeform/embed';
 
 // Updated Typeform ID from user snippet
 const TYPEFORM_ID = "01KARQKA6091587B0YQE19KZB5";
-
-// Helper to safely access createPopup
-const getCreatePopup = () => {
-  // @ts-ignore
-  return typeformEmbed.createPopup || (typeformEmbed.default && typeformEmbed.default.createPopup);
-};
-
-// Load Typeform CSS dynamically
-const loadTypeformCSS = () => {
-  if (typeof document === 'undefined') return;
-  const id = 'typeform-popup-css';
-  if (!document.getElementById(id)) {
-    const link = document.createElement('link');
-    link.id = id;
-    link.rel = 'stylesheet';
-    link.href = 'https://embed.typeform.com/next/css/popup.css';
-    document.head.appendChild(link);
-  }
-};
 
 // Example templates
 const EXAMPLE_TEMPLATES = {
@@ -182,22 +162,25 @@ export const VacancyAnalyzer = () => {
   };
 
   const openFullAnalysisForm = () => {
-    loadTypeformCSS();
     try {
-      const createPopup = getCreatePopup();
-      if (typeof createPopup === 'function') {
-        const { toggle } = createPopup(TYPEFORM_ID, {
+      // Use global Typeform API from embed.js script in index.html
+      // @ts-ignore
+      const tf = window.tf;
+      if (tf && tf.createPopup) {
+        const popup = tf.createPopup(TYPEFORM_ID, {
           hidden: { vacature_text: vacancyText.substring(0, 8000) },
           autoClose: 3000,
-          width: 800,
-          height: 600,
           onSubmit: () => {
              trackEvent('complete_registration', { content_name: 'Recruitment Quickscan' });
              setShowResults(false);
           }
         });
-        toggle();
-      } 
+        popup.open();
+      } else {
+        // Fallback: open in new tab
+        const encodedText = encodeURIComponent(vacancyText.substring(0, 1500));
+        window.open(`https://form.typeform.com/to/${TYPEFORM_ID}#vacature_text=${encodedText}`, '_blank');
+      }
     } catch (error) {
       const encodedText = encodeURIComponent(vacancyText.substring(0, 1500));
       window.open(`https://form.typeform.com/to/${TYPEFORM_ID}#vacature_text=${encodedText}`, '_blank');

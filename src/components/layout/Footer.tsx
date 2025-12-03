@@ -1,6 +1,6 @@
 import React from 'react';
 import { Mail, Phone, Globe } from 'lucide-react';
-import recruitinLogo from 'figma:asset/87a4b7438908a4a6cba85a1fe483cdd1f613878a.png';
+import recruitinLogo from '../../assets/recruitin-logo-white.png';
 
 export const Footer = () => {
   return (
