@@ -166,29 +166,51 @@ export const VacancyAnalyzer = () => {
   };
 
   const openFullAnalysisForm = () => {
+    const encodedText = encodeURIComponent(vacancyText.substring(0, 1500));
+    const fallbackUrl = `https://form.typeform.com/to/${TYPEFORM_ID}#vacature_text=${encodedText}`;
+
     try {
+      // Check if on mobile device
+      const isMobile = window.innerWidth < 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
       // Use global Typeform API from embed.js script in index.html
       // @ts-ignore
       const tf = window.tf;
-      if (tf && tf.createPopup) {
-        const popup = tf.createPopup(TYPEFORM_ID, {
+
+      if (tf && typeof tf.createSlider === 'function' && isMobile) {
+        // Use slider for mobile - better viewport handling
+        const slider = tf.createSlider(TYPEFORM_ID, {
           hidden: { vacature_text: vacancyText.substring(0, 8000) },
+          position: 'right',
+          width: '100%',
           autoClose: 3000,
           onSubmit: () => {
-             trackEvent('complete_registration', { content_name: 'Recruitment Quickscan' });
-             setShowResults(false);
-             setShowThankYou(true);
+            trackEvent('complete_registration', { content_name: 'Recruitment Quickscan' });
+            setShowResults(false);
+            setShowThankYou(true);
+          }
+        });
+        slider.open();
+      } else if (tf && typeof tf.createPopup === 'function') {
+        // Use popup for desktop with explicit size
+        const popup = tf.createPopup(TYPEFORM_ID, {
+          hidden: { vacature_text: vacancyText.substring(0, 8000) },
+          size: 80, // 80% of viewport
+          autoClose: 3000,
+          onSubmit: () => {
+            trackEvent('complete_registration', { content_name: 'Recruitment Quickscan' });
+            setShowResults(false);
+            setShowThankYou(true);
           }
         });
         popup.open();
       } else {
-        // Fallback: open in new tab
-        const encodedText = encodeURIComponent(vacancyText.substring(0, 1500));
-        window.open(`https://form.typeform.com/to/${TYPEFORM_ID}#vacature_text=${encodedText}`, '_blank');
+        // Fallback: open in new tab (Edge, blocked scripts, etc.)
+        window.open(fallbackUrl, '_blank');
       }
     } catch (error) {
-      const encodedText = encodeURIComponent(vacancyText.substring(0, 1500));
-      window.open(`https://form.typeform.com/to/${TYPEFORM_ID}#vacature_text=${encodedText}`, '_blank');
+      // Ultimate fallback
+      window.open(fallbackUrl, '_blank');
     }
   };
 
