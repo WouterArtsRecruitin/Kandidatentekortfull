@@ -108,19 +108,11 @@
   to = "/.netlify/functions/track-conversion"
   status = 200
 
-# Force HTTPS
-[[redirects]]
-  from = "http://nederlandse-vacature-optimizer.netlify.app/*"
-  to = "https://nederlandse-vacature-optimizer.netlify.app/:splat"
-  status = 301
-  force = true
-
-# SPA fallback (if we add routing later)
+# SPA fallback - serve index.html for all unmatched routes
 [[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
-  conditions = {Role = ["admin"]}
 
 # ===============================================
 # ENVIRONMENT VARIABLES (TEMPLATE)
