@@ -11,24 +11,39 @@ type TrackingEvent = {
   properties?: Record<string, any>;
 };
 
-// Mock server-side tracking function to match HTML logic
-async function sendServerSideEvent(eventName: string, customData = {}) {
+// Server-side tracking via Netlify function (FB CAPI + GA4 MP)
+async function sendServerSideEvent(eventName: string, customData: Record<string, any> = {}) {
   try {
-    // In a real app, this would get cookies
-    const fbp = 'mock_fbp'; 
-    const fbc = 'mock_fbc';
-    
-    console.log(`[Server-Side Tracking] Sending ${eventName}`, {
+    // Get Facebook cookies for better matching
+    const getCookie = (name: string) => {
+      const match = document.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+      return match ? match[2] : null;
+    };
+
+    const fbp = getCookie('_fbp');
+    const fbc = getCookie('_fbc');
+
+    const payload = {
       event_name: eventName,
-      event_source_url: window.location.href,
-      user_data: { fbp, fbc },
-      custom_data: customData
+      event_id: `evt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      client_ip: '', // Will be filled by server
+      user_agent: navigator.userAgent,
+      fbp,
+      fbc,
+      ...customData
+    };
+
+    const response = await fetch('/.netlify/functions/track-conversion', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
     });
 
-    // Simulating the fetch call to Netlify/Supabase function
-    // const response = await fetch('/.netlify/functions/track-conversion', { ... });
+    if (response.ok) {
+      console.log(`[Server-Side Tracking] ✅ ${eventName} sent successfully`);
+    }
   } catch (error) {
-    console.error('❌ Tracking error:', error);
+    console.error('❌ Server-side tracking error:', error);
   }
 }
 
