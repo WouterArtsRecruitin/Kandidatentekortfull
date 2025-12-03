@@ -854,7 +854,7 @@ def create_app() -> Optional[Any]:
                 'sector': 'POST /api/sector-detect - Detect sector from text',
                 'typeform': 'POST /webhook/typeform - Typeform webhook'
             },
-            'frontend': 'https://nederlandse-vacature-optimizer.netlify.app',
+            'frontend': 'https://kandidatentekortv2.netlify.app',
             'timestamp': datetime.now().isoformat()
         })
 
