@@ -1,0 +1,11 @@
+# Kandidatentekort Auto - Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# Core dependencies
+anthropic>=0.25.0       # Claude API client
+flask>=3.0.0            # Webhook server
+requests>=2.31.0        # HTTP client for Pipedrive
+
+# Optional dependencies
+gunicorn>=21.0.0        # Production WSGI server
+python-dotenv>=1.0.0    # Environment variable management
