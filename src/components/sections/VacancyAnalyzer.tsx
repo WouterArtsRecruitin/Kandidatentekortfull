@@ -1,11 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from "motion/react";
 import { trackEvent } from "../../lib/analytics";
-import { Loader2, AlertTriangle, CheckCircle2, Sparkles, FileText, BarChart2, ShieldCheck, ArrowRight } from "lucide-react";
+import { Loader2, AlertTriangle, CheckCircle2, Sparkles, FileText, BarChart2, ShieldCheck, ArrowRight, Calendar, PartyPopper } from "lucide-react";
 import { Button } from "../ui/button";
 
 // Updated Typeform ID from user snippet
 const TYPEFORM_ID = "01KARQKA6091587B0YQE19KZB5";
+
+// Calendly URL - update with Recruitin's Calendly link
+const CALENDLY_URL = "https://calendly.com/recruitin/vacature-gesprek";
 
 // Example templates
 const EXAMPLE_TEMPLATES = {
@@ -96,6 +99,7 @@ export const VacancyAnalyzer = () => {
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisStep, setAnalysisStep] = useState(0);
   const [showResults, setShowResults] = useState(false);
+  const [showThankYou, setShowThankYou] = useState(false);
   const [score, setScore] = useState("0.0");
   const [findings, setFindings] = useState<{title: string, desc: string, type: 'warning' | 'error' | 'success'}[]>([]);
 
@@ -173,6 +177,7 @@ export const VacancyAnalyzer = () => {
           onSubmit: () => {
              trackEvent('complete_registration', { content_name: 'Recruitment Quickscan' });
              setShowResults(false);
+             setShowThankYou(true);
           }
         });
         popup.open();
@@ -185,6 +190,11 @@ export const VacancyAnalyzer = () => {
       const encodedText = encodeURIComponent(vacancyText.substring(0, 1500));
       window.open(`https://form.typeform.com/to/${TYPEFORM_ID}#vacature_text=${encodedText}`, '_blank');
     }
+  };
+
+  const openCalendly = () => {
+    trackEvent('calendly_click', { source: 'thank_you_screen' });
+    window.open(CALENDLY_URL, '_blank');
   };
 
   return (
@@ -346,6 +356,66 @@ export const VacancyAnalyzer = () => {
                     </Button>
                  </div>
               </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Thank You Modal */}
+      <AnimatePresence>
+        {showThankYou && (
+          <motion.div
+            initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-slate-900/90 z-[100] flex items-center justify-center p-4 backdrop-blur-md"
+          >
+            <motion.div
+              initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
+              className="bg-white rounded-2xl p-8 md:p-10 max-w-md w-full shadow-2xl relative text-center"
+            >
+              <button
+                onClick={() => setShowThankYou(false)}
+                className="absolute top-4 right-4 text-slate-400 hover:text-slate-600"
+              >
+                ✕
+              </button>
+
+              <div className="w-20 h-20 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-6">
+                <PartyPopper className="w-10 h-10 text-emerald-600" />
+              </div>
+
+              <h2 className="text-2xl md:text-3xl font-black text-slate-900 mb-3">
+                Bedankt voor je aanvraag!
+              </h2>
+
+              <p className="text-slate-600 mb-8">
+                Je ontvangt binnen <strong>24 uur</strong> je geoptimaliseerde vacaturetekst per e-mail.
+              </p>
+
+              <div className="bg-slate-50 rounded-xl p-6 mb-6">
+                <h3 className="font-bold text-slate-900 mb-2 flex items-center justify-center gap-2">
+                  <Calendar className="w-5 h-5 text-orange-600" />
+                  Wil je sneller resultaat?
+                </h3>
+                <p className="text-sm text-slate-600 mb-4">
+                  Plan een gratis 15-minuten gesprek en ontvang direct persoonlijk advies.
+                </p>
+                <Button
+                  onClick={openCalendly}
+                  className="w-full bg-orange-600 hover:bg-orange-500 text-white font-bold py-3 rounded-lg"
+                >
+                  <span className="flex items-center justify-center gap-2">
+                    <Calendar className="w-4 h-4" />
+                    Plan een gesprek
+                  </span>
+                </Button>
+              </div>
+
+              <button
+                onClick={() => setShowThankYou(false)}
+                className="text-sm text-slate-500 hover:text-slate-700 underline"
+              >
+                Sluiten
+              </button>
             </motion.div>
           </motion.div>
         )}
