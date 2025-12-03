@@ -11,6 +11,76 @@ type TrackingEvent = {
   properties?: Record<string, any>;
 };
 
+// UTM Parameters
+interface UTMParams {
+  utm_source?: string;
+  utm_medium?: string;
+  utm_campaign?: string;
+  utm_term?: string;
+  utm_content?: string;
+}
+
+// Get and store UTM parameters
+export const getUTMParams = (): UTMParams => {
+  if (typeof window === 'undefined') return {};
+
+  // Check localStorage first (for session persistence)
+  const stored = localStorage.getItem('utm_params');
+  let utmParams: UTMParams = stored ? JSON.parse(stored) : {};
+
+  // Parse current URL for UTM params
+  const urlParams = new URLSearchParams(window.location.search);
+  const utmKeys = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_term', 'utm_content'];
+
+  let hasNewParams = false;
+  utmKeys.forEach(key => {
+    const value = urlParams.get(key);
+    if (value) {
+      utmParams[key as keyof UTMParams] = value;
+      hasNewParams = true;
+    }
+  });
+
+  // Store if we found new params
+  if (hasNewParams) {
+    localStorage.setItem('utm_params', JSON.stringify(utmParams));
+    console.log('[UTM] Stored params:', utmParams);
+  }
+
+  return utmParams;
+};
+
+// Generate UTM link
+export const generateUTMLink = (
+  baseUrl: string = 'https://kandidatentekort.nl',
+  source: string,
+  medium: string,
+  campaign: string,
+  content?: string,
+  term?: string
+): string => {
+  const params = new URLSearchParams({
+    utm_source: source,
+    utm_medium: medium,
+    utm_campaign: campaign,
+    ...(content && { utm_content: content }),
+    ...(term && { utm_term: term })
+  });
+  return `${baseUrl}?${params.toString()}`;
+};
+
+// Pre-configured UTM links for common channels
+export const UTM_LINKS = {
+  facebook_ads: generateUTMLink('https://kandidatentekort.nl', 'facebook', 'cpc', 'vacature_analyse'),
+  facebook_organic: generateUTMLink('https://kandidatentekort.nl', 'facebook', 'organic', 'social_post'),
+  linkedin_ads: generateUTMLink('https://kandidatentekort.nl', 'linkedin', 'cpc', 'vacature_analyse'),
+  linkedin_organic: generateUTMLink('https://kandidatentekort.nl', 'linkedin', 'organic', 'social_post'),
+  email_newsletter: generateUTMLink('https://kandidatentekort.nl', 'email', 'newsletter', 'weekly'),
+  email_direct: generateUTMLink('https://kandidatentekort.nl', 'email', 'direct', 'outreach'),
+  whatsapp: generateUTMLink('https://kandidatentekort.nl', 'whatsapp', 'referral', 'share'),
+  google_ads: generateUTMLink('https://kandidatentekort.nl', 'google', 'cpc', 'vacature_analyse'),
+};
+
 // Server-side tracking via Netlify function (FB CAPI + GA4 MP)
 async function sendServerSideEvent(eventName: string, customData: Record<string, any> = {}) {
   try {
@@ -48,35 +118,41 @@ async function sendServerSideEvent(eventName: string, customData: Record<string,
 }
 
 export const trackEvent = async (eventName: string, data?: any) => {
-  console.log(`[Analytics] Tracking Event: ${eventName}`, data);
+  // Get UTM params and merge with event data
+  const utmParams = getUTMParams();
+  const enrichedData = { ...data, ...utmParams };
+
+  console.log(`[Analytics] Tracking Event: ${eventName}`, enrichedData);
 
   if (typeof window !== 'undefined') {
     // GA4
     // @ts-ignore
     if (window.gtag) {
       // @ts-ignore
-      window.gtag('event', eventName, data);
+      window.gtag('event', eventName, enrichedData);
     }
-    
+
     // Facebook Pixel
     // @ts-ignore
     if (window.fbq) {
       // @ts-ignore
-      window.fbq('track', eventName, data);
+      window.fbq('track', eventName, enrichedData);
     }
-    
-    // Server-side event
-    sendServerSideEvent(eventName, data);
+
+    // Server-side event with UTM
+    sendServerSideEvent(eventName, enrichedData);
   }
 };
 
 export const initAnalytics = () => {
   console.log('[Analytics] Initialized V3 Tracking Systems');
-  
-  // Load scripts dynamically if needed, or just rely on index.html if we could edit it. 
-  // Since we can't edit index.html easily in this environment to add external scripts permanently,
-  // we assume they might be added or we just log for now.
-  
+
+  // Capture UTM params on page load
+  const utmParams = getUTMParams();
+  if (Object.keys(utmParams).length > 0) {
+    console.log('[Analytics] UTM params captured:', utmParams);
+  }
+
   // Initialize GA4 layer
   // @ts-ignore
   window.dataLayer = window.dataLayer || [];
@@ -85,7 +161,14 @@ export const initAnalytics = () => {
   // @ts-ignore
   gtag('js', new Date());
   // @ts-ignore
-  gtag('config', 'G-67PJ02SXVN');
+  gtag('config', 'G-67PJ02SXVN', {
+    // Pass UTM params to GA4
+    campaign_source: utmParams.utm_source,
+    campaign_medium: utmParams.utm_medium,
+    campaign_name: utmParams.utm_campaign,
+    campaign_term: utmParams.utm_term,
+    campaign_content: utmParams.utm_content
+  });
 
   // Initialize FB Pixel
   // @ts-ignore
@@ -97,9 +180,19 @@ export const initAnalytics = () => {
   t.src=v;s=b.getElementsByTagName(e)[0];
   s.parentNode.insertBefore(t,s)}(window, document,'script',
   'https://connect.facebook.com/en_US/fbevents.js');
-  
+
   // @ts-ignore
   fbq('init', '1735907367288442');
   // @ts-ignore
-  fbq('track', 'PageView');
+  fbq('track', 'PageView', utmParams);
+};
+
+// Print all UTM links for marketing use
+export const printUTMLinks = () => {
+  console.log('\n========== UTM LINKS ==========\n');
+  Object.entries(UTM_LINKS).forEach(([name, url]) => {
+    console.log(`${name}:\n${url}\n`);
+  });
+  console.log('================================\n');
+  return UTM_LINKS;
 };
