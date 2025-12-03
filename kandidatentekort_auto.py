@@ -348,7 +348,7 @@ def call_claude_api(prompt: str, max_tokens: int = 4000) -> Optional[str]:
         client = anthropic.Anthropic(api_key=CLAUDE_API_KEY)
 
         message = client.messages.create(
-            model="claude-3-5-sonnet-20241022",
+            model="claude-sonnet-4-20250514",
             max_tokens=max_tokens,
             temperature=0.3,
             messages=[
