@@ -20,10 +20,12 @@
     <meta property="og:description" content="Upload je vacature en ontvang direct een AI-powered analyse. Krijg binnen 24 uur een geoptimaliseerde versie die 40-60% meer sollicitaties genereert.">
     <meta property="og:url" content="https://kandidatentekort.nl">
     <meta property="og:locale" content="nl_NL">
+    <!-- OG image - using Google Photos CDN for reliability -->
     <meta property="og:image" content="https://lh3.googleusercontent.com/d/1cBokXlFmTFYgxlaALdnGvbcXbhtvuLjT=w1200">
     <meta property="og:image:width" content="1200">
     <meta property="og:image:height" content="630">
-    <meta property="og:image:alt" content="KandidatenTekort.nl - Vacature Optimalisatie Tool">
+    <meta property="og:image:alt" content="KandidatenTekort.nl - Verhoog je Sollicitaties met 40-60%">
+    <meta property="og:image:type" content="image/jpeg">
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image">
@@ -31,9 +33,103 @@
     <meta name="twitter:description" content="Upload je vacature en ontvang direct een AI-powered analyse.">
     <meta name="twitter:image" content="https://lh3.googleusercontent.com/d/1cBokXlFmTFYgxlaALdnGvbcXbhtvuLjT=w1200">
 
+    <!-- Preconnect to external domains for performance -->
+    <link rel="preconnect" href="https://consent.cookiebot.com">
+    <link rel="preconnect" href="https://www.googletagmanager.com">
+    <link rel="preconnect" href="https://connect.facebook.net">
+    <link rel="preconnect" href="https://embed.typeform.com">
+
+    <!-- Schema.org Structured Data -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "Organization",
+      "name": "KandidatenTekort.nl",
+      "url": "https://kandidatentekort.nl",
+      "logo": "https://kandidatentekort.nl/logo.png",
+      "description": "AI-powered vacaturetekst optimalisatie platform",
+      "address": {
+        "@type": "PostalAddress",
+        "addressCountry": "NL",
+        "addressRegion": "Gelderland"
+      },
+      "parentOrganization": {
+        "@type": "Organization",
+        "name": "Recruitin B.V."
+      }
+    }
+    </script>
+
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "SoftwareApplication",
+      "name": "Kandidatentekort Vacature Optimizer",
+      "applicationCategory": "BusinessApplication",
+      "operatingSystem": "Web",
+      "offers": {
+        "@type": "Offer",
+        "price": "29",
+        "priceCurrency": "EUR"
+      },
+      "aggregateRating": {
+        "@type": "AggregateRating",
+        "ratingValue": "4.8",
+        "reviewCount": "120",
+        "bestRating": "5"
+      }
+    }
+    </script>
+
+    <!-- Google Consent Mode v2 (BEFORE any tracking scripts) -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+
+      // Default consent state (denied until user consents)
+      gtag('consent', 'default', {
+        'ad_storage': 'denied',
+        'ad_user_data': 'denied',
+        'ad_personalization': 'denied',
+        'analytics_storage': 'denied',
+        'functionality_storage': 'denied',
+        'personalization_storage': 'denied',
+        'security_storage': 'granted',
+        'wait_for_update': 500
+      });
+
+      // Enable URL passthrough for better attribution
+      gtag('set', 'url_passthrough', true);
+      gtag('set', 'ads_data_redaction', true);
+    </script>
+
     <!-- Cookiebot - Cookie Consent -->
-    <!-- TODO: Replace YOUR_COOKIEBOT_CBID with actual Cookiebot ID from Recruitin -->
-    <script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="YOUR_COOKIEBOT_CBID" data-blockingmode="auto" type="text/javascript"></script>
+    <!-- ACTION REQUIRED: Replace YOUR_COOKIEBOT_CBID with your actual Cookiebot ID -->
+    <!-- Get your CBID at: https://www.cookiebot.com/en/signup/ -->
+    <script id="Cookiebot"
+            src="https://consent.cookiebot.com/uc.js"
+            data-cbid="YOUR_COOKIEBOT_CBID"
+            data-blockingmode="auto"
+            data-culture="nl"
+            type="text/javascript"></script>
+
+    <!-- Cookiebot callback for consent updates -->
+    <script>
+      window.addEventListener('CookiebotOnAccept', function() {
+        if (Cookiebot.consent.statistics) {
+          gtag('consent', 'update', {
+            'analytics_storage': 'granted'
+          });
+        }
+        if (Cookiebot.consent.marketing) {
+          gtag('consent', 'update', {
+            'ad_storage': 'granted',
+            'ad_user_data': 'granted',
+            'ad_personalization': 'granted'
+          });
+        }
+      });
+    </script>
 
     <!-- Google Analytics 4 -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-67PJ02SXVN"></script>
@@ -41,7 +137,10 @@
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-      gtag('config', 'G-67PJ02SXVN');
+      gtag('config', 'G-67PJ02SXVN', {
+        'anonymize_ip': true,
+        'cookie_flags': 'SameSite=None;Secure'
+      });
     </script>
 
     <!-- Facebook Pixel -->
