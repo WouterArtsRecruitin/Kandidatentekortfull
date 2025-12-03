@@ -19,6 +19,14 @@ dist/
 build/
 .netlify/
 
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+venv/
+.venv/
+
 # OS generated files
 .DS_Store
 .DS_Store?
