@@ -4,6 +4,8 @@ import { Hero } from './components/sections/Hero';
 import { VacancyAnalyzer } from './components/sections/VacancyAnalyzer';
 import { Footer } from './components/layout/Footer';
 import { SocialProofNotification } from './components/ui/SocialProofNotification';
+import { WhatsAppButton } from './components/ui/WhatsAppButton';
+import { ExitIntentPopup } from './components/ui/ExitIntentPopup';
 import { initAnalytics } from './lib/analytics';
 
 function App() {
@@ -20,6 +22,8 @@ function App() {
       </main>
       <Footer />
       <SocialProofNotification />
+      <WhatsAppButton />
+      <ExitIntentPopup />
     </div>
   );
 }
