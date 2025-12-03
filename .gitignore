@@ -8,6 +8,7 @@
 config/secrets.json
 *.key
 *.pem
+.mcp.json
 
 # Node modules (if any)
 node_modules/
