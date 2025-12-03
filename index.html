@@ -28,21 +28,63 @@
     
     <!-- CSS -->
     <link rel="stylesheet" href="styles.css">
-    
-    <!-- Google Analytics (Environmental) -->
+
+    <!-- Google Analytics 4 - G-67PJ02SXVN -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-67PJ02SXVN"></script>
     <script>
-      if(typeof GA_MEASUREMENT_ID !== 'undefined' && GA_MEASUREMENT_ID) {
-        const script = document.createElement('script');
-        script.async = true;
-        script.src = `https://www.googletagmanager.com/gtag/js?id=${GA_MEASUREMENT_ID}`;
-        document.head.appendChild(script);
-        
-        window.dataLayer = window.dataLayer || [];
-        function gtag(){dataLayer.push(arguments);}
-        gtag('js', new Date());
-        gtag('config', GA_MEASUREMENT_ID);
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-67PJ02SXVN', {
+        'page_title': 'Kandidatentekort - Vacature Optimizer',
+        'send_page_view': true
+      });
+
+      // Custom events tracking
+      function trackEvent(eventName, params = {}) {
+        gtag('event', eventName, params);
+      }
+
+      // Scroll depth tracking
+      let maxScroll = 0;
+      window.addEventListener('scroll', function() {
+        const scrollPercent = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+        if (scrollPercent > maxScroll) {
+          maxScroll = scrollPercent;
+          if ([25, 50, 75, 90].includes(scrollPercent)) {
+            trackEvent('scroll_depth', { percent: scrollPercent });
+          }
+        }
+      });
+
+      // Time on page tracking
+      let startTime = Date.now();
+      window.addEventListener('beforeunload', function() {
+        const timeOnPage = Math.round((Date.now() - startTime) / 1000);
+        trackEvent('time_on_page', { seconds: timeOnPage });
+      });
+    </script>
+
+    <!-- Facebook Pixel - 1735907367288442 -->
+    <script>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '1735907367288442');
+      fbq('track', 'PageView');
+
+      // Facebook conversion tracking function
+      function trackFBConversion(eventName, params = {}) {
+        fbq('track', eventName, params);
       }
     </script>
+    <noscript><img height="1" width="1" style="display:none"
+      src="https://www.facebook.com/tr?id=1735907367288442&ev=PageView&noscript=1"/></noscript>
 </head>
 <body>
     <!-- Loading Screen -->

@@ -2,8 +2,13 @@ User-agent: *
 Allow: /
 
 # Sitemap
-Sitemap: https://nederlandse-vacature-optimizer.netlify.app/sitemap.xml
+Sitemap: https://kandidatentekort.nl/sitemap.xml
 
-# Optimization for Nederlandse recruitment
-# AI-powered vacature analysis tool
-# Focused on Dutch job market
+# Kandidatentekort.nl - Nederlandse Vacature Optimizer
+# AI-powered technische vacature analyse
+# Sectoren: Oil & Gas, Manufacturing, Automation, Renewable Energy, Construction
+# Regio: Gelderland, Overijssel, Noord-Brabant
+
+# Block API endpoints from indexing
+Disallow: /.netlify/
+Disallow: /api/

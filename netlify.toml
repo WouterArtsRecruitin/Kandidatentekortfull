@@ -103,6 +103,11 @@
   to = "/.netlify/functions/claude-analyze/health"
   status = 200
 
+[[redirects]]
+  from = "/api/track"
+  to = "/.netlify/functions/track-conversion"
+  status = 200
+
 # Force HTTPS
 [[redirects]]
   from = "http://nederlandse-vacature-optimizer.netlify.app/*"
