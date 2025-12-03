@@ -41,14 +41,11 @@ except ImportError:
 # CONFIGURATION
 # ===============================================
 
-# Logging setup
+# Logging setup - StreamHandler only for cloud compatibility (Render, Heroku, etc.)
 logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[
-        logging.FileHandler('/var/log/kandidatentekort.log', mode='a'),
-        logging.StreamHandler()
-    ] if os.path.exists('/var/log') else [logging.StreamHandler()]
+    handlers=[logging.StreamHandler()]
 )
 logger = logging.getLogger(__name__)
 
