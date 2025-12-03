@@ -5,7 +5,7 @@ import { Loader2, AlertTriangle, CheckCircle2, Sparkles, FileText, BarChart2, Sh
 import { Button } from "../ui/button";
 
 // Updated Typeform ID from user snippet
-const TYPEFORM_ID = "01KARQKA6091587B0YQE19KZB5";
+const TYPEFORM_ID = "kalFRTCA";
 
 // Calendly URL
 const CALENDLY_URL = "https://calendly.com/wouter-arts-/vacature-analyse-advies";
