@@ -1,15 +1,76 @@
+<!DOCTYPE html>
+<html lang="nl">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Kandidatentekort - Ontdek waarom je geen kandidaten krijgt</title>
+    <meta name="description" content="Gratis AI-analyse van je vacaturetekst. Ontdek binnen 24 uur waarom je geen kandidaten krijgt en hoe je dit oplost." />
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E🎯%3C/text%3E%3C/svg%3E" />
 
-  <!DOCTYPE html>
-  <html lang="en">
-    <head>
-      <meta charset="UTF-8" />
-      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-      <title>kandidatentekort full</title>
-    </head>
+    <!-- Google Analytics 4 - G-67PJ02SXVN -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-67PJ02SXVN"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-67PJ02SXVN', {
+        'page_title': 'Kandidatentekort - Vacature Analyse',
+        'send_page_view': true
+      });
 
-    <body>
-      <div id="root"></div>
-      <script type="module" src="/src/main.tsx"></script>
-    </body>
-  </html>
-  
+      // Track custom events
+      window.trackEvent = function(eventName, params = {}) {
+        gtag('event', eventName, params);
+        if (typeof fbq !== 'undefined') {
+          fbq('trackCustom', eventName, params);
+        }
+      };
+
+      // Scroll depth tracking
+      let maxScroll = 0;
+      const scrollThresholds = [25, 50, 75, 90];
+      window.addEventListener('scroll', function() {
+        const scrollPercent = Math.round((window.scrollY / (document.body.scrollHeight - window.innerHeight)) * 100);
+        if (scrollPercent > maxScroll) {
+          maxScroll = scrollPercent;
+          if (scrollThresholds.includes(scrollPercent)) {
+            window.trackEvent('scroll_depth', { percent: scrollPercent });
+          }
+        }
+      }, { passive: true });
+
+      // Time on page tracking
+      const timeThresholds = [30, 60, 120, 300];
+      let trackedTimes = [];
+      setInterval(function() {
+        const seconds = Math.floor((Date.now() - performance.timeOrigin) / 1000);
+        timeThresholds.forEach(function(threshold) {
+          if (seconds >= threshold && !trackedTimes.includes(threshold)) {
+            trackedTimes.push(threshold);
+            window.trackEvent('time_on_page', { seconds: threshold });
+          }
+        });
+      }, 5000);
+    </script>
+
+    <!-- Facebook Pixel - 1735907367288442 -->
+    <script>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '1735907367288442');
+      fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=1735907367288442&ev=PageView&noscript=1"/></noscript>
+  </head>
+
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>
