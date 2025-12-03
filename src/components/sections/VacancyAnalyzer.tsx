@@ -172,10 +172,15 @@ export const VacancyAnalyzer = () => {
     // Detect iOS (iPhone, iPad, iPod)
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-    // iOS Safari has issues with popups/sliders - redirect directly
+    // iOS Safari has issues with popups/sliders - open in new tab
     if (isIOS) {
       trackEvent('typeform_redirect', { device: 'ios' });
-      window.location.href = fallbackUrl;
+      // Use window.open to keep original page open
+      const newWindow = window.open(fallbackUrl, '_blank');
+      // If popup blocked, fall back to redirect
+      if (!newWindow) {
+        window.location.href = fallbackUrl;
+      }
       return;
     }
 
