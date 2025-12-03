@@ -1,7 +1,7 @@
 import React from 'react';
 import { motion, AnimatePresence } from "motion/react";
 import { CheckCircle2, X } from "lucide-react";
-import logoImg from "figma:asset/09ea8267eac5f2dc8b43b1c872493f46ab50ea58.png";
+import logoImg from "../../assets/recruitin-logo.png";
 
 export const Header = () => {
   return (
