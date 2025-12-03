@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "AI-powered Nederlandse vacature optimalisatie tool - TalentFlow Pro MVP",
   "main": "index.html",
-  "type": "module",
   "scripts": {
     "dev": "netlify dev",
     "build": "echo 'Static site - no build step required'",
