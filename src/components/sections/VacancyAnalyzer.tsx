@@ -169,29 +169,25 @@ export const VacancyAnalyzer = () => {
     const encodedText = encodeURIComponent(vacancyText.substring(0, 1500));
     const fallbackUrl = `https://form.typeform.com/to/${TYPEFORM_ID}#vacature_text=${encodedText}`;
 
+    // Detect iOS (iPhone, iPad, iPod)
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+    // iOS Safari has issues with popups/sliders - redirect directly
+    if (isIOS) {
+      trackEvent('typeform_redirect', { device: 'ios' });
+      window.location.href = fallbackUrl;
+      return;
+    }
+
     try {
-      // Check if on mobile device
-      const isMobile = window.innerWidth < 768 || /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+      // Check if on mobile device (Android)
+      const isMobile = window.innerWidth < 768 || /Android/i.test(navigator.userAgent);
 
       // Use global Typeform API from embed.js script in index.html
       // @ts-ignore
       const tf = window.tf;
 
-      if (tf && typeof tf.createSlider === 'function' && isMobile) {
-        // Use slider for mobile - better viewport handling
-        const slider = tf.createSlider(TYPEFORM_ID, {
-          hidden: { vacature_text: vacancyText.substring(0, 8000) },
-          position: 'right',
-          width: '100%',
-          autoClose: 3000,
-          onSubmit: () => {
-            trackEvent('complete_registration', { content_name: 'Recruitment Quickscan' });
-            setShowResults(false);
-            setShowThankYou(true);
-          }
-        });
-        slider.open();
-      } else if (tf && typeof tf.createPopup === 'function') {
+      if (tf && typeof tf.createPopup === 'function' && !isMobile) {
         // Use popup for desktop with explicit size
         const popup = tf.createPopup(TYPEFORM_ID, {
           hidden: { vacature_text: vacancyText.substring(0, 8000) },
@@ -205,7 +201,7 @@ export const VacancyAnalyzer = () => {
         });
         popup.open();
       } else {
-        // Fallback: open in new tab (Edge, blocked scripts, etc.)
+        // Mobile Android or fallback: open in new tab
         window.open(fallbackUrl, '_blank');
       }
     } catch (error) {
