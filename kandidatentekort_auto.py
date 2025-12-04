@@ -52,6 +52,7 @@ logger = logging.getLogger(__name__)
 # Environment variables
 CLAUDE_API_KEY = os.getenv('CLAUDE_API_KEY', '')
 PIPEDRIVE_API_KEY = os.getenv('PIPEDRIVE_API_KEY', '')
+TYPEFORM_PERSONAL_TOKEN = os.getenv('TYPEFORM_PERSONAL_TOKEN', '')
 SMTP_HOST = os.getenv('SMTP_HOST', 'smtp.gmail.com')
 SMTP_PORT = int(os.getenv('SMTP_PORT', '587'))
 SMTP_USER = os.getenv('SMTP_USER', '')
