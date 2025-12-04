@@ -24,3 +24,7 @@ npm-debug.log*
 
 # Cache
 .cache/
+__pycache__/
+
+# MCP config (contains secrets)
+.mcp.json
