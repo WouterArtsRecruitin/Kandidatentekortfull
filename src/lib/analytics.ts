@@ -170,21 +170,13 @@ export const initAnalytics = () => {
     campaign_content: utmParams.utm_content
   });
 
-  // Initialize FB Pixel
+  // FB Pixel is already initialized in index.html with ID 517991158551582
+  // Only track PageView with UTM params here (pixel already loaded)
   // @ts-ignore
-  !function(f,b,e,v,n,t,s)
-  {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
-  n.callMethod.apply(n,arguments):n.queue.push(arguments)};
-  if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
-  n.queue=[];t=b.createElement(e);t.async=!0;
-  t.src=v;s=b.getElementsByTagName(e)[0];
-  s.parentNode.insertBefore(t,s)}(window, document,'script',
-  'https://connect.facebook.com/en_US/fbevents.js');
-
-  // @ts-ignore
-  fbq('init', '1735907367288442');
-  // @ts-ignore
-  fbq('track', 'PageView', utmParams);
+  if (window.fbq) {
+    // @ts-ignore
+    fbq('track', 'PageView', utmParams);
+  }
 };
 
 // Print all UTM links for marketing use
