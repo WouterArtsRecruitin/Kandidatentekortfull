@@ -170,7 +170,7 @@ export const initAnalytics = () => {
     campaign_content: utmParams.utm_content
   });
 
-  // FB Pixel is already initialized in index.html with ID 517991158551582
+  // FB Pixel is already initialized in index.html with ID 1735907367288442
   // Only track PageView with UTM params here (pixel already loaded)
   // @ts-ignore
   if (window.fbq) {

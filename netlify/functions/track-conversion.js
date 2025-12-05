@@ -6,7 +6,7 @@
 const crypto = require('crypto');
 
 // Configuration
-const FB_PIXEL_ID = '517991158551582';
+const FB_PIXEL_ID = '1735907367288442';
 const FB_ACCESS_TOKEN = process.env.FB_ACCESS_TOKEN || '';
 const GA4_MEASUREMENT_ID = 'G-67PJ02SXVN';
 const GA4_API_SECRET = process.env.GA4_API_SECRET || '';
