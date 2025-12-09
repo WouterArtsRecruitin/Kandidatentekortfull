@@ -53,8 +53,8 @@ export const Footer = () => {
         <div className="pt-12 mt-12 border-t border-slate-900 text-center md:flex md:justify-between md:items-center text-xs text-slate-600">
           <p>&copy; {new Date().getFullYear()} Recruitin B.V. Alle rechten voorbehouden.</p>
           <div className="flex gap-6 justify-center mt-4 md:mt-0">
-            <a href="https://recruitin.nl/privacyverklaring-recruitin/" target="__blank" rel="noopener noreferrer" className="hover:text-slate-400 transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-slate-400 transition-colors">Algemene Voorwaarden</a>
+            <a href="https://recruitin.nl/privacyverklaring-recruitin/" target="_blank" rel="noopener noreferrer" className="hover:text-slate-400 transition-colors">Privacy Policy</a>
+            <a href="/cookiebeleid.html" className="hover:text-slate-400 transition-colors">Cookiebeleid</a>
             <a href="https://recruitin.nl/contact/" target="_blank" rel="noopener noreferrer" className="hover:text-slate-400 transition-colors">Contact</a>
           </div>
         </div>
