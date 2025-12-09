@@ -167,52 +167,24 @@ export const VacancyAnalyzer = () => {
 
   const openFullAnalysisForm = () => {
     const encodedText = encodeURIComponent(vacancyText.substring(0, 1500));
-    const fallbackUrl = `https://form.typeform.com/to/${TYPEFORM_ID}#vacature_text=${encodedText}`;
+    const typeformUrl = `https://form.typeform.com/to/${TYPEFORM_ID}#vacature_text=${encodedText}`;
 
-    // Detect iOS (iPhone, iPad, iPod)
-    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    trackEvent('typeform_redirect', { device: 'all' });
 
-    // iOS Safari has issues with popups/sliders - open in new tab
-    if (isIOS) {
-      trackEvent('typeform_redirect', { device: 'ios' });
-      // Use window.open to keep original page open
-      const newWindow = window.open(fallbackUrl, '_blank');
-      // If popup blocked, fall back to redirect
-      if (!newWindow) {
-        window.location.href = fallbackUrl;
-      }
-      return;
+    // Always open in new tab - most reliable method
+    const newWindow = window.open(typeformUrl, '_blank');
+
+    // If popup blocked, redirect current page
+    if (!newWindow) {
+      window.location.href = typeformUrl;
     }
 
-    try {
-      // Check if on mobile device (Android)
-      const isMobile = window.innerWidth < 768 || /Android/i.test(navigator.userAgent);
-
-      // Use global Typeform API from embed.js script in index.html
-      // @ts-ignore
-      const tf = window.tf;
-
-      if (tf && typeof tf.createPopup === 'function' && !isMobile) {
-        // Use popup for desktop with explicit size
-        const popup = tf.createPopup(TYPEFORM_ID, {
-          hidden: { vacature_text: vacancyText.substring(0, 8000) },
-          size: 80, // 80% of viewport
-          autoClose: 3000,
-          onSubmit: () => {
-            trackEvent('complete_registration', { content_name: 'Recruitment Quickscan' });
-            setShowResults(false);
-            setShowThankYou(true);
-          }
-        });
-        popup.open();
-      } else {
-        // Mobile Android or fallback: open in new tab
-        window.open(fallbackUrl, '_blank');
-      }
-    } catch (error) {
-      // Ultimate fallback
-      window.open(fallbackUrl, '_blank');
-    }
+    // Show thank you after short delay (user will fill form in new tab)
+    setTimeout(() => {
+      setShowResults(false);
+      setShowThankYou(true);
+      trackEvent('complete_registration', { content_name: 'Recruitment Quickscan' });
+    }, 2000);
   };
 
   const openCalendly = () => {
