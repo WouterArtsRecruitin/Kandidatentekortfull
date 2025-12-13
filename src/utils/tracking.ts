@@ -16,7 +16,9 @@ declare global {
 // Configuration
 export const TRACKING_CONFIG = {
   META_PIXEL_ID: '238226887541404',
-  GA4_ID: 'G-XXXXXXXXXX', // TODO: Maak GA4 property aan voor recruitmentapk.nl
+  GA4_ID: 'G-BT99NSKVVY',
+  GA4_PROPERTY_ID: '101673451',
+  GA4_STREAM_ID: '12024858667',
   LEAD_VALUE: 45.00,
   CURRENCY: 'EUR'
 };
