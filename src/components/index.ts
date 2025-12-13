@@ -1,5 +1,6 @@
 // Report Components
 export { ReportTemplate } from './ReportTemplate';
+export { CookieConsent } from './CookieConsent';
 export { DemoReport } from './DemoReport';
 export { ProfessionalReport, createProfessionalReportData } from './ProfessionalReport';
 

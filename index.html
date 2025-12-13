@@ -3,47 +3,114 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Professional Report Templates - Market Intelligence</title>
-    <meta name="description" content="Professional market intelligence report templates with demo and full versions. Generate beautiful, print-ready reports instantly.">
+    <title>RecruitmentAPK - Gratis Recruitment Assessment | Recruitin</title>
+    <meta name="description" content="Ontdek de sterke en zwakke punten van je recruitmentproces met onze gratis APK-keuring. Direct inzicht in verbeterpunten.">
+    <meta name="keywords" content="recruitment assessment, recruitment APK, werving selectie analyse, HR audit, recruitmentproces verbeteren">
+    <meta name="author" content="Recruitin B.V.">
+    
+    <!-- Open Graph / Social -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://recruitmentapk.nl/">
+    <meta property="og:title" content="RecruitmentAPK - Gratis Recruitment Assessment">
+    <meta property="og:description" content="Ontdek de sterke en zwakke punten van je recruitmentproces met onze gratis APK-keuring.">
+    <meta property="og:image" content="https://recruitmentapk.nl/og-image.jpg">
+    
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://recruitmentapk.nl/">
+    <meta property="twitter:title" content="RecruitmentAPK - Gratis Recruitment Assessment">
+    <meta property="twitter:description" content="Ontdek de sterke en zwakke punten van je recruitmentproces met onze gratis APK-keuring.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    
+    <!-- Google Analytics 4 - TODO: Maak GA4 property aan -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XXXXXXXXXX"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-XXXXXXXXXX', {
+        'anonymize_ip': true,
+        'cookie_flags': 'SameSite=None;Secure'
+      });
+      
+      // Custom events helper
+      window.trackEvent = function(eventName, params) {
+        if (window.cookieConsent) {
+          gtag('event', eventName, params);
+        }
+      };
+    </script>
+    
+    <!-- Meta Pixel Code - ID: 238226887541404 -->
+    <script>
+      !function(f,b,e,v,n,t,s)
+      {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+      n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+      if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+      n.queue=[];t=b.createElement(e);t.async=!0;
+      t.src=v;s=b.getElementsByTagName(e)[0];
+      s.parentNode.insertBefore(t,s)}(window, document,'script',
+      'https://connect.facebook.net/en_US/fbevents.js');
+      
+      // Pixel wordt pas geactiveerd na cookie consent
+      window.initMetaPixel = function() {
+        if (window.cookieConsent) {
+          fbq('init', '238226887541404');
+          fbq('track', 'PageView');
+        }
+      };
+      
+      // Custom Meta tracking helper
+      window.trackMetaEvent = function(eventName, params) {
+        if (window.cookieConsent && typeof fbq !== 'undefined') {
+          fbq('track', eventName, params);
+        }
+      };
+    </script>
+    <noscript>
+      <img height="1" width="1" style="display:none"
+           src="https://www.facebook.com/tr?id=238226887541404&ev=PageView&noscript=1" />
+    </noscript>
+    <!-- End Meta Pixel Code -->
+
+    <!-- LinkedIn Insight Tag - ID: 1830706 -->
+    <script type="text/javascript">
+      _linkedin_partner_id = "1830706";
+      window._linkedin_data_partner_ids = window._linkedin_data_partner_ids || [];
+      window._linkedin_data_partner_ids.push(_linkedin_partner_id);
+    </script>
+    <script type="text/javascript">
+      (function(l) {
+        if (!l){window.lintrk = function(a,b){window.lintrk.q.push([a,b])};
+        window.lintrk.q=[]}
+        var s = document.getElementsByTagName("script")[0];
+        var b = document.createElement("script");
+        b.type = "text/javascript";b.async = true;
+        b.src = "https://snap.licdn.com/li.lms-analytics/insight.min.js";
+        s.parentNode.insertBefore(b, s);
+      })(window.lintrk);
+    </script>
+    <noscript>
+      <img height="1" width="1" style="display:none" alt=""
+           src="https://px.ads.linkedin.com/collect/?pid=1830706&fmt=gif" />
+    </noscript>
+    <!-- End LinkedIn Insight Tag -->
     
     <style>
         /* Print optimizations */
         @media print {
-            @page {
-                size: A4;
-                margin: 2cm 1.5cm;
-            }
-            
-            body {
-                font-size: 12pt;
-                line-height: 1.4;
-            }
-            
-            .print\:hidden {
-                display: none !important;
-            }
-            
-            .print\:page-break-after-always {
-                page-break-after: always;
-            }
-            
-            .print\:bg-white {
-                background-color: white !important;
-            }
-            
-            .print\:text-black {
-                color: black !important;
-            }
+            @page { size: A4; margin: 2cm 1.5cm; }
+            body { font-size: 12pt; line-height: 1.4; }
+            .print\:hidden { display: none !important; }
+            .print\:page-break-after-always { page-break-after: always; }
+            .print\:bg-white { background-color: white !important; }
+            .print\:text-black { color: black !important; }
         }
-        
-        /* Loading animations */
-        @keyframes spin {
-            to { transform: rotate(360deg); }
-        }
-        
-        .animate-spin {
-            animation: spin 1s linear infinite;
-        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .animate-spin { animation: spin 1s linear infinite; }
     </style>
 </head>
 <body>
