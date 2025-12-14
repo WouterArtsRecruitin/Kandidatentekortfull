@@ -6,8 +6,8 @@
     <meta name="theme-color" content="#0f172a" />
 
     <!-- SEO Meta Tags -->
-    <title>Gratis Vacature Analyse - 40-60% Meer Sollicitaties | KandidatenTekort.nl</title>
-    <meta name="description" content="Upload je vacature en ontvang direct een AI-powered analyse. Krijg binnen 24 uur een geoptimaliseerde versie die 40-60% meer sollicitaties genereert.">
+    <title>Gratis Vacature Check door Technisch Recruitment Experts | KandidatenTekort.nl</title>
+    <meta name="description" content="Upload je technische vacature en ontvang binnen 24u expert advies. Gebaseerd op 10+ jaar ervaring en 500+ succesvolle plaatsingen in Oil & Gas, Productie, Automation en meer.">
     <meta name="robots" content="index, follow">
     <meta name="author" content="Recruitin">
     <link rel="canonical" href="https://kandidatentekort.nl/" />
@@ -16,8 +16,8 @@
     <meta property="fb:app_id" content="757606233848402">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="KandidatenTekort.nl">
-    <meta property="og:title" content="Gratis Vacature Analyse - 40-60% Meer Sollicitaties">
-    <meta property="og:description" content="Upload je vacature en ontvang direct een AI-powered analyse. Krijg binnen 24 uur een geoptimaliseerde versie die 40-60% meer sollicitaties genereert.">
+    <meta property="og:title" content="Gratis Vacature Check - Technisch Recruitment Experts">
+    <meta property="og:description" content="Upload je technische vacature en ontvang binnen 24u expert advies. Gebaseerd op 10+ jaar ervaring en 500+ succesvolle plaatsingen in Oil & Gas, Productie, Automation en meer.">
     <meta property="og:url" content="https://kandidatentekort.nl">
     <meta property="og:locale" content="nl_NL">
     <!-- OG image - using Google Photos CDN for reliability -->
@@ -47,7 +47,7 @@
       "name": "KandidatenTekort.nl",
       "url": "https://kandidatentekort.nl",
       "logo": "https://kandidatentekort.nl/logo.png",
-      "description": "AI-powered vacaturetekst optimalisatie platform",
+      "description": "Technisch recruitment specialists voor Oil & Gas, Productie, Automation en Engineering",
       "address": {
         "@type": "PostalAddress",
         "addressCountry": "NL",
@@ -271,6 +271,40 @@
       document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', init) : init();
     })();
     </script>
+    <!-- UTM Capture Script -->
+    <script>
+    (function() {
+      const urlParams = new URLSearchParams(window.location.search);
+      const trackingData = {
+        utm_source: urlParams.get("utm_source"),
+        utm_medium: urlParams.get("utm_medium"),
+        utm_campaign: urlParams.get("utm_campaign"),
+        utm_content: urlParams.get("utm_content"),
+        utm_term: urlParams.get("utm_term"),
+        fbclid: urlParams.get("fbclid"),
+        gclid: urlParams.get("gclid"),
+        timestamp: new Date().toISOString(),
+        referrer: document.referrer,
+        landing_page: window.location.pathname
+      };
+      const hasTrackingData = Object.values(trackingData).some(v => v && v !== "");
+      if (hasTrackingData) {
+        try {
+          localStorage.setItem("kt_tracking_data", JSON.stringify(trackingData));
+          localStorage.setItem("kt_tracking_timestamp", Date.now());
+        } catch (e) {}
+        window.dataLayer = window.dataLayer || [];
+        window.dataLayer.push({ event: "utm_captured", ...trackingData });
+      }
+      window.getTrackingData = function() {
+        try {
+          const stored = localStorage.getItem("kt_tracking_data");
+          return stored ? JSON.parse(stored) : null;
+        } catch (e) { return null; }
+      };
+    })();
+    </script>
+
   </head>
 
   <body>
@@ -282,5 +316,35 @@
 
     <div id="root"></div>
     <script type="module" src="/src/main.tsx"></script>
+    <!-- Lead Event Tracking -->
+    <script>
+    (function() {
+      let formStarted = false;
+      let formCompleted = false;
+      window.addEventListener("message", function(event) {
+        if (!event.origin.includes("typeform.com")) return;
+        try {
+          const data = event.data;
+          if (data.type === "form-ready" && !formStarted) {
+            formStarted = true;
+            if (typeof fbq !== "undefined") {
+              fbq("track", "ViewContent", { content_name: "Vacature Analyse Form" });
+            }
+          }
+          if ((data.type === "form-submit" || data.type === "form-close") && !formCompleted) {
+            formCompleted = true;
+            const trackingData = window.getTrackingData ? window.getTrackingData() : {};
+            if (typeof fbq !== "undefined") {
+              fbq("track", "Lead", { content_name: "Vacature Analyse", value: 29, currency: "EUR" });
+            }
+            if (typeof gtag !== "undefined") {
+              gtag("event", "conversion", { send_to: "G-67PJ02SXVN/lead", value: 29, currency: "EUR" });
+            }
+          }
+        } catch (e) {}
+      });
+    })();
+    </script>
+
   </body>
 </html>
