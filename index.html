@@ -158,6 +158,119 @@
 
     <!-- Typeform Embed -->
     <script src="https://embed.typeform.com/next/embed.js"></script>
+    <!-- ========================================
+         KANDIDATENTEKORT TRACKING V2.0
+         Deployed: 2025-12-14T16:45:06Z
+         ======================================== -->
+
+    <!-- Google Consent Mode v2 -->
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('consent', 'default', {
+        'ad_storage': 'denied',
+        'ad_user_data': 'denied',
+        'ad_personalization': 'denied',
+        'analytics_storage': 'denied',
+        'functionality_storage': 'denied',
+        'personalization_storage': 'denied',
+        'security_storage': 'granted',
+        'wait_for_update': 500
+      });
+      gtag('set', 'url_passthrough', true);
+      gtag('set', 'ads_data_redaction', true);
+    </script>
+
+    <!-- Cookiebot -->
+    <script id="Cookiebot" src="https://consent.cookiebot.com/uc.js" data-cbid="255025f6-3932-479b-a9d7-6a4fac614cb8" data-blockingmode="auto" data-culture="nl"></script>
+    <script>
+      window.addEventListener('CookiebotOnAccept', function() {
+        if (Cookiebot.consent.statistics) gtag('consent', 'update', {'analytics_storage': 'granted'});
+        if (Cookiebot.consent.marketing) gtag('consent', 'update', {'ad_storage': 'granted','ad_user_data': 'granted','ad_personalization': 'granted'});
+      });
+    </script>
+
+    <!-- GA4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-67PJ02SXVN"></script>
+    <script>
+      window.dataLayer = window.dataLayer || [];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js', new Date());
+      gtag('config', 'G-67PJ02SXVN', {'anonymize_ip': true,'cookie_flags': 'SameSite=None;Secure'});
+    </script>
+
+    <!-- Meta Pixel -->
+    <script>
+      !function(f,b,e,v,n,t,s){if(f.fbq)return;n=f.fbq=function(){n.callMethod?n.callMethod.apply(n,arguments):n.queue.push(arguments)};if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';n.queue=[];t=b.createElement(e);t.async=!0;t.src=v;s=b.getElementsByTagName(e)[0];s.parentNode.insertBefore(t,s)}(window,document,'script','https://connect.facebook.net/en_US/fbevents.js');
+      fbq('init', '517991158551582');
+      fbq('track', 'PageView');
+    </script>
+    <noscript><img height="1" width="1" style="display:none" src="https://www.facebook.com/tr?id=517991158551582&ev=PageView&noscript=1"/></noscript>
+
+    <!-- UTM + Custom Events -->
+    <script>
+    (function() {
+      const p = new URLSearchParams(window.location.search);
+      const u = {};
+      ['utm_source','utm_medium','utm_campaign','utm_content','utm_term'].forEach(k => {
+        const v = p.get(k);
+        if (v) { u[k] = v; sessionStorage.setItem(k, v); }
+      });
+      if (Object.keys(u).length) {
+        console.log('📊 UTM:', u);
+        gtag('event', 'utm_capture', {source:u.utm_source||'direct',medium:u.utm_medium||'none',campaign:u.utm_campaign||'none'});
+      }
+      function trackCTA() {
+        document.querySelectorAll('[data-track="start-analyse"],.cta-button,button[type="submit"]').forEach(b => {
+          b.addEventListener('click', () => {
+            gtag('event', 'start_analyse', {event_category:'engagement',utm_source:sessionStorage.getItem('utm_source')||'direct'});
+            fbq('track', 'InitiateCheckout');
+            console.log('🎯 CTA clicked');
+          });
+        });
+      }
+      function trackForm() {
+        const check = setInterval(() => {
+          const tf = document.querySelector('[data-tf-widget],iframe[src*="typeform"]');
+          if (tf) {
+            clearInterval(check);
+            gtag('event', 'form_view', {event_category:'engagement',form_type:'typeform'});
+            fbq('track', 'ViewContent', {content_name:'Vacature Analyse'});
+            console.log('📋 Form loaded');
+          }
+        }, 500);
+        setTimeout(() => clearInterval(check), 10000);
+      }
+      window.trackLead = function(email, company) {
+        gtag('event', 'generate_lead', {event_category:'conversion',value:7990,currency:'EUR',email,company,utm_source:sessionStorage.getItem('utm_source')||'direct'});
+        fbq('track', 'Lead', {value:7990,currency:'EUR'});
+        console.log('✅ Lead:', email);
+      };
+      let ms = 0;
+      [25,50,75,90].forEach(m => {
+        window.addEventListener('scroll', () => {
+          const pct = Math.round((window.scrollY/(document.documentElement.scrollHeight-window.innerHeight))*100);
+          if (pct >= m && ms < m) {
+            ms = m;
+            gtag('event', 'scroll_depth', {percent:m});
+            console.log('📜 Scroll:', m+'%');
+          }
+        });
+      });
+      [30000,60000,120000].forEach(t => {
+        setTimeout(() => {
+          gtag('event', 'time_on_page', {seconds:t/1000});
+          console.log('⏱️ Time:', (t/1000)+'s');
+        }, t);
+      });
+      function init() {
+        trackCTA();
+        trackForm();
+        console.log('✅ Tracking active');
+      }
+      document.readyState === 'loading' ? document.addEventListener('DOMContentLoaded', init) : init();
+    })();
+    </script>
   </head>
 
   <body>
