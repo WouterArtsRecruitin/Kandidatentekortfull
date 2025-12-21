@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Tools Vergelijking | Canva vs Gamma vs PDFMonkey</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-header { background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%); }
+        .tool-card { transition: all 0.3s ease; }
+        .tool-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,0.15); }
+        .tool-card.selected { ring: 4px; ring-color: #ff6b35; }
+        .score-bar { transition: width 0.5s ease; }
+        .fade-in { animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <div class="gradient-header text-white py-8 px-6">
+        <div class="max-w-6xl mx-auto">
+            <h1 class="text-3xl font-bold mb-2">📄 PDF Generation Tools Vergelijking</h1>
+            <p class="text-white/90">Canva vs Gamma vs PDFMonkey voor kandidatentekort.nl</p>
+        </div>
+    </div>
+
+    <div class="max-w-6xl mx-auto px-6 py-8">
+        
+        <!-- Decision Helper -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+                <span class="text-2xl">🎯</span> Snelle Keuzehulp
+            </h2>
+            <div class="grid md:grid-cols-3 gap-4 mb-6">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Verwacht volume/maand</label>
+                    <select id="volume" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none" onchange="updateRecommendation()">
+                        <option value="low">< 10 klanten</option>
+                        <option value="medium">10-50 klanten</option>
+                        <option value="high" selected>50+ klanten</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Automation prioriteit</label>
+                    <select id="automation" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none" onchange="updateRecommendation()">
+                        <option value="low">Niet belangrijk</option>
+                        <option value="medium">Nice-to-have</option>
+                        <option value="high" selected>Kritisch (24h delivery)</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-semibold text-gray-600 mb-2">Design skills</label>
+                    <select id="skills" class="w-full p-3 border-2 border-gray-200 rounded-xl focus:border-orange-500 focus:outline-none" onchange="updateRecommendation()">
+                        <option value="none">Geen HTML/CSS</option>
+                        <option value="basic" selected>Basis HTML</option>
+                        <option value="advanced">Gevorderd</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Recommendation Box -->
+            <div id="recommendation" class="bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200 rounded-xl p-5 fade-in">
+                <div class="flex items-start gap-4">
+                    <div class="text-4xl">🏆</div>
+                    <div>
+                        <h3 class="font-bold text-green-800 text-lg mb-1">Aanbeveling: PDFMonkey</h3>
+                        <p class="text-green-700 text-sm">Bij 50+ klanten/maand en kritische 24h delivery is full automation essentieel. PDFMonkey + de templates die ik maakte zijn direct inzetbaar.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tools Comparison Cards -->
+        <h2 class="text-xl font-bold text-gray-800 mb-4 flex items-center gap-2">
+            <span class="text-2xl">⚖️</span> Tools Vergelijking
+        </h2>
+        
+        <div class="grid md:grid-cols-3 gap-6 mb-8">
+            <!-- Canva Card -->
+            <div class="tool-card bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="bg-gradient-to-r from-purple-500 to-pink-500 p-4 text-white">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xl font-bold">Canva</h3>
+                        <span class="bg-white/20 px-3 py-1 rounded-full text-sm">€12-30/mo</span>
+                    </div>
+                    <p class="text-white/80 text-sm mt-1">Drag & drop design</p>
+                </div>
+                <div class="p-5">
+                    <!-- Scores -->
+                    <div class="space-y-3 mb-5">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-600">Design vrijheid</span>
+                                <span class="font-semibold text-green-600">95%</span>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="score-bar h-full bg-green-500 rounded-full" style="width: 95%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-600">Automation</span>
+                                <span class="font-semibold text-yellow-600">50%</span>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="score-bar h-full bg-yellow-500 rounded-full" style="width: 50%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-600">Ease of use</span>
+                                <span class="font-semibold text-green-600">90%</span>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="score-bar h-full bg-green-500 rounded-full" style="width: 90%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-600">API/Zapier</span>
+                                <span class="font-semibold text-yellow-600">60%</span>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="score-bar h-full bg-yellow-500 rounded-full" style="width: 60%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pros/Cons -->
+                    <div class="space-y-2 text-sm">
+                        <div class="flex items-start gap-2">
+                            <span class="text-green-500">✓</span>
+                            <span>Visuele drag & drop editor</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-green-500">✓</span>
+                            <span>Brand Kit voor consistentie</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-green-500">✓</span>
+                            <span>Bulk Create met CSV</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-red-500">✗</span>
+                            <span>API nog beperkt</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-red-500">✗</span>
+                            <span>Geen real-time automation</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-5 pt-4 border-t border-gray-100">
+                        <span class="inline-block bg-purple-100 text-purple-700 px-3 py-1 rounded-full text-xs font-semibold">Best voor: Design & Manual</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Gamma Card -->
+            <div class="tool-card bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="bg-gradient-to-r from-blue-500 to-cyan-500 p-4 text-white">
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xl font-bold">Gamma</h3>
+                        <span class="bg-white/20 px-3 py-1 rounded-full text-sm">€0-20/mo</span>
+                    </div>
+                    <p class="text-white/80 text-sm mt-1">AI-powered documents</p>
+                </div>
+                <div class="p-5">
+                    <!-- Scores -->
+                    <div class="space-y-3 mb-5">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-600">Design vrijheid</span>
+                                <span class="font-semibold text-yellow-600">70%</span>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="score-bar h-full bg-yellow-500 rounded-full" style="width: 70%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-600">Automation</span>
+                                <span class="font-semibold text-red-600">10%</span>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="score-bar h-full bg-red-500 rounded-full" style="width: 10%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-600">Ease of use</span>
+                                <span class="font-semibold text-green-600">95%</span>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="score-bar h-full bg-green-500 rounded-full" style="width: 95%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-600">API/Zapier</span>
+                                <span class="font-semibold text-red-600">0%</span>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="score-bar h-full bg-red-500 rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pros/Cons -->
+                    <div class="space-y-2 text-sm">
+                        <div class="flex items-start gap-2">
+                            <span class="text-green-500">✓</span>
+                            <span>AI genereert hele documenten</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-green-500">✓</span>
+                            <span>Extreem snel (30 sec)</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-green-500">✓</span>
+                            <span>Goedkoop / gratis tier</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-red-500">✗</span>
+                            <span>Geen API beschikbaar</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-red-500">✗</span>
+                            <span>100% handmatig proces</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-5 pt-4 border-t border-gray-100">
+                        <span class="inline-block bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-xs font-semibold">Best voor: Quick prototypes</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- PDFMonkey Card -->
+            <div class="tool-card bg-white rounded-2xl shadow-lg overflow-hidden ring-4 ring-orange-500">
+                <div class="bg-gradient-to-r from-orange-500 to-red-500 p-4 text-white relative">
+                    <div class="absolute -top-1 -right-1 bg-green-500 text-white text-xs font-bold px-3 py-1 rounded-bl-lg rounded-tr-lg">
+                        AANBEVOLEN
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <h3 class="text-xl font-bold">PDFMonkey</h3>
+                        <span class="bg-white/20 px-3 py-1 rounded-full text-sm">€15-49/mo</span>
+                    </div>
+                    <p class="text-white/80 text-sm mt-1">Full API automation</p>
+                </div>
+                <div class="p-5">
+                    <!-- Scores -->
+                    <div class="space-y-3 mb-5">
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-600">Design vrijheid</span>
+                                <span class="font-semibold text-yellow-600">70%</span>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="score-bar h-full bg-yellow-500 rounded-full" style="width: 70%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-600">Automation</span>
+                                <span class="font-semibold text-green-600">100%</span>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="score-bar h-full bg-green-500 rounded-full" style="width: 100%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-600">Ease of use</span>
+                                <span class="font-semibold text-yellow-600">60%</span>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="score-bar h-full bg-yellow-500 rounded-full" style="width: 60%"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between text-sm mb-1">
+                                <span class="text-gray-600">API/Zapier</span>
+                                <span class="font-semibold text-green-600">100%</span>
+                            </div>
+                            <div class="h-2 bg-gray-100 rounded-full overflow-hidden">
+                                <div class="score-bar h-full bg-green-500 rounded-full" style="width: 100%"></div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Pros/Cons -->
+                    <div class="space-y-2 text-sm">
+                        <div class="flex items-start gap-2">
+                            <span class="text-green-500">✓</span>
+                            <span>Volledige API automation</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-green-500">✓</span>
+                            <span>Zapier integratie native</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-green-500">✓</span>
+                            <span>Handlebars variabelen</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-yellow-500">~</span>
+                            <span>HTML/CSS kennis nodig</span>
+                        </div>
+                        <div class="flex items-start gap-2">
+                            <span class="text-green-500">✓</span>
+                            <span>Templates al klaar! ✨</span>
+                        </div>
+                    </div>
+                    
+                    <div class="mt-5 pt-4 border-t border-gray-100">
+                        <span class="inline-block bg-orange-100 text-orange-700 px-3 py-1 rounded-full text-xs font-semibold">Best voor: Scale & Automation</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Workflow Comparison -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <span class="text-2xl">🔄</span> Workflow per Tool
+            </h2>
+            
+            <div class="grid md:grid-cols-3 gap-6">
+                <!-- Canva Workflow -->
+                <div class="bg-purple-50 rounded-xl p-5">
+                    <h3 class="font-bold text-purple-800 mb-4">Canva Workflow</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                            <span>Typeform submission</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 h-6 bg-purple-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                            <span>Claude API analyse</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-purple-700 font-semibold">
+                            <span class="w-6 h-6 bg-purple-300 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                            <span>👤 Manual: Copy naar Canva</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-purple-700 font-semibold">
+                            <span class="w-6 h-6 bg-purple-300 text-white rounded-full flex items-center justify-center text-xs font-bold">4</span>
+                            <span>👤 Manual: Edit & Export</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-purple-700 font-semibold">
+                            <span class="w-6 h-6 bg-purple-300 text-white rounded-full flex items-center justify-center text-xs font-bold">5</span>
+                            <span>👤 Manual: Email versturen</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-purple-200">
+                        <div class="text-sm text-purple-800">
+                            <strong>Tijd per klant:</strong> 10-15 min<br>
+                            <strong>Handmatige stappen:</strong> 3
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Gamma Workflow -->
+                <div class="bg-blue-50 rounded-xl p-5">
+                    <h3 class="font-bold text-blue-800 mb-4">Gamma Workflow</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                            <span>Typeform submission</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 h-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                            <span>Claude API analyse</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-blue-700 font-semibold">
+                            <span class="w-6 h-6 bg-blue-300 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                            <span>👤 Manual: Prompt in Gamma</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-blue-700 font-semibold">
+                            <span class="w-6 h-6 bg-blue-300 text-white rounded-full flex items-center justify-center text-xs font-bold">4</span>
+                            <span>👤 Manual: Review & Edit</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-blue-700 font-semibold">
+                            <span class="w-6 h-6 bg-blue-300 text-white rounded-full flex items-center justify-center text-xs font-bold">5</span>
+                            <span>👤 Manual: Export & Email</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-blue-200">
+                        <div class="text-sm text-blue-800">
+                            <strong>Tijd per klant:</strong> 5-10 min<br>
+                            <strong>Handmatige stappen:</strong> 3
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- PDFMonkey Workflow -->
+                <div class="bg-orange-50 rounded-xl p-5 ring-2 ring-orange-300">
+                    <h3 class="font-bold text-orange-800 mb-4">PDFMonkey Workflow ⭐</h3>
+                    <div class="space-y-3 text-sm">
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs font-bold">1</span>
+                            <span>Typeform submission</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs font-bold">2</span>
+                            <span>🤖 Auto: Zapier → Claude</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs font-bold">3</span>
+                            <span>🤖 Auto: PDFMonkey generate</span>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span class="w-6 h-6 bg-orange-500 text-white rounded-full flex items-center justify-center text-xs font-bold">4</span>
+                            <span>🤖 Auto: Email + PDFs</span>
+                        </div>
+                        <div class="flex items-center gap-3 text-green-600">
+                            <span class="w-6 h-6 bg-green-500 text-white rounded-full flex items-center justify-center text-xs font-bold">✓</span>
+                            <span>Klaar! Klant ontvangt email</span>
+                        </div>
+                    </div>
+                    <div class="mt-4 pt-4 border-t border-orange-200">
+                        <div class="text-sm text-orange-800">
+                            <strong>Tijd per klant:</strong> 0 min ⚡<br>
+                            <strong>Handmatige stappen:</strong> 0
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Cost Calculator -->
+        <div class="bg-white rounded-2xl shadow-lg p-6 mb-8">
+            <h2 class="text-xl font-bold text-gray-800 mb-6 flex items-center gap-2">
+                <span class="text-2xl">💰</span> Kosten Calculator
+            </h2>
+            
+            <div class="mb-6">
+                <label class="block text-sm font-semibold text-gray-600 mb-2">Aantal klanten per maand</label>
+                <input type="range" id="clients" min="5" max="100" value="30" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer" oninput="updateCosts()">
+                <div class="flex justify-between text-sm text-gray-500 mt-1">
+                    <span>5</span>
+                    <span id="clientsValue" class="font-bold text-orange-600">30 klanten</span>
+                    <span>100</span>
+                </div>
+            </div>
+            
+            <div class="grid md:grid-cols-3 gap-4">
+                <div class="bg-purple-50 rounded-xl p-4 text-center">
+                    <h4 class="font-bold text-purple-800">Canva</h4>
+                    <div class="text-3xl font-bold text-purple-600 my-2" id="canvaCost">€12</div>
+                    <div class="text-sm text-purple-600">+ <span id="canvaTime">5 uur</span> werk</div>
+                    <div class="text-xs text-gray-500 mt-2">€12/mo + 10 min/klant</div>
+                </div>
+                <div class="bg-blue-50 rounded-xl p-4 text-center">
+                    <h4 class="font-bold text-blue-800">Gamma</h4>
+                    <div class="text-3xl font-bold text-blue-600 my-2" id="gammaCost">€10</div>
+                    <div class="text-sm text-blue-600">+ <span id="gammaTime">2.5 uur</span> werk</div>
+                    <div class="text-xs text-gray-500 mt-2">€10/mo + 5 min/klant</div>
+                </div>
+                <div class="bg-orange-50 rounded-xl p-4 text-center ring-2 ring-orange-300">
+                    <h4 class="font-bold text-orange-800">PDFMonkey</h4>
+                    <div class="text-3xl font-bold text-orange-600 my-2" id="pdfmonkeyCost">€15</div>
+                    <div class="text-sm text-green-600 font-semibold">+ 0 uur werk ⚡</div>
+                    <div class="text-xs text-gray-500 mt-2">€15-49/mo (500-2500 docs)</div>
+                </div>
+            </div>
+            
+            <div class="mt-6 p-4 bg-green-50 rounded-xl border border-green-200">
+                <div class="flex items-center gap-3">
+                    <span class="text-2xl">💡</span>
+                    <div>
+                        <strong class="text-green-800">Bij <span id="breakeven">30</span> klanten/maand:</strong>
+                        <span class="text-green-700" id="savingsText">PDFMonkey bespaart je 5 uur werk (= €375 bij €75/uur)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Final Recommendation -->
+        <div class="bg-gradient-to-r from-orange-500 to-red-500 rounded-2xl shadow-lg p-8 text-white">
+            <div class="flex items-start gap-6">
+                <div class="text-6xl">🎯</div>
+                <div>
+                    <h2 class="text-2xl font-bold mb-3">Mijn Advies voor kandidatentekort.nl</h2>
+                    <div class="space-y-4 text-white/95">
+                        <p><strong>Primair: PDFMonkey</strong> — De templates zijn klaar, automation is essentieel voor je 24-hour delivery promise, en het schaalt moeiteloos naar 100+ klanten.</p>
+                        
+                        <p><strong>Secundair: Canva Pro</strong> — Gebruik voor design mockups en visuele iteraties. Als je de template wilt aanpassen, design eerst in Canva en vertaal dan naar HTML.</p>
+                        
+                        <p><strong>Skip: Gamma</strong> — Leuk voor quick prototypes, maar geen API = geen automation = niet schaalbaar.</p>
+                        
+                        <div class="bg-white/20 rounded-xl p-4 mt-4">
+                            <strong>Concreet plan:</strong>
+                            <ol class="list-decimal list-inside mt-2 space-y-1 text-sm">
+                                <li>Upload mijn 4 templates naar PDFMonkey (30 min)</li>
+                                <li>Test met de JSON data die ik meeleverde (15 min)</li>
+                                <li>Configureer Zapier workflow (1 uur)</li>
+                                <li>Go live! 🚀</li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="text-center mt-8 text-gray-500 text-sm">
+            <p>kandidatentekort.nl • Powered by Recruitin</p>
+        </div>
+    </div>
+
+    <script>
+        function updateRecommendation() {
+            const volume = document.getElementById('volume').value;
+            const automation = document.getElementById('automation').value;
+            const skills = document.getElementById('skills').value;
+            
+            const recBox = document.getElementById('recommendation');
+            let recommendation = '';
+            let bgClass = '';
+            
+            // Decision logic
+            if (automation === 'high' || volume === 'high') {
+                recommendation = `
+                    <div class="flex items-start gap-4">
+                        <div class="text-4xl">🏆</div>
+                        <div>
+                            <h3 class="font-bold text-green-800 text-lg mb-1">Aanbeveling: PDFMonkey</h3>
+                            <p class="text-green-700 text-sm">Bij ${volume === 'high' ? '50+ klanten/maand' : 'kritische 24h delivery'} is full automation essentieel. PDFMonkey + de templates die ik maakte zijn direct inzetbaar.</p>
+                        </div>
+                    </div>
+                `;
+                bgClass = 'bg-gradient-to-r from-green-50 to-emerald-50 border-2 border-green-200';
+            } else if (volume === 'low' && automation === 'low') {
+                recommendation = `
+                    <div class="flex items-start gap-4">
+                        <div class="text-4xl">🎨</div>
+                        <div>
+                            <h3 class="font-bold text-purple-800 text-lg mb-1">Aanbeveling: Canva of Gamma</h3>
+                            <p class="text-purple-700 text-sm">Bij laag volume en geen automation-eis zijn visuele tools sneller. Start met Gamma (gratis) of Canva (mooier).</p>
+                        </div>
+                    </div>
+                `;
+                bgClass = 'bg-gradient-to-r from-purple-50 to-pink-50 border-2 border-purple-200';
+            } else {
+                recommendation = `
+                    <div class="flex items-start gap-4">
+                        <div class="text-4xl">⚖️</div>
+                        <div>
+                            <h3 class="font-bold text-orange-800 text-lg mb-1">Aanbeveling: Hybrid Approach</h3>
+                            <p class="text-orange-700 text-sm">Gebruik Canva voor design, PDFMonkey voor automation. Best of both worlds voor medium volume.</p>
+                        </div>
+                    </div>
+                `;
+                bgClass = 'bg-gradient-to-r from-orange-50 to-yellow-50 border-2 border-orange-200';
+            }
+            
+            recBox.innerHTML = recommendation;
+            recBox.className = `${bgClass} rounded-xl p-5 fade-in`;
+        }
+        
+        function updateCosts() {
+            const clients = parseInt(document.getElementById('clients').value);
+            document.getElementById('clientsValue').textContent = `${clients} klanten`;
+            document.getElementById('breakeven').textContent = clients;
+            
+            // Canva: €12/mo + 10 min per client
+            const canvaHours = (clients * 10) / 60;
+            document.getElementById('canvaCost').textContent = '€12';
+            document.getElementById('canvaTime').textContent = `${canvaHours.toFixed(1)} uur`;
+            
+            // Gamma: €10/mo + 5 min per client
+            const gammaHours = (clients * 5) / 60;
+            document.getElementById('gammaCost').textContent = '€10';
+            document.getElementById('gammaTime').textContent = `${gammaHours.toFixed(1)} uur`;
+            
+            // PDFMonkey: €15-49/mo based on volume
+            let pdfCost = 15;
+            if (clients > 40) pdfCost = 49;
+            document.getElementById('pdfmonkeyCost').textContent = `€${pdfCost}`;
+            
+            // Savings calculation (assuming €75/hour)
+            const hoursSaved = canvaHours;
+            const moneySaved = Math.round(hoursSaved * 75);
+            document.getElementById('savingsText').textContent = 
+                `PDFMonkey bespaart je ${canvaHours.toFixed(1)} uur werk (= €${moneySaved} bij €75/uur)`;
+        }
+        
+        // Initialize
+        updateCosts();
+    </script>
+</body>
+</html>

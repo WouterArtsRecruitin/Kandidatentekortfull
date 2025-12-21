@@ -1,0 +1,226 @@
+{
+  "// KANDIDATENTEKORT.NL - PDFMONKEY TEST DATA": "Complete dataset voor alle 4 templates",
+  "// Generated": "2025-01-XX",
+  "// Version": "1.0",
+  
+  "// ========================================": "TEMPLATE 1: VERBETERDE VACATURE",
+  "verbeterde_vacature": {
+    "bedrijfsnaam": "TechFlow B.V.",
+    "functie_titel": "Senior Software Developer",
+    "functie_subtitle": "Bouw mee aan de toekomst van supply chain software",
+    "locatie": "Eindhoven",
+    "sector": "Software & IT",
+    "bedrijfsgrootte": "150",
+    "dienstverband": "Fulltime",
+    "uren_per_week": "40",
+    "werk_locatie": "Hybride (3 dagen kantoor)",
+    "hybride_mogelijk": true,
+    "direct_beschikbaar": true,
+    
+    "verwachte_response_verbetering": "42",
+    "inclusiviteit_score": "9",
+    "seo_score": "8",
+    
+    "intro_tekst": "Wil jij impact maken met code die door duizenden supply chain professionals wordt gebruikt? Bij TechFlow werk je aan innovatieve software die de logistieke sector transformeert. Je komt terecht in een team van 8 gedreven developers die geloven in clean code, continuous learning en een gezonde work-life balance. Hier krijg je de ruimte om te groeien én om 's avonds op tijd thuis te zijn.",
+    
+    "werkzaamheden": [
+      "Ontwerpen en bouwen van nieuwe features voor ons supply chain platform",
+      "Samenwerken met product owners om klantbehoeften te vertalen naar technische oplossingen",
+      "Code reviews uitvoeren en kennisdeling binnen het team stimuleren",
+      "Performance optimalisatie en technische schuld aanpakken",
+      "Bijdragen aan onze CI/CD pipeline en deployment processen"
+    ],
+    
+    "eisen": [
+      "5+ jaar ervaring met C# / .NET of vergelijkbare stack",
+      "Ervaring met microservices architectuur",
+      "Sterke communicatieve vaardigheden in Nederlands en Engels",
+      "Proactieve houding en eigenaarschap over je werk"
+    ],
+    
+    "nice_to_haves": [
+      "Ervaring met Azure cloud services",
+      "Kennis van supply chain of logistieke processen",
+      "Ervaring met mentoring van junior developers"
+    ],
+    
+    "salaris_range": "€5.500 - €7.000 bruto/maand",
+    "salaris_details": "Inclusief 8% vakantiegeld, 13e maand en pensioenregeling. Exacte salaris op basis van ervaring en achtergrond.",
+    
+    "benefits": [
+      {
+        "icon": "🏠",
+        "titel": "Hybride werken",
+        "beschrijving": "3 dagen kantoor, 2 dagen thuis. Flexibele werktijden."
+      },
+      {
+        "icon": "📚",
+        "titel": "Persoonlijk budget",
+        "beschrijving": "€2.000/jaar voor opleidingen, conferenties en certificeringen."
+      },
+      {
+        "icon": "🚗",
+        "titel": "Mobiliteit",
+        "beschrijving": "NS Business Card of lease-budget van €750/maand."
+      },
+      {
+        "icon": "💪",
+        "titel": "Vitaliteit",
+        "beschrijving": "Sportabonnement vergoed + maandelijks team-event."
+      }
+    ],
+    
+    "bedrijf_beschrijving": "TechFlow is een snelgroeiende scale-up die supply chain software ontwikkelt voor de logistieke sector. Sinds 2018 helpen we bedrijven als DHL, PostNL en Bol.com om hun operaties te optimaliseren. Onze cultuur draait om ownership, transparantie en continuous improvement. We zijn trots op onze 4.7 Glassdoor rating en het feit dat 90% van nieuwe hires via referrals binnenkomt.",
+    
+    "opgericht_jaar": "2018",
+    "aantal_locaties": "2",
+    "omzet": "€15M",
+    
+    "team_beschrijving": "Je komt terecht in Team Phoenix - 8 developers met diverse achtergronden en expertise levels. We werken in 2-weeks sprints, hebben dagelijkse standups en een maandelijkse hackathon. De sfeer is informeel maar ambitieus: we challengen elkaar om beter te worden, maar gaan ook regelmatig samen lunchen of borrelen.",
+    
+    "sollicitatie_proces": [
+      "CV review (binnen 48 uur reactie)",
+      "Kennismakingsgesprek met hiring manager (30 min, video)",
+      "Technische challenge (thuis, 2-3 uur)",
+      "Teamgesprek + office tour (on-site, 2 uur)",
+      "Aanbod binnen 1 week na laatste gesprek"
+    ],
+    
+    "inclusiviteit_statement": "We moedigen iedereen aan om te solliciteren, ongeacht achtergrond, geslacht, leeftijd of ervaring. We beoordelen op potentieel en drive, niet alleen op het perfecte CV.",
+    
+    "show_seo_suggestions": true,
+    "seo_meta_title": "Senior Software Developer C# .NET | TechFlow Eindhoven | Hybride",
+    "seo_meta_description": "Zoek je een senior developer rol bij een snelgroeiende scale-up? TechFlow biedt €5.500-7.000, hybride werken en een sterk team. Solliciteer nu!",
+    "seo_keywords": "senior software developer, C# developer, .NET developer, Eindhoven, supply chain software, hybride werken",
+    "seo_slug": "senior-software-developer-eindhoven",
+    
+    "cta_tekst": "Klaar om impact te maken met je code?",
+    "cta_button_tekst": "Solliciteer Direct →",
+    "contact_naam": "Lisa de Vries - Technical Recruiter",
+    "contact_email": "lisa@techflow.nl",
+    "contact_telefoon": "06-12345678",
+    
+    "datum": "25 januari 2025",
+    "referentie_nummer": "KT-2025-0142"
+  },
+  
+  "// ========================================": "TEMPLATE 2: EXECUTIVE SUMMARY",
+  "executive_summary": {
+    "bedrijfsnaam": "TechFlow B.V.",
+    "functie_titel": "Senior Software Developer",
+    "locatie": "Eindhoven",
+    "datum": "25 januari 2025",
+    "referentie_nummer": "KT-2025-0142",
+    
+    "score_voor": 54,
+    "score_na": 87,
+    "score_verbetering": 33,
+    
+    "verwachte_response": 42,
+    "inclusiviteit_voor": 5,
+    "inclusiviteit_na": 9,
+    "seo_voor": 4,
+    "seo_na": 8,
+    
+    "top_verbeteringen": [
+      {
+        "titel": "Salarisindicatie toegevoegd",
+        "beschrijving": "Van geen vermelding naar transparante range €5.500-7.000. Verhoogt response met 35%.",
+        "impact": "+35% meer sollicitaties verwacht"
+      },
+      {
+        "titel": "Inclusieve taal geïmplementeerd",
+        "beschrijving": "Genderspecifieke termen verwijderd, overbodige eisen geschrapt, inclusiviteitsstatement toegevoegd.",
+        "impact": "+25% meer diverse kandidaten"
+      },
+      {
+        "titel": "Pakkende opening geschreven",
+        "beschrijving": "Van 'Wij zoeken een...' naar kandidaat-gerichte opening die direct de waardepropositie communiceert.",
+        "impact": "+20% hogere read-through rate"
+      }
+    ],
+    
+    "categorie_scores": [
+      { "naam": "Inhoud", "voor": 60, "na": 90 },
+      { "naam": "Structuur", "voor": 55, "na": 85 },
+      { "naam": "Transparantie", "voor": 30, "na": 95 },
+      { "naam": "Inclusiviteit", "voor": 50, "na": 90 },
+      { "naam": "SEO", "voor": 40, "na": 80 }
+    ],
+    
+    "woorden_voor": 285,
+    "woorden_na": 420,
+    "leesbaarheid_voor": "Moeilijk",
+    "leesbaarheid_na": "Goed",
+    "helderheid_voor": 5,
+    "helderheid_na": 9,
+    "transparantie_voor": 3,
+    "transparantie_na": 10,
+    
+    "quick_tips": [
+      "Publiceer op dinsdag of woensdag ochtend voor 15% meer views",
+      "Voeg een teamfoto toe - verhoogt engagement met 30%",
+      "Plaats dezelfde vacature op Indeed én LinkedIn voor maximum bereik",
+      "Herplaats na 2 weken als response achterblijft",
+      "Track je sollicitatiebronnen voor future optimization"
+    ],
+    
+    "verwachte_sollicitaties": 42,
+    "verwachte_kwaliteit": 35,
+    "verwachte_time_to_hire": 25,
+    
+    "contact_email": "support@kandidatentekort.nl",
+    "jaar": "2025"
+  },
+  
+  "// ========================================": "TEMPLATE 3: TIPS CHECKLIST",
+  "tips_checklist": {
+    "bedrijfsnaam": "TechFlow B.V.",
+    "functie_titel": "Senior Software Developer",
+    
+    "progress_percentage": 0,
+    "tips_completed": 0,
+    "tips_remaining": 15,
+    "potential_improvement": 42,
+    
+    "datum": "25 januari 2025",
+    "contact_email": "support@kandidatentekort.nl"
+  },
+  
+  "// ========================================": "TEMPLATE 4: EMAIL DELIVERY",
+  "email_delivery": {
+    "preview_tekst": "Je vacature analyse is klaar! Score verbeterd van 54 naar 87 (+33 punten). Download nu je verbeterde vacaturetekst.",
+    
+    "voornaam": "Lisa",
+    "bedrijfsnaam": "TechFlow B.V.",
+    "functie_titel": "Senior Software Developer",
+    
+    "score_voor": 54,
+    "score_na": 87,
+    "score_verbetering": 33,
+    
+    "verwachte_response": 42,
+    "inclusiviteit_score": 9,
+    "seo_score": 8,
+    
+    "top_verbeteringen": [
+      "Salarisindicatie €5.500-7.000 toegevoegd (+35% response)",
+      "Inclusieve en neutrale taal geïmplementeerd",
+      "Pakkende kandidaat-gerichte opening geschreven"
+    ],
+    
+    "download_link": "https://kandidatentekort.nl/download/KT-2025-0142",
+    "calendly_link": "https://calendly.com/wouter-arts-/vacature-analyse-advies",
+    
+    "contact_adres": "Eindhoven, Nederland",
+    "contact_email": "support@kandidatentekort.nl",
+    "contact_telefoon": "06-12345678",
+    
+    "website_url": "https://kandidatentekort.nl",
+    "linkedin_url": "https://linkedin.com/company/recruitin",
+    "unsubscribe_url": "https://kandidatentekort.nl/unsubscribe",
+    
+    "jaar": "2025",
+    "referentie_nummer": "KT-2025-0142"
+  }
+}

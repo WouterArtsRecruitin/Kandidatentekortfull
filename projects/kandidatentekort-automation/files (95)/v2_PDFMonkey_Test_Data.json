@@ -1,0 +1,296 @@
+{
+  "metadata": {
+    "versie": "2.0",
+    "laatst_bijgewerkt": "2024-11-25",
+    "beschrijving": "Premium v2 templates - APK styling + data journalism"
+  },
+  
+  "executive_summary_rapport": {
+    "bedrijfsnaam": "TechFlow B.V.",
+    "functie_titel": "Senior Software Developer",
+    "locatie": "Eindhoven",
+    "referentie_nummer": "KT-2024-1247",
+    "datum": "25 november 2024",
+    "jaar": "2024",
+    
+    "score_voor": 54,
+    "score_na": 87,
+    "score_verbetering": 33,
+    
+    "verwachte_response": 42,
+    "verwachte_sollicitaties": 42,
+    "verwachte_kwaliteit": 65,
+    "verwachte_days_saved": 8,
+    
+    "inclusiviteit_voor": 4,
+    "inclusiviteit_na": 8,
+    "seo_voor": 5,
+    "seo_na": 9,
+    
+    "top_verbeteringen": [
+      {
+        "titel": "Salarisindicatie Toegevoegd",
+        "beschrijving": "Transparante salarisrange €5.500 - €7.000 maakt de vacature direct aantrekkelijker. Kandidaten weten waar ze aan toe zijn.",
+        "impact": "+35% meer sollicitaties verwacht"
+      },
+      {
+        "titel": "Inclusieve Taal Geïmplementeerd",
+        "beschrijving": "Geslachtsneutrale aanspreekvorm en vermijding van leeftijdsgebonden termen opent de deur naar een bredere talentpool.",
+        "impact": "+25% meer diverse kandidaten"
+      },
+      {
+        "titel": "Pakkende Opening Geschreven",
+        "beschrijving": "Van saaie 'Wij zoeken' naar een activerende vraag die de lezer direct aanspreekt en nieuwsgierig maakt.",
+        "impact": "+18% hogere click-through rate"
+      }
+    ],
+    
+    "categorie_scores": [
+      { "naam": "Inhoud & Structuur", "voor": 55, "na": 85, "benchmark": 70 },
+      { "naam": "Transparantie", "voor": 40, "na": 90, "benchmark": 65 },
+      { "naam": "Inclusiviteit", "voor": 45, "na": 80, "benchmark": 60 },
+      { "naam": "SEO & Vindbaarheid", "voor": 50, "na": 90, "benchmark": 68 },
+      { "naam": "Call-to-Action", "voor": 60, "na": 88, "benchmark": 72 }
+    ],
+    
+    "quick_tips": [
+      "Publiceer op dinsdag of woensdag ochtend voor maximaal bereik",
+      "Voeg binnen 2 weken een video toe voor +34% engagement",
+      "Test 2 verschillende titels via A/B testing",
+      "Herplaats na 14 dagen met kleine updates",
+      "Deel de vacature via persoonlijke LinkedIn posts van teamleden"
+    ],
+    
+    "calendly_link": "https://calendly.com/wouter-arts-/vacature-analyse-advies"
+  },
+  
+  "verbeterde_vacature": {
+    "bedrijfsnaam": "TechFlow B.V.",
+    "bedrijf_initialen": "TF",
+    "bedrijf_sector": "Software & Technology",
+    "bedrijf_tagline": "Building tomorrow's digital infrastructure",
+    "bedrijf_opgericht": "2015",
+    "bedrijf_medewerkers": "85+",
+    "bedrijf_locaties": "3",
+    "bedrijf_omzet": "€12M",
+    "bedrijf_beschrijving": "TechFlow is een snelgroeiende software company die innovatieve cloud solutions bouwt voor enterprise klanten in de Benelux. Ons team van 85+ developers, designers en consultants werkt vanuit Eindhoven, Amsterdam en Antwerpen aan cutting-edge projecten voor Fortune 500 bedrijven. We combineren startup-energie met enterprise-stabiliteit.",
+    
+    "functie_titel": "Senior Software Developer",
+    "locatie": "Eindhoven (Strijp-S)",
+    "dienstverband": "Fulltime (40 uur)",
+    "hybride_mogelijk": true,
+    "uren_per_week": 40,
+    
+    "salaris_range": "€5.500 - €7.000",
+    "vakantiegeld": true,
+    "dertiende_maand": true,
+    "bonus": true,
+    
+    "intro_hook": "Wil jij meewerken aan cloud platforms die door miljoenen gebruikers worden gebruikt?",
+    "intro_tekst": "Bij TechFlow bouw je niet zomaar software – je creëert digitale infrastructuur waar grote organisaties op draaien. Als Senior Software Developer werk je in een team van gepassioneerde engineers aan schaalbare microservices, real-time data pipelines en intuïtieve interfaces. Je hebt directe impact op producten die je daadwerkelijk in het wild tegenkomt.",
+    
+    "werkzaamheden": [
+      "Ontwerp en bouw schaalbare backend services in Java/Kotlin en Node.js",
+      "Werk samen met product owners om technische oplossingen te vertalen naar business waarde",
+      "Review code van teamgenoten en deel kennis via tech talks en pair programming",
+      "Verbeter onze CI/CD pipelines en cloud infrastructure (AWS/Azure)",
+      "Mentor junior developers en help het team groeien",
+      "Draag bij aan architectuurbeslissingen en technische roadmap"
+    ],
+    
+    "eisen": [
+      "5+ jaar ervaring met backend development (Java, Kotlin, of Node.js)",
+      "Ervaring met cloud platforms (AWS of Azure)",
+      "Kennis van containerization (Docker, Kubernetes)",
+      "Sterke communicatieve vaardigheden in Nederlands en Engels",
+      "HBO/WO werk- en denkniveau"
+    ],
+    
+    "nice_to_haves": [
+      "Ervaring met event-driven architectuur (Kafka, RabbitMQ)",
+      "Kennis van Infrastructure as Code (Terraform)",
+      "Bijdragen aan open source projecten",
+      "Ervaring in een Agile/Scrum omgeving"
+    ],
+    
+    "benefits": [
+      { "icon": "💰", "titel": "Salaris + Bonus", "beschrijving": "Marktconform + 13e maand + prestatiebonus" },
+      { "icon": "🏠", "titel": "Hybride Werken", "beschrijving": "3 dagen kantoor, 2 dagen thuis" },
+      { "icon": "📚", "titel": "Ontwikkeling", "beschrijving": "€3.000/jaar opleidingsbudget" },
+      { "icon": "🏖️", "titel": "Vakantie", "beschrijving": "28 dagen + mogelijkheid tot kopen" },
+      { "icon": "💪", "titel": "Sportbudget", "beschrijving": "€50/maand voor fitness of sport" },
+      { "icon": "🚗", "titel": "Mobiliteit", "beschrijving": "Leaseauto of OV-kaart" },
+      { "icon": "🍕", "titel": "Lunch", "beschrijving": "Dagelijks verse lunch op kantoor" },
+      { "icon": "🎮", "titel": "Team Events", "beschrijving": "Maandelijkse teamactiviteiten" }
+    ],
+    
+    "team_naam": "Platform Engineering Team",
+    "team_grootte": 12,
+    "team_grootte_rest": 9,
+    "team_beschrijving": "Ons Platform Engineering team bestaat uit 12 gedreven engineers die samen werken aan de core infrastructure. Het team is divers: van recent afgestudeerden tot veteranen met 15+ jaar ervaring. We houden van technische discussies, vrijdagmiddag hackathons en kwartaallijkse team-uitjes.",
+    
+    "sollicitatie_stappen": [
+      { "titel": "Sollicitatie", "duur": "Direct" },
+      { "titel": "Kennismaking", "duur": "30 min video" },
+      { "titel": "Tech Interview", "duur": "60 min" },
+      { "titel": "Meet the Team", "duur": "Op locatie" },
+      { "titel": "Aanbod", "duur": "Binnen 1 week" }
+    ],
+    
+    "inclusiviteit_statement": "Bij TechFlow geloven we dat diverse teams betere software bouwen. We verwelkomen sollicitaties van iedereen, ongeacht achtergrond, gender, leeftijd, etniciteit of beperking. Heb je niet alle eisen maar wel de drive? Solliciteer toch!",
+    
+    "solliciteer_link": "https://techflow.nl/vacatures/senior-developer",
+    "contact_email": "jobs@techflow.nl",
+    "contact_telefoon": "+31 40 123 4567",
+    
+    "score_na": 87,
+    "verwachte_response": 42
+  },
+  
+  "praktische_tips_checklist": {
+    "total_tips": 15,
+    "high_impact": 5,
+    "quick_wins": 4,
+    "inclusiviteit_tips": 3,
+    "gemiddeld_resultaat": "+40%"
+  },
+  
+  "email_delivery": {
+    "voornaam": "Jan",
+    "datum": "25 november 2024",
+    "jaar": "2024",
+    
+    "score_voor": 54,
+    "score_na": 87,
+    "score_verbetering": 33,
+    
+    "verwachte_response": 42,
+    "inclusiviteit_na": 8,
+    "seo_na": 9,
+    
+    "top_verbeteringen": [
+      {
+        "titel": "Salarisindicatie Toegevoegd",
+        "korte_beschrijving": "Transparante range €5.500-€7.000 verhoogt aantrekkelijkheid direct."
+      },
+      {
+        "titel": "Inclusieve Taal",
+        "korte_beschrijving": "Geslachtsneutrale tekst bereikt een bredere talentpool."
+      },
+      {
+        "titel": "Pakkende Opening",
+        "korte_beschrijving": "Van 'Wij zoeken' naar een activerende vraag."
+      }
+    ],
+    
+    "download_link": "https://kandidatentekort.nl/download/abc123",
+    "calendly_link": "https://calendly.com/wouter-arts-/vacature-analyse-advies",
+    "website_url": "https://kandidatentekort.nl",
+    "linkedin_url": "https://linkedin.com/company/recruitin-nl",
+    "unsubscribe_url": "https://kandidatentekort.nl/unsubscribe?token=xyz"
+  },
+  
+  "before_after_vergelijking": {
+    "bedrijfsnaam": "TechFlow B.V.",
+    "functie_titel": "Senior Software Developer",
+    "referentie_nummer": "KT-2024-1247",
+    "datum": "25 november 2024",
+    
+    "score_voor": 54,
+    "score_na": 87,
+    "score_verbetering": 33,
+    "verwachte_response": 42,
+    "verwachte_kwaliteit": 65,
+    "aantal_verbeteringen": 6,
+    
+    "oud_opening": "Wij zijn op zoek naar een ervaren Software Developer om ons team te versterken.",
+    "nieuw_opening": "Wil jij meewerken aan cloud platforms die door miljoenen gebruikers worden gebruikt? Bij TechFlow bouw je niet zomaar software – je creëert digitale infrastructuur waar grote organisaties op draaien.",
+    
+    "oud_salaris": "Wij bieden een marktconform salaris.",
+    "nieuw_salaris": "€5.500 - €7.000 bruto per maand, inclusief 8% vakantiegeld en 13e maand",
+    
+    "oud_inclusiviteit": "De kandidaat dient beschikbaar te zijn voor 40 uur per week. Hij moet zelfstandig kunnen werken en stressbestendig zijn.",
+    "nieuw_inclusiviteit": "Je bent beschikbaar voor 32-40 uur per week. Je werkt graag zelfstandig én in teamverband. Flexibiliteit in werklocatie is mogelijk.",
+    
+    "oude_eisen": [
+      "Minimaal 5 jaar ervaring met Java",
+      "MSc in Computer Science vereist",
+      "Ervaring met AWS, Azure én GCP",
+      "Vloeiend Nederlands en Engels",
+      "Beschikbaar voor 40 uur",
+      "Direct beschikbaar"
+    ],
+    
+    "nieuwe_eisen_essentieel": [
+      "5+ jaar backend development (Java, Kotlin of Node.js)",
+      "Ervaring met cloud (AWS óf Azure)",
+      "HBO/WO werk- en denkniveau"
+    ],
+    
+    "nieuwe_eisen_bonus": [
+      "Ervaring met Kubernetes",
+      "Kennis van Terraform",
+      "Open source contributions"
+    ],
+    
+    "oud_functietitel": "Software Ninja / Code Wizard",
+    "nieuw_functietitel": "Senior Software Developer",
+    
+    "oud_benefits": "Wij bieden uitstekende arbeidsvoorwaarden, een prettige werksfeer en ruime opleidingsmogelijkheden.",
+    
+    "nieuwe_benefits": [
+      { "titel": "Salaris", "detail": "€5.500-€7.000 + 13e maand + bonus" },
+      { "titel": "Hybride werken", "detail": "3 dagen kantoor, 2 dagen thuis" },
+      { "titel": "Opleiding", "detail": "€3.000 persoonlijk budget per jaar" },
+      { "titel": "Vakantie", "detail": "28 dagen + optie tot bijkopen" }
+    ],
+    
+    "calendly_link": "https://calendly.com/wouter-arts-/vacature-analyse-advies"
+  },
+  
+  "handlebars_variabelen": {
+    "rapport": [
+      "bedrijfsnaam", "functie_titel", "locatie", "referentie_nummer", "datum", "jaar",
+      "score_voor", "score_na", "score_verbetering",
+      "verwachte_response", "verwachte_sollicitaties", "verwachte_kwaliteit", "verwachte_days_saved",
+      "inclusiviteit_na", "seo_na",
+      "top_verbeteringen[].titel", "top_verbeteringen[].beschrijving", "top_verbeteringen[].impact",
+      "categorie_scores[].naam", "categorie_scores[].voor", "categorie_scores[].na", "categorie_scores[].benchmark",
+      "quick_tips[]",
+      "calendly_link"
+    ],
+    "vacature": [
+      "bedrijfsnaam", "bedrijf_initialen", "bedrijf_sector", "bedrijf_tagline",
+      "bedrijf_opgericht", "bedrijf_medewerkers", "bedrijf_locaties", "bedrijf_omzet", "bedrijf_beschrijving",
+      "functie_titel", "locatie", "dienstverband", "hybride_mogelijk", "uren_per_week",
+      "salaris_range", "vakantiegeld", "dertiende_maand", "bonus",
+      "intro_hook", "intro_tekst",
+      "werkzaamheden[]",
+      "eisen[]", "nice_to_haves[]",
+      "benefits[].icon", "benefits[].titel", "benefits[].beschrijving",
+      "team_naam", "team_grootte", "team_grootte_rest", "team_beschrijving",
+      "sollicitatie_stappen[].titel", "sollicitatie_stappen[].duur",
+      "inclusiviteit_statement",
+      "solliciteer_link", "contact_email", "contact_telefoon",
+      "score_na", "verwachte_response"
+    ],
+    "email": [
+      "voornaam", "datum", "jaar",
+      "score_voor", "score_na", "score_verbetering",
+      "verwachte_response", "inclusiviteit_na", "seo_na",
+      "top_verbeteringen[].titel", "top_verbeteringen[].korte_beschrijving",
+      "download_link", "calendly_link", "website_url", "linkedin_url", "unsubscribe_url"
+    ],
+    "before_after": [
+      "bedrijfsnaam", "functie_titel", "referentie_nummer", "datum",
+      "score_voor", "score_na", "score_verbetering", "verwachte_response", "verwachte_kwaliteit", "aantal_verbeteringen",
+      "oud_opening", "nieuw_opening",
+      "oud_salaris", "nieuw_salaris",
+      "oud_inclusiviteit", "nieuw_inclusiviteit",
+      "oude_eisen[]", "nieuwe_eisen_essentieel[]", "nieuwe_eisen_bonus[]",
+      "oud_functietitel", "nieuw_functietitel",
+      "oud_benefits", "nieuwe_benefits[].titel", "nieuwe_benefits[].detail",
+      "calendly_link"
+    ]
+  }
+}

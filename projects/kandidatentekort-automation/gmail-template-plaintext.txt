@@ -1,0 +1,59 @@
+Onderwerp: 🎯 Jouw verbeterde vacaturetekst voor {{COMPANY_NAME}} is klaar!
+
+---
+
+Hoi {{FIRST_NAME}},
+
+Bedankt voor het uploaden van je vacature via kandidatentekort.nl!
+
+Ik heb je vacaturetekst voor {{COMPANY_NAME}} geanalyseerd en verbeterd. Hieronder vind je mijn complete analyse:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📊 SCORE
+
+{{SCORE_SECTION}}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🎯 TOP 3 VERBETERPUNTEN
+
+{{IMPROVEMENT_POINTS}}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+✍️ VERBETERDE VACATURETEKST
+
+{{IMPROVED_TEXT}}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+💡 BONUS TIPS
+
+{{BONUS_TIPS}}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🚀 VOLGENDE STAP?
+
+Wil je meer halen uit je recruitment?
+
+📅 Plan een gratis adviesgesprek (30 min):
+https://calendly.com/wouter-arts-/vacature-analyse-advies
+
+💬 Of stuur me direct een WhatsApp:
+https://wa.me/31614314593?text=Hoi%20Wouter,%20ik%20heb%20mijn%20vacature-analyse%20ontvangen
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+Met vriendelijke groet,
+
+Wouter Arts
+Recruitin B.V. - Specialist in technische recruitment
+
+📞 06-14314593
+📧 wouter@recruitin.nl
+🌐 recruitin.nl
+
+---
+Je ontvangt deze email omdat je een vacature hebt geüpload op kandidatentekort.nl

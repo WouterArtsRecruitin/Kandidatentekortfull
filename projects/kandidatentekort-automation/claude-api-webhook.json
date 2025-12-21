@@ -1,0 +1,31 @@
+{
+  "zapier_step": "Webhooks by Zapier - POST",
+  "url": "https://api.anthropic.com/v1/messages",
+  "method": "POST",
+  "headers": {
+    "Content-Type": "application/json",
+    "x-api-key": "{{YOUR_ANTHROPIC_API_KEY}}",
+    "anthropic-version": "2023-06-01"
+  },
+  "body": {
+    "model": "claude-sonnet-4-20250514",
+    "max_tokens": 4096,
+    "messages": [
+      {
+        "role": "user",
+        "content": "Je bent een expert recruitment copywriter gespecialiseerd in de Nederlandse technische arbeidsmarkt. Je analyseert vacatureteksten en verbetert ze voor maximale kandidaat-conversie.\n\n## VACATURETEKST OM TE ANALYSEREN:\n\n{{step3_file_content}}\n\n## CONTEXT:\n- Bedrijf: {{step1_company}}\n- Sector: {{step1_sector}}\n- Optimalisatiedoel: {{step1_goal}}\n\n## JOUW OPDRACHT:\n\nAnalyseer deze vacaturetekst en lever het volgende:\n\n### 1. SCORE (1-10)\nGeef een score met korte onderbouwing.\n\n### 2. TOP 3 VERBETERPUNTEN\nIdentificeer de 3 belangrijkste verbeteringen.\n\n### 3. VERBETERDE VACATURETEKST\nHerschrijf de volledige vacaturetekst (400-600 woorden).\n\n### 4. BONUS TIPS\n2-3 extra tips voor meer kandidaten.\n\nSchrijf in het Nederlands, professioneel maar toegankelijk."
+      }
+    ]
+  },
+  "notes": {
+    "replace_placeholders": [
+      "{{YOUR_ANTHROPIC_API_KEY}} - Je Anthropic API key",
+      "{{step3_file_content}} - Output van Step 3 (file download)",
+      "{{step1_company}} - Typeform field: field_oCk4xgomQr46",
+      "{{step1_sector}} - Typeform field: field_MPI700TSOg7e", 
+      "{{step1_goal}} - Typeform field: field_btapXJRBLF0k"
+    ],
+    "response_path": "content[0].text",
+    "expected_cost": "~€0.03-0.08 per request"
+  }
+}

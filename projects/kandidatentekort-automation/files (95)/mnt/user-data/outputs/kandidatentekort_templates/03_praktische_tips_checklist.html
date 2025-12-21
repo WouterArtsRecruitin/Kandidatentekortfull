@@ -1,0 +1,713 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vacature Verbeter Checklist | kandidatentekort.nl</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            font-size: 11px;
+            line-height: 1.4;
+            color: #2d3748;
+            background: #ffffff;
+        }
+        
+        /* PAGE LAYOUT */
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            padding: 0;
+            margin: 0;
+            page-break-after: always;
+            position: relative;
+            background: white;
+        }
+        
+        .page:last-child {
+            page-break-after: avoid;
+        }
+        
+        /* HEADER */
+        .header {
+            background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%);
+            color: white;
+            padding: 20px 25px;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #2c3e50;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-left h1 {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+        
+        .header-subtitle {
+            font-size: 11px;
+            opacity: 0.95;
+        }
+        
+        .header-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 10px 20px;
+            border-radius: 25px;
+            text-align: center;
+        }
+        
+        .badge-count {
+            font-size: 24px;
+            font-weight: 800;
+        }
+        
+        .badge-label {
+            font-size: 9px;
+            opacity: 0.9;
+        }
+        
+        /* INTRO SECTION */
+        .intro {
+            background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+            padding: 15px 25px;
+            border-bottom: 2px solid #9ae6b4;
+        }
+        
+        .intro-content {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .intro-icon {
+            font-size: 30px;
+        }
+        
+        .intro-text h2 {
+            font-size: 13px;
+            font-weight: 700;
+            color: #276749;
+            margin-bottom: 4px;
+        }
+        
+        .intro-text p {
+            font-size: 10px;
+            color: #2f855a;
+            line-height: 1.5;
+        }
+        
+        /* MAIN CONTENT */
+        .content {
+            padding: 20px 25px;
+        }
+        
+        /* CATEGORY SECTION */
+        .category {
+            margin-bottom: 18px;
+        }
+        
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid;
+        }
+        
+        .category-icon {
+            width: 28px;
+            height: 28px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+        }
+        
+        .category-title {
+            font-size: 13px;
+            font-weight: 700;
+        }
+        
+        .category-count {
+            margin-left: auto;
+            font-size: 10px;
+            padding: 3px 10px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+        
+        /* CATEGORY COLORS */
+        .cat-tekst .category-header { border-color: #ff6b35; }
+        .cat-tekst .category-icon { background: #ff6b35; }
+        .cat-tekst .category-title { color: #c05621; }
+        .cat-tekst .category-count { background: #fff5f0; color: #c05621; }
+        
+        .cat-seo .category-header { border-color: #4299e1; }
+        .cat-seo .category-icon { background: #4299e1; }
+        .cat-seo .category-title { color: #2b6cb0; }
+        .cat-seo .category-count { background: #ebf8ff; color: #2b6cb0; }
+        
+        .cat-inclusie .category-header { border-color: #9f7aea; }
+        .cat-inclusie .category-icon { background: #9f7aea; }
+        .cat-inclusie .category-title { color: #6b46c1; }
+        .cat-inclusie .category-count { background: #faf5ff; color: #6b46c1; }
+        
+        .cat-opmaak .category-header { border-color: #38a169; }
+        .cat-opmaak .category-icon { background: #38a169; }
+        .cat-opmaak .category-title { color: #276749; }
+        .cat-opmaak .category-count { background: #f0fff4; color: #276749; }
+        
+        .cat-conversie .category-header { border-color: #ed8936; }
+        .cat-conversie .category-icon { background: #ed8936; }
+        .cat-conversie .category-title { color: #c05621; }
+        .cat-conversie .category-count { background: #fffaf0; color: #c05621; }
+        
+        /* CHECKLIST ITEMS */
+        .checklist {
+            list-style: none;
+        }
+        
+        .checklist-item {
+            display: flex;
+            gap: 10px;
+            padding: 10px 12px;
+            background: #f7fafc;
+            border-radius: 8px;
+            margin-bottom: 8px;
+            align-items: flex-start;
+        }
+        
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #cbd5e0;
+            border-radius: 4px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: white;
+            margin-top: 2px;
+        }
+        
+        .checkbox-inner {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            /* Empty for unchecked - will be filled when checked */
+        }
+        
+        .checklist-content {
+            flex: 1;
+        }
+        
+        .checklist-title {
+            font-size: 11px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 3px;
+        }
+        
+        .checklist-description {
+            font-size: 9px;
+            color: #718096;
+            line-height: 1.5;
+        }
+        
+        .checklist-impact {
+            display: inline-block;
+            font-size: 8px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+            margin-top: 5px;
+        }
+        
+        .impact-high {
+            background: #c6f6d5;
+            color: #276749;
+        }
+        
+        .impact-medium {
+            background: #fefcbf;
+            color: #975a16;
+        }
+        
+        .impact-quick {
+            background: #bee3f8;
+            color: #2b6cb0;
+        }
+        
+        /* PROGRESS TRACKER */
+        .progress-tracker {
+            background: #2c3e50;
+            color: white;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .progress-left h3 {
+            font-size: 12px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .progress-bar-container {
+            width: 200px;
+            height: 10px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 100%;
+            background: #ff6b35;
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .progress-stats {
+            display: flex;
+            gap: 20px;
+        }
+        
+        .progress-stat {
+            text-align: center;
+        }
+        
+        .progress-stat-value {
+            font-size: 20px;
+            font-weight: 800;
+            color: #ff6b35;
+        }
+        
+        .progress-stat-label {
+            font-size: 9px;
+            opacity: 0.8;
+        }
+        
+        /* FOOTER */
+        .footer {
+            background: #f7fafc;
+            padding: 15px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #e2e8f0;
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+        }
+        
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .footer-logo {
+            font-size: 12px;
+            font-weight: 700;
+            color: #ff6b35;
+        }
+        
+        .footer-tagline {
+            font-size: 9px;
+            color: #718096;
+        }
+        
+        .footer-right {
+            text-align: right;
+            font-size: 9px;
+            color: #a0aec0;
+        }
+        
+        /* BONUS SECTION */
+        .bonus-section {
+            background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            border: 1px solid #f6e05e;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 15px;
+        }
+        
+        .bonus-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .bonus-icon {
+            font-size: 20px;
+        }
+        
+        .bonus-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #975a16;
+        }
+        
+        .bonus-tips {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .bonus-tip {
+            background: white;
+            padding: 10px;
+            border-radius: 6px;
+            font-size: 9px;
+            color: #744210;
+        }
+        
+        .bonus-tip strong {
+            color: #975a16;
+            display: block;
+            margin-bottom: 3px;
+        }
+        
+        /* PRINT STYLES */
+        @media print {
+            .page {
+                page-break-after: always;
+            }
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+            .checkbox {
+                border: 2px solid #2c3e50;
+            }
+        }
+        
+        @page {
+            size: A4;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <!-- PAGE 1 -->
+    <div class="page">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1>Vacature Verbeter Checklist</h1>
+                    <div class="header-subtitle">{{bedrijfsnaam}} • {{functie_titel}}</div>
+                </div>
+                <div class="header-badge">
+                    <div class="badge-count">15</div>
+                    <div class="badge-label">praktische tips</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- INTRO -->
+        <div class="intro">
+            <div class="intro-content">
+                <div class="intro-icon">📋</div>
+                <div class="intro-text">
+                    <h2>Direct Toepasbare Tips voor Betere Vacatureteksten</h2>
+                    <p>Deze checklist bevat 15 bewezen tips om je vacature te verbeteren. Loop ze door en vink af wat je hebt toegepast. Elke tip draagt bij aan meer en betere sollicitaties.</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- PROGRESS TRACKER -->
+        <div class="progress-tracker">
+            <div class="progress-left">
+                <h3>Jouw Voortgang</h3>
+                <div class="progress-bar-container">
+                    <div class="progress-bar" style="width: {{progress_percentage}}%;"></div>
+                </div>
+            </div>
+            <div class="progress-stats">
+                <div class="progress-stat">
+                    <div class="progress-stat-value">{{tips_completed}}</div>
+                    <div class="progress-stat-label">Afgerond</div>
+                </div>
+                <div class="progress-stat">
+                    <div class="progress-stat-value">{{tips_remaining}}</div>
+                    <div class="progress-stat-label">Te gaan</div>
+                </div>
+                <div class="progress-stat">
+                    <div class="progress-stat-value">+{{potential_improvement}}%</div>
+                    <div class="progress-stat-label">Potentie</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- MAIN CONTENT -->
+        <div class="content">
+            <!-- CATEGORY 1: TEKST & INHOUD -->
+            <div class="category cat-tekst">
+                <div class="category-header">
+                    <div class="category-icon">📝</div>
+                    <div class="category-title">Tekst & Inhoud</div>
+                    <div class="category-count">4 tips</div>
+                </div>
+                <ul class="checklist">
+                    <li class="checklist-item">
+                        <div class="checkbox"><div class="checkbox-inner"></div></div>
+                        <div class="checklist-content">
+                            <div class="checklist-title">Begin met een pakkende opening</div>
+                            <div class="checklist-description">Start met wat de kandidaat krijgt, niet wie je bent. Vervang "Wij zijn een..." door "Jij gaat...". Dit verhoogt de leesmotivatie direct.</div>
+                            <span class="checklist-impact impact-high">🚀 Hoge impact</span>
+                        </div>
+                    </li>
+                    <li class="checklist-item">
+                        <div class="checkbox"><div class="checkbox-inner"></div></div>
+                        <div class="checklist-content">
+                            <div class="checklist-title">Gebruik actieve schrijfstijl</div>
+                            <div class="checklist-description">Vervang "Er wordt verwacht dat..." door "Je gaat...". Actieve zinnen zijn 23% overtuigender en makkelijker te lezen.</div>
+                            <span class="checklist-impact impact-medium">⚡ Medium impact</span>
+                        </div>
+                    </li>
+                    <li class="checklist-item">
+                        <div class="checkbox"><div class="checkbox-inner"></div></div>
+                        <div class="checklist-content">
+                            <div class="checklist-title">Beperk tot 5-7 kerntaken</div>
+                            <div class="checklist-description">Lange lijsten schrikken af. Focus op de belangrijkste taken en combineer gerelateerde items. Minder is meer.</div>
+                            <span class="checklist-impact impact-medium">⚡ Medium impact</span>
+                        </div>
+                    </li>
+                    <li class="checklist-item">
+                        <div class="checkbox"><div class="checkbox-inner"></div></div>
+                        <div class="checklist-content">
+                            <div class="checklist-title">Splits eisen en wensen duidelijk</div>
+                            <div class="checklist-description">Maak twee aparte lijsten: "Dit is nodig" en "Dit is een plus". Vermindert self-screening met 15-20%.</div>
+                            <span class="checklist-impact impact-high">🚀 Hoge impact</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- CATEGORY 2: SEO & VINDBAARHEID -->
+            <div class="category cat-seo">
+                <div class="category-header">
+                    <div class="category-icon">🔍</div>
+                    <div class="category-title">SEO & Vindbaarheid</div>
+                    <div class="category-count">3 tips</div>
+                </div>
+                <ul class="checklist">
+                    <li class="checklist-item">
+                        <div class="checkbox"><div class="checkbox-inner"></div></div>
+                        <div class="checklist-content">
+                            <div class="checklist-title">Gebruik gangbare functietitels</div>
+                            <div class="checklist-description">Kies "Software Developer" boven "Code Ninja" of "Digital Wizard". Kandidaten zoeken op standaard termen.</div>
+                            <span class="checklist-impact impact-high">🚀 Hoge impact</span>
+                        </div>
+                    </li>
+                    <li class="checklist-item">
+                        <div class="checkbox"><div class="checkbox-inner"></div></div>
+                        <div class="checklist-content">
+                            <div class="checklist-title">Vermeld locatie in de titel</div>
+                            <div class="checklist-description">Voeg stad of regio toe: "Accountant - Eindhoven" scoort 40% beter in lokale zoekopdrachten.</div>
+                            <span class="checklist-impact impact-quick">⏱️ Quick win</span>
+                        </div>
+                    </li>
+                    <li class="checklist-item">
+                        <div class="checkbox"><div class="checkbox-inner"></div></div>
+                        <div class="checklist-content">
+                            <div class="checklist-title">Herhaal kernwoorden natuurlijk</div>
+                            <div class="checklist-description">Gebruik functietitel en skills 2-3x in de tekst. Niet forceren, wel bewust plaatsen in titel, intro en eisen.</div>
+                            <span class="checklist-impact impact-medium">⚡ Medium impact</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- CATEGORY 3: INCLUSIVITEIT -->
+            <div class="category cat-inclusie">
+                <div class="category-header">
+                    <div class="category-icon">🌈</div>
+                    <div class="category-title">Inclusiviteit</div>
+                    <div class="category-count">3 tips</div>
+                </div>
+                <ul class="checklist">
+                    <li class="checklist-item">
+                        <div class="checkbox"><div class="checkbox-inner"></div></div>
+                        <div class="checklist-content">
+                            <div class="checklist-title">Vermijd geslachtsgebonden taal</div>
+                            <div class="checklist-description">Gebruik "je/jij" ipv "hij". Vervang "salesmanager" door "sales manager" of "accountmanager" door "accountmanager (m/v/x)".</div>
+                            <span class="checklist-impact impact-high">🚀 Hoge impact</span>
+                        </div>
+                    </li>
+                    <li class="checklist-item">
+                        <div class="checkbox"><div class="checkbox-inner"></div></div>
+                        <div class="checklist-content">
+                            <div class="checklist-title">Schrap overbodige eisen</div>
+                            <div class="checklist-description">Is dat rijbewijs écht nodig? Vrouwen solliciteren 20% minder bij te veel eisen. Houd alleen essentiële criteria.</div>
+                            <span class="checklist-impact impact-high">🚀 Hoge impact</span>
+                        </div>
+                    </li>
+                    <li class="checklist-item">
+                        <div class="checkbox"><div class="checkbox-inner"></div></div>
+                        <div class="checklist-content">
+                            <div class="checklist-title">Voeg inclusiviteitsstatement toe</div>
+                            <div class="checklist-description">Één zin over gelijke kansen verhoogt diversiteit met 10-15%. Wees concreet, niet generiek.</div>
+                            <span class="checklist-impact impact-medium">⚡ Medium impact</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <!-- PAGE 2 -->
+    <div class="page">
+        <div class="content" style="padding-top: 25px;">
+            <!-- CATEGORY 4: OPMAAK & STRUCTUUR -->
+            <div class="category cat-opmaak">
+                <div class="category-header">
+                    <div class="category-icon">🎨</div>
+                    <div class="category-title">Opmaak & Structuur</div>
+                    <div class="category-count">3 tips</div>
+                </div>
+                <ul class="checklist">
+                    <li class="checklist-item">
+                        <div class="checkbox"><div class="checkbox-inner"></div></div>
+                        <div class="checklist-content">
+                            <div class="checklist-title">Gebruik korte paragrafen</div>
+                            <div class="checklist-description">Max 3-4 zinnen per alinea. 70% leest op mobiel - lange tekstblokken worden overgeslagen.</div>
+                            <span class="checklist-impact impact-quick">⏱️ Quick win</span>
+                        </div>
+                    </li>
+                    <li class="checklist-item">
+                        <div class="checkbox"><div class="checkbox-inner"></div></div>
+                        <div class="checklist-content">
+                            <div class="checklist-title">Structureer met duidelijke koppen</div>
+                            <div class="checklist-description">Gebruik koppen als "Wat ga je doen?", "Wat breng je mee?", "Wat bieden wij?". Scanbare tekst wordt 2x vaker gelezen.</div>
+                            <span class="checklist-impact impact-medium">⚡ Medium impact</span>
+                        </div>
+                    </li>
+                    <li class="checklist-item">
+                        <div class="checkbox"><div class="checkbox-inner"></div></div>
+                        <div class="checklist-content">
+                            <div class="checklist-title">Voeg bullets toe voor overzicht</div>
+                            <div class="checklist-description">Lijsten met 5-7 items zijn ideaal. Gebruik ✓ of • voor visuele rust. Geen genummerde lijsten tenzij volgorde telt.</div>
+                            <span class="checklist-impact impact-quick">⏱️ Quick win</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- CATEGORY 5: CONVERSIE & ACTIE -->
+            <div class="category cat-conversie">
+                <div class="category-header">
+                    <div class="category-icon">🎯</div>
+                    <div class="category-title">Conversie & Actie</div>
+                    <div class="category-count">2 tips</div>
+                </div>
+                <ul class="checklist">
+                    <li class="checklist-item">
+                        <div class="checkbox"><div class="checkbox-inner"></div></div>
+                        <div class="checklist-content">
+                            <div class="checklist-title">Vermeld salaris(indicatie)</div>
+                            <div class="checklist-description">Vacatures met salaris krijgen 35% meer response. Geef minimaal een range: "€3.500 - €4.500 bruto/maand".</div>
+                            <span class="checklist-impact impact-high">🚀 Hoge impact</span>
+                        </div>
+                    </li>
+                    <li class="checklist-item">
+                        <div class="checkbox"><div class="checkbox-inner"></div></div>
+                        <div class="checklist-content">
+                            <div class="checklist-title">Maak solliciteren makkelijk</div>
+                            <div class="checklist-description">Max 3 stappen tot sollicitatie. Bied opties: CV uploaden, LinkedIn profiel, of korte intro. Minder drempels = meer response.</div>
+                            <span class="checklist-impact impact-high">🚀 Hoge impact</span>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+            
+            <!-- BONUS SECTION -->
+            <div class="bonus-section">
+                <div class="bonus-header">
+                    <div class="bonus-icon">⭐</div>
+                    <div class="bonus-title">Bonus Tips voor Extra Impact</div>
+                </div>
+                <div class="bonus-tips">
+                    <div class="bonus-tip">
+                        <strong>📸 Voeg visuals toe</strong>
+                        Team foto's en kantoorbeelden verhogen engagement met 30%. Gebruik authentieke foto's, geen stockfoto's.
+                    </div>
+                    <div class="bonus-tip">
+                        <strong>📹 Overweeg video</strong>
+                        Een 60-seconden video van het team of de werkplek kan sollicitaties verdubbelen bij jongere doelgroepen.
+                    </div>
+                    <div class="bonus-tip">
+                        <strong>⏰ Timing is alles</strong>
+                        Publiceer op dinsdag of woensdag ochtend. Vacatures geplaatst op maandag of vrijdag presteren 15% minder.
+                    </div>
+                    <div class="bonus-tip">
+                        <strong>📊 A/B test je vacature</strong>
+                        Test twee versies van je titel of intro. Data vertelt je wat werkt bij jouw doelgroep.
+                    </div>
+                </div>
+            </div>
+            
+            <!-- IMPLEMENTATION GUIDE -->
+            <div style="margin-top: 20px; background: #f7fafc; padding: 15px; border-radius: 10px;">
+                <h3 style="font-size: 12px; font-weight: 700; color: #2c3e50; margin-bottom: 10px;">📋 Implementatie Volgorde</h3>
+                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;">
+                    <div style="background: white; padding: 12px; border-radius: 8px; border-left: 3px solid #38a169;">
+                        <div style="font-size: 10px; font-weight: 700; color: #38a169; margin-bottom: 5px;">Week 1: Quick Wins</div>
+                        <div style="font-size: 9px; color: #718096;">Start met ⏱️ tips - direct resultaat met minimale effort.</div>
+                    </div>
+                    <div style="background: white; padding: 12px; border-radius: 8px; border-left: 3px solid #ed8936;">
+                        <div style="font-size: 10px; font-weight: 700; color: #c05621; margin-bottom: 5px;">Week 2: Medium Impact</div>
+                        <div style="font-size: 9px; color: #718096;">Pak de ⚡ tips aan - iets meer tijd, significant resultaat.</div>
+                    </div>
+                    <div style="background: white; padding: 12px; border-radius: 8px; border-left: 3px solid #e53e3e;">
+                        <div style="font-size: 10px; font-weight: 700; color: #c53030; margin-bottom: 5px;">Week 3: High Impact</div>
+                        <div style="font-size: 9px; color: #718096;">Focus op 🚀 tips - maximaal effect voor je investering.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- FOOTER -->
+        <div class="footer">
+            <div class="footer-left">
+                <div class="footer-logo">kandidatentekort.nl</div>
+                <div class="footer-tagline">Powered by Recruitin • the right people, right now</div>
+            </div>
+            <div class="footer-right">
+                Gegenereerd op {{datum}}<br>
+                Hulp nodig? {{contact_email}}
+            </div>
+        </div>
+    </div>
+</body>
+</html>

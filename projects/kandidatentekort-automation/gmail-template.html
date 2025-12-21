@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jouw verbeterde vacaturetekst is klaar!</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333; max-width: 600px; margin: 0 auto; padding: 20px;">
+  
+  <!-- Header -->
+  <div style="background: linear-gradient(135deg, #1e3a5f 0%, #2d5a87 100%); padding: 30px; border-radius: 10px 10px 0 0; text-align: center;">
+    <h1 style="color: white; margin: 0; font-size: 24px;">🎯 Jouw vacature-analyse is klaar!</h1>
+  </div>
+  
+  <!-- Main Content -->
+  <div style="background: #f9f9f9; padding: 30px; border: 1px solid #ddd;">
+    
+    <p style="font-size: 16px;">Hoi {{FIRST_NAME}},</p>
+    
+    <p>Bedankt voor het uploaden van je vacature via <strong>kandidatentekort.nl</strong>!</p>
+    
+    <p>Ik heb je vacaturetekst voor <strong>{{COMPANY_NAME}}</strong> geanalyseerd en verbeterd. Hieronder vind je mijn complete analyse:</p>
+    
+    <!-- Score Box -->
+    <div style="background: white; border-left: 4px solid #2d5a87; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+      <h2 style="color: #1e3a5f; margin-top: 0;">📊 SCORE</h2>
+      <p style="font-size: 18px; margin: 0;">{{SCORE_SECTION}}</p>
+    </div>
+    
+    <!-- Verbeterpunten -->
+    <div style="background: white; border-left: 4px solid #e67e22; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+      <h2 style="color: #e67e22; margin-top: 0;">🎯 TOP 3 VERBETERPUNTEN</h2>
+      <div style="white-space: pre-wrap;">{{IMPROVEMENT_POINTS}}</div>
+    </div>
+    
+    <!-- Verbeterde Tekst -->
+    <div style="background: white; border-left: 4px solid #27ae60; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+      <h2 style="color: #27ae60; margin-top: 0;">✍️ VERBETERDE VACATURETEKST</h2>
+      <div style="white-space: pre-wrap; background: #f5f5f5; padding: 15px; border-radius: 5px; font-size: 14px;">{{IMPROVED_TEXT}}</div>
+    </div>
+    
+    <!-- Bonus Tips -->
+    <div style="background: white; border-left: 4px solid #9b59b6; padding: 20px; margin: 20px 0; border-radius: 0 8px 8px 0;">
+      <h2 style="color: #9b59b6; margin-top: 0;">💡 BONUS TIPS</h2>
+      <div style="white-space: pre-wrap;">{{BONUS_TIPS}}</div>
+    </div>
+    
+    <!-- CTA Section -->
+    <div style="background: #1e3a5f; color: white; padding: 25px; border-radius: 8px; margin: 30px 0; text-align: center;">
+      <h3 style="margin-top: 0;">Wil je meer halen uit je recruitment?</h3>
+      <p style="margin-bottom: 20px;">Plan een gratis adviesgesprek van 30 minuten.</p>
+      
+      <!-- Calendly Button -->
+      <a href="https://calendly.com/wouter-arts-/vacature-analyse-advies" 
+         style="display: inline-block; background: #27ae60; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 5px;">
+        📅 Plan Adviesgesprek
+      </a>
+      
+      <!-- WhatsApp Button -->
+      <a href="https://wa.me/31614314593?text=Hoi%20Wouter,%20ik%20heb%20mijn%20vacature-analyse%20ontvangen%20en%20wil%20graag%20meer%20weten." 
+         style="display: inline-block; background: #25D366; color: white; padding: 15px 30px; text-decoration: none; border-radius: 5px; font-weight: bold; margin: 5px;">
+        💬 WhatsApp Direct
+      </a>
+    </div>
+    
+  </div>
+  
+  <!-- Footer -->
+  <div style="background: #1e3a5f; color: white; padding: 20px; border-radius: 0 0 10px 10px; text-align: center;">
+    <p style="margin: 0 0 10px 0;"><strong>Wouter Arts</strong></p>
+    <p style="margin: 0 0 5px 0; font-size: 14px;">Recruitin B.V. - Specialist in technische recruitment</p>
+    <p style="margin: 0; font-size: 14px;">
+      📞 <a href="tel:+31614314593" style="color: #a8d4ff;">06-14314593</a> | 
+      📧 <a href="mailto:wouter@recruitin.nl" style="color: #a8d4ff;">wouter@recruitin.nl</a> |
+      🌐 <a href="https://recruitin.nl" style="color: #a8d4ff;">recruitin.nl</a>
+    </p>
+  </div>
+  
+  <!-- Unsubscribe -->
+  <p style="text-align: center; font-size: 12px; color: #999; margin-top: 20px;">
+    Je ontvangt deze email omdat je een vacature hebt geüpload op kandidatentekort.nl
+  </p>
+  
+</body>
+</html>

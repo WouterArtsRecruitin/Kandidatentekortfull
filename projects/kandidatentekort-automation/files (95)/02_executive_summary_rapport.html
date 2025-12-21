@@ -1,0 +1,768 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vacature Analyse Rapport | {{bedrijfsnaam}} - {{functie_titel}}</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            font-size: 11px;
+            line-height: 1.4;
+            color: #2d3748;
+            background: #ffffff;
+        }
+        
+        /* SINGLE PAGE LAYOUT */
+        .page {
+            width: 210mm;
+            height: 297mm;
+            padding: 0;
+            margin: 0;
+            position: relative;
+            background: white;
+            overflow: hidden;
+        }
+        
+        /* HEADER */
+        .header {
+            background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%);
+            color: white;
+            padding: 18px 25px;
+            position: relative;
+        }
+        
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: #2c3e50;
+        }
+        
+        .header-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .header-left h1 {
+            font-size: 18px;
+            font-weight: 800;
+            margin-bottom: 3px;
+        }
+        
+        .header-subtitle {
+            font-size: 11px;
+            opacity: 0.95;
+        }
+        
+        .header-right {
+            text-align: right;
+        }
+        
+        .company-badge {
+            background: rgba(255,255,255,0.2);
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        
+        .header-meta {
+            font-size: 9px;
+            opacity: 0.85;
+            margin-top: 5px;
+        }
+        
+        /* SCORE OVERVIEW SECTION */
+        .score-overview {
+            background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+            padding: 20px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #e2e8f0;
+        }
+        
+        .score-before-after {
+            display: flex;
+            gap: 30px;
+            align-items: center;
+        }
+        
+        .score-box {
+            text-align: center;
+            padding: 15px 20px;
+            border-radius: 12px;
+            min-width: 100px;
+        }
+        
+        .score-box-before {
+            background: #fed7d7;
+            border: 2px solid #fc8181;
+        }
+        
+        .score-box-after {
+            background: #c6f6d5;
+            border: 2px solid #68d391;
+        }
+        
+        .score-label {
+            font-size: 9px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 5px;
+        }
+        
+        .score-label-before {
+            color: #c53030;
+        }
+        
+        .score-label-after {
+            color: #276749;
+        }
+        
+        .score-value {
+            font-size: 32px;
+            font-weight: 800;
+            line-height: 1;
+        }
+        
+        .score-value-before {
+            color: #e53e3e;
+        }
+        
+        .score-value-after {
+            color: #38a169;
+        }
+        
+        .score-max {
+            font-size: 12px;
+            color: #718096;
+            font-weight: 600;
+        }
+        
+        .score-arrow {
+            font-size: 30px;
+            color: #38a169;
+        }
+        
+        .improvement-summary {
+            text-align: right;
+        }
+        
+        .improvement-badge {
+            background: #38a169;
+            color: white;
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+            margin-bottom: 8px;
+        }
+        
+        .improvement-value {
+            font-size: 24px;
+            font-weight: 800;
+        }
+        
+        .improvement-label {
+            font-size: 10px;
+            font-weight: 500;
+        }
+        
+        .improvement-metrics {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+        }
+        
+        .mini-metric {
+            text-align: center;
+        }
+        
+        .mini-metric-value {
+            font-size: 14px;
+            font-weight: 700;
+            color: #38a169;
+        }
+        
+        .mini-metric-label {
+            font-size: 8px;
+            color: #718096;
+        }
+        
+        /* MAIN CONTENT - TWO COLUMNS */
+        .main-content {
+            display: flex;
+            padding: 15px 25px;
+            gap: 20px;
+            height: calc(100% - 280px);
+        }
+        
+        .column-left {
+            flex: 1.2;
+        }
+        
+        .column-right {
+            flex: 1;
+        }
+        
+        /* SECTION STYLING */
+        .section {
+            margin-bottom: 15px;
+        }
+        
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 10px;
+            padding-bottom: 6px;
+            border-bottom: 2px solid #ff6b35;
+        }
+        
+        .section-icon {
+            width: 22px;
+            height: 22px;
+            background: linear-gradient(135deg, #ff6b35 0%, #e55a2b 100%);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 11px;
+        }
+        
+        .section-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: #2c3e50;
+        }
+        
+        /* TOP 3 VERBETERINGEN */
+        .improvements-list {
+            list-style: none;
+        }
+        
+        .improvement-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 10px 12px;
+            background: #f7fafc;
+            border-radius: 8px;
+            border-left: 3px solid #38a169;
+        }
+        
+        .improvement-number {
+            width: 24px;
+            height: 24px;
+            background: #38a169;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+        
+        .improvement-content h4 {
+            font-size: 11px;
+            font-weight: 700;
+            color: #2c3e50;
+            margin-bottom: 3px;
+        }
+        
+        .improvement-content p {
+            font-size: 9px;
+            color: #718096;
+            line-height: 1.4;
+        }
+        
+        .improvement-impact {
+            font-size: 9px;
+            color: #38a169;
+            font-weight: 600;
+            margin-top: 4px;
+        }
+        
+        /* METRICS COMPARISON */
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+        
+        .metric-card {
+            background: #f7fafc;
+            padding: 12px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        .metric-icon {
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        
+        .metric-title {
+            font-size: 9px;
+            color: #718096;
+            margin-bottom: 5px;
+            font-weight: 500;
+        }
+        
+        .metric-comparison {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .metric-before {
+            font-size: 12px;
+            color: #e53e3e;
+            text-decoration: line-through;
+            opacity: 0.7;
+        }
+        
+        .metric-arrow {
+            font-size: 10px;
+            color: #38a169;
+        }
+        
+        .metric-after {
+            font-size: 14px;
+            font-weight: 700;
+            color: #38a169;
+        }
+        
+        /* CATEGORY SCORES */
+        .category-scores {
+            margin-top: 10px;
+        }
+        
+        .category-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            gap: 10px;
+        }
+        
+        .category-name {
+            font-size: 10px;
+            font-weight: 600;
+            color: #4a5568;
+            width: 90px;
+            flex-shrink: 0;
+        }
+        
+        .category-bar-container {
+            flex: 1;
+            height: 12px;
+            background: #e2e8f0;
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .category-bar-before {
+            position: absolute;
+            height: 100%;
+            background: #fc8181;
+            border-radius: 6px;
+            opacity: 0.4;
+        }
+        
+        .category-bar-after {
+            position: absolute;
+            height: 100%;
+            background: #68d391;
+            border-radius: 6px;
+        }
+        
+        .category-scores-values {
+            display: flex;
+            gap: 5px;
+            font-size: 9px;
+            width: 60px;
+            flex-shrink: 0;
+        }
+        
+        .cat-before {
+            color: #e53e3e;
+        }
+        
+        .cat-after {
+            color: #38a169;
+            font-weight: 700;
+        }
+        
+        /* QUICK TIPS */
+        .quick-tips {
+            background: #fffbeb;
+            border: 1px solid #f6e05e;
+            border-radius: 8px;
+            padding: 12px;
+        }
+        
+        .quick-tips-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: #975a16;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .quick-tips-list {
+            list-style: none;
+        }
+        
+        .quick-tips-list li {
+            font-size: 9px;
+            color: #744210;
+            margin-bottom: 5px;
+            padding-left: 15px;
+            position: relative;
+            line-height: 1.4;
+        }
+        
+        .quick-tips-list li::before {
+            content: '💡';
+            position: absolute;
+            left: 0;
+            font-size: 8px;
+        }
+        
+        /* IMPACT PROJECTION */
+        .impact-projection {
+            background: linear-gradient(135deg, #f0fff4 0%, #c6f6d5 100%);
+            border: 1px solid #9ae6b4;
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+        }
+        
+        .impact-title {
+            font-size: 10px;
+            font-weight: 700;
+            color: #276749;
+            margin-bottom: 8px;
+        }
+        
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        
+        .impact-item {
+            text-align: center;
+        }
+        
+        .impact-value {
+            font-size: 16px;
+            font-weight: 800;
+            color: #38a169;
+        }
+        
+        .impact-label {
+            font-size: 8px;
+            color: #276749;
+        }
+        
+        /* FOOTER */
+        .footer {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: #2c3e50;
+            color: white;
+            padding: 12px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .footer-left {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .footer-logo {
+            font-size: 13px;
+            font-weight: 700;
+            color: #ff6b35;
+        }
+        
+        .footer-tagline {
+            font-size: 9px;
+            opacity: 0.8;
+        }
+        
+        .footer-center {
+            text-align: center;
+        }
+        
+        .footer-cta {
+            background: #ff6b35;
+            padding: 8px 20px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 600;
+        }
+        
+        .footer-right {
+            text-align: right;
+            font-size: 9px;
+            opacity: 0.7;
+        }
+        
+        /* PRINT / PDF OPTIMIZATION */
+        @media print {
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+        }
+        
+        @page {
+            size: A4;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1>Vacature Analyse Rapport</h1>
+                    <div class="header-subtitle">{{functie_titel}} • {{locatie}}</div>
+                </div>
+                <div class="header-right">
+                    <div class="company-badge">{{bedrijfsnaam}}</div>
+                    <div class="header-meta">Gegenereerd: {{datum}} • Ref: {{referentie_nummer}}</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- SCORE OVERVIEW -->
+        <div class="score-overview">
+            <div class="score-before-after">
+                <div class="score-box score-box-before">
+                    <div class="score-label score-label-before">Voor</div>
+                    <div class="score-value score-value-before">{{score_voor}}</div>
+                    <div class="score-max">/100</div>
+                </div>
+                <div class="score-arrow">→</div>
+                <div class="score-box score-box-after">
+                    <div class="score-label score-label-after">Na</div>
+                    <div class="score-value score-value-after">{{score_na}}</div>
+                    <div class="score-max">/100</div>
+                </div>
+            </div>
+            <div class="improvement-summary">
+                <div class="improvement-badge">
+                    <div class="improvement-value">+{{score_verbetering}}</div>
+                    <div class="improvement-label">punten verbeterd</div>
+                </div>
+                <div class="improvement-metrics">
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">+{{verwachte_response}}%</div>
+                        <div class="mini-metric-label">Response</div>
+                    </div>
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">{{inclusiviteit_na}}/10</div>
+                        <div class="mini-metric-label">Inclusief</div>
+                    </div>
+                    <div class="mini-metric">
+                        <div class="mini-metric-value">{{seo_na}}/10</div>
+                        <div class="mini-metric-label">SEO</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <!-- LEFT COLUMN -->
+            <div class="column-left">
+                <!-- TOP 3 VERBETERINGEN -->
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-icon">🚀</div>
+                        <div class="section-title">Top 3 Verbeteringen</div>
+                    </div>
+                    <ul class="improvements-list">
+                        {{#each top_verbeteringen}}
+                        <li class="improvement-item">
+                            <div class="improvement-number">{{@index}}</div>
+                            <div class="improvement-content">
+                                <h4>{{this.titel}}</h4>
+                                <p>{{this.beschrijving}}</p>
+                                <div class="improvement-impact">📈 {{this.impact}}</div>
+                            </div>
+                        </li>
+                        {{/each}}
+                    </ul>
+                </div>
+                
+                <!-- CATEGORY SCORES -->
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-icon">📊</div>
+                        <div class="section-title">Score per Categorie</div>
+                    </div>
+                    <div class="category-scores">
+                        {{#each categorie_scores}}
+                        <div class="category-row">
+                            <div class="category-name">{{this.naam}}</div>
+                            <div class="category-bar-container">
+                                <div class="category-bar-before" style="width: {{this.voor}}%;"></div>
+                                <div class="category-bar-after" style="width: {{this.na}}%;"></div>
+                            </div>
+                            <div class="category-scores-values">
+                                <span class="cat-before">{{this.voor}}</span>
+                                <span>→</span>
+                                <span class="cat-after">{{this.na}}</span>
+                            </div>
+                        </div>
+                        {{/each}}
+                    </div>
+                </div>
+                
+                <!-- IMPACT PROJECTION -->
+                <div class="impact-projection">
+                    <div class="impact-title">📈 Verwachte Impact</div>
+                    <div class="impact-grid">
+                        <div class="impact-item">
+                            <div class="impact-value">+{{verwachte_sollicitaties}}%</div>
+                            <div class="impact-label">Meer sollicitaties</div>
+                        </div>
+                        <div class="impact-item">
+                            <div class="impact-value">{{verwachte_kwaliteit}}%</div>
+                            <div class="impact-label">Betere matches</div>
+                        </div>
+                        <div class="impact-item">
+                            <div class="impact-value">-{{verwachte_time_to_hire}}%</div>
+                            <div class="impact-label">Time-to-hire</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- RIGHT COLUMN -->
+            <div class="column-right">
+                <!-- METRICS COMPARISON -->
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-icon">📈</div>
+                        <div class="section-title">Metrics Vergelijking</div>
+                    </div>
+                    <div class="metrics-grid">
+                        <div class="metric-card">
+                            <div class="metric-icon">📝</div>
+                            <div class="metric-title">Woordenaantal</div>
+                            <div class="metric-comparison">
+                                <span class="metric-before">{{woorden_voor}}</span>
+                                <span class="metric-arrow">→</span>
+                                <span class="metric-after">{{woorden_na}}</span>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon">📖</div>
+                            <div class="metric-title">Leesbaarheid</div>
+                            <div class="metric-comparison">
+                                <span class="metric-before">{{leesbaarheid_voor}}</span>
+                                <span class="metric-arrow">→</span>
+                                <span class="metric-after">{{leesbaarheid_na}}</span>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon">🎯</div>
+                            <div class="metric-title">Helderheid</div>
+                            <div class="metric-comparison">
+                                <span class="metric-before">{{helderheid_voor}}/10</span>
+                                <span class="metric-arrow">→</span>
+                                <span class="metric-after">{{helderheid_na}}/10</span>
+                            </div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="metric-icon">💰</div>
+                            <div class="metric-title">Transparantie</div>
+                            <div class="metric-comparison">
+                                <span class="metric-before">{{transparantie_voor}}/10</span>
+                                <span class="metric-arrow">→</span>
+                                <span class="metric-after">{{transparantie_na}}/10</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- QUICK TIPS -->
+                <div class="section">
+                    <div class="quick-tips">
+                        <div class="quick-tips-title">
+                            <span>💡</span> Direct Toepasbare Tips
+                        </div>
+                        <ul class="quick-tips-list">
+                            {{#each quick_tips}}
+                            <li>{{this}}</li>
+                            {{/each}}
+                        </ul>
+                    </div>
+                </div>
+                
+                <!-- WHAT'S NEXT -->
+                <div class="section">
+                    <div class="section-header">
+                        <div class="section-icon">▶️</div>
+                        <div class="section-title">Volgende Stappen</div>
+                    </div>
+                    <ul class="quick-tips-list" style="background: #f7fafc; padding: 12px; border-radius: 8px;">
+                        <li style="color: #4a5568;">Review de verbeterde vacaturetekst in de bijlage</li>
+                        <li style="color: #4a5568;">Pas eventuele bedrijfsspecifieke details aan</li>
+                        <li style="color: #4a5568;">Publiceer op Indeed, LinkedIn en eigen website</li>
+                        <li style="color: #4a5568;">Monitor de response rate de komende 2 weken</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <!-- FOOTER -->
+        <div class="footer">
+            <div class="footer-left">
+                <div class="footer-logo">kandidatentekort.nl</div>
+                <div class="footer-tagline">Powered by Recruitin • the right people, right now</div>
+            </div>
+            <div class="footer-center">
+                <div class="footer-cta">Vragen? {{contact_email}}</div>
+            </div>
+            <div class="footer-right">
+                © {{jaar}} Recruitin B.V.<br>
+                Alle rechten voorbehouden
+            </div>
+        </div>
+    </div>
+</body>
+</html>

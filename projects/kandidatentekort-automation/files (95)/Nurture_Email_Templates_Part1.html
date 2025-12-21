@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Email Templates - Nurture Flow</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #f5f5f5; padding: 20px; }
+        .email-preview { max-width: 600px; margin: 0 auto 40px; background: white; border-radius: 8px; overflow: hidden; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .email-header { background: #2C3E50; color: white; padding: 10px 20px; font-size: 12px; }
+        .email-subject { background: #f0f0f0; padding: 15px 20px; border-bottom: 1px solid #ddd; }
+        .email-subject strong { color: #333; }
+        .separator { text-align: center; padding: 30px; color: #999; font-size: 14px; }
+        .separator hr { border: none; border-top: 2px dashed #ddd; margin: 15px 0; }
+    </style>
+</head>
+<body>
+
+<!-- ========================================= -->
+<!-- EMAIL 1: QUICK WINS (Dag 1)               -->
+<!-- ========================================= -->
+
+<div class="email-preview">
+    <div class="email-header">📧 EMAIL 1: QUICK WINS • Verzenden: Dag 1 na levering</div>
+    <div class="email-subject">
+        <strong>Onderwerp:</strong> 3 verbeteringen die je vandaag nog kunt doorvoeren ⚡
+    </div>
+    
+    <!-- Email Content -->
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #ffffff;">
+        <!-- Header -->
+        <tr>
+            <td style="padding: 30px 40px 20px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                    <tr>
+                        <td style="background-color: #FF6B35; width: 40px; height: 40px; border-radius: 10px; text-align: center; vertical-align: middle;">
+                            <span style="color: #FFFFFF; font-size: 18px; font-weight: 800;">K</span>
+                        </td>
+                        <td style="padding-left: 12px;">
+                            <span style="color: #2C3E50; font-size: 14px; font-weight: 700;">kandidatentekort.nl</span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        
+        <!-- Greeting -->
+        <tr>
+            <td style="padding: 0 40px;">
+                <p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
+                    Hoi {{voornaam}},
+                </p>
+                <p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0 0 25px;">
+                    Gisteren ontvingen je je geoptimaliseerde vacature voor <strong>{{functie_titel}}</strong>.
+                    <br><br>
+                    Om je op weg te helpen, hier de <strong>3 snelste wins</strong> die je vandaag nog kunt implementeren:
+                </p>
+            </td>
+        </tr>
+        
+        <!-- Quick Win 1 -->
+        <tr>
+            <td style="padding: 0 40px 15px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: linear-gradient(135deg, #FEF3C7, #FFFBEB); border-radius: 12px; border-left: 4px solid #F59E0B;">
+                    <tr>
+                        <td style="padding: 18px 20px;">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td>
+                                        <span style="font-size: 20px;">⚡</span>
+                                        <span style="color: #92400E; font-size: 13px; font-weight: 700; margin-left: 8px;">QUICK WIN 1: Functietitel aanpassen</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-top: 10px;">
+                                        <p style="color: #78350F; font-size: 13px; line-height: 1.6; margin: 0;">
+                                            Je huidige titel scoorde <strong>{{seo_voor}}/10</strong> op vindbaarheid.
+                                            <br>→ Wijzig naar: <strong>"{{nieuw_functietitel}}"</strong>
+                                        </p>
+                                        <p style="color: #059669; font-size: 12px; font-weight: 600; margin: 10px 0 0;">
+                                            📈 Verwachte impact: +40% meer views
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        
+        <!-- Quick Win 2 -->
+        <tr>
+            <td style="padding: 0 40px 15px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: linear-gradient(135deg, #D1FAE5, #ECFDF5); border-radius: 12px; border-left: 4px solid #10B981;">
+                    <tr>
+                        <td style="padding: 18px 20px;">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td>
+                                        <span style="font-size: 20px;">⚡</span>
+                                        <span style="color: #065F46; font-size: 13px; font-weight: 700; margin-left: 8px;">QUICK WIN 2: Salaris toevoegen</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-top: 10px;">
+                                        <p style="color: #047857; font-size: 13px; line-height: 1.6; margin: 0;">
+                                            Vacatures met salarisvermelding krijgen tot 35% meer sollicitaties.
+                                            <br>→ Voeg toe: <strong>"{{salaris_range}} bruto per maand"</strong>
+                                        </p>
+                                        <p style="color: #059669; font-size: 12px; font-weight: 600; margin: 10px 0 0;">
+                                            📈 Verwachte impact: +35% meer sollicitaties
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        
+        <!-- Quick Win 3 -->
+        <tr>
+            <td style="padding: 0 40px 25px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: linear-gradient(135deg, #EDE9FE, #F3E8FF); border-radius: 12px; border-left: 4px solid #7C3AED;">
+                    <tr>
+                        <td style="padding: 18px 20px;">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td>
+                                        <span style="font-size: 20px;">⚡</span>
+                                        <span style="color: #5B21B6; font-size: 13px; font-weight: 700; margin-left: 8px;">QUICK WIN 3: Opening aanscherpen</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding-top: 10px;">
+                                        <p style="color: #6D28D9; font-size: 13px; line-height: 1.6; margin: 0;">
+                                            Vervang "Wij zoeken..." door een vraag of statement.
+                                            <br>→ Kandidaten beslissen binnen 6 seconden of ze doorlezen.
+                                        </p>
+                                        <p style="color: #059669; font-size: 12px; font-weight: 600; margin: 10px 0 0;">
+                                            📈 Verwachte impact: +18% click-through rate
+                                        </p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        
+        <!-- CTA -->
+        <tr>
+            <td style="padding: 0 40px 30px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: linear-gradient(135deg, #2C3E50, #1E3A5F); border-radius: 12px;">
+                    <tr>
+                        <td style="padding: 25px; text-align: center;">
+                            <p style="color: #ffffff; font-size: 14px; margin: 0 0 5px;">📅 Wil je deze tips samen doorlopen?</p>
+                            <p style="color: rgba(255,255,255,0.8); font-size: 12px; margin: 0 0 18px;">Gratis 15-minuten consult (geldig tot {{consult_vervaldatum}})</p>
+                            <a href="{{calendly_link}}" style="display: inline-block; background: #FF6B35; color: white; padding: 12px 28px; border-radius: 25px; font-size: 14px; font-weight: 700; text-decoration: none;">
+                                Plan Je Gratis Consult →
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        
+        <!-- Footer -->
+        <tr>
+            <td style="padding: 20px 40px; background-color: #F9FAFB; border-top: 1px solid #E5E7EB;">
+                <p style="color: #6B7280; font-size: 12px; margin: 0;">
+                    Succes met implementeren!<br>
+                    <strong style="color: #374151;">Team kandidatentekort.nl</strong>
+                </p>
+            </td>
+        </tr>
+    </table>
+</div>
+
+<div class="separator">
+    <hr>
+    VOLGENDE EMAIL
+    <hr>
+</div>
+
+<!-- ========================================= -->
+<!-- EMAIL 2: DOELGROEP TARGETING (Dag 3)      -->
+<!-- ========================================= -->
+
+<div class="email-preview">
+    <div class="email-header">📧 EMAIL 2: DOELGROEP + DASHBOARD TEASER • Verzenden: Dag 3</div>
+    <div class="email-subject">
+        <strong>Onderwerp:</strong> Weet jij waar je ideale kandidaat zich bevindt? 🎯
+    </div>
+    
+    <!-- Email Content -->
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #ffffff;">
+        <!-- Header -->
+        <tr>
+            <td style="padding: 30px 40px 20px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                    <tr>
+                        <td style="background-color: #FF6B35; width: 40px; height: 40px; border-radius: 10px; text-align: center; vertical-align: middle;">
+                            <span style="color: #FFFFFF; font-size: 18px; font-weight: 800;">K</span>
+                        </td>
+                        <td style="padding-left: 12px;">
+                            <span style="color: #2C3E50; font-size: 14px; font-weight: 700;">kandidatentekort.nl</span>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        
+        <!-- Greeting -->
+        <tr>
+            <td style="padding: 0 40px;">
+                <p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0 0 20px;">
+                    Hoi {{voornaam}},
+                </p>
+                <p style="color: #374151; font-size: 15px; line-height: 1.6; margin: 0 0 25px;">
+                    Je vacature voor <strong>{{functie_titel}}</strong> is geoptimaliseerd.
+                    <br>Maar weet je ook <strong>WIE</strong> je probeert te bereiken?
+                </p>
+            </td>
+        </tr>
+        
+        <!-- Doelgroep Insights Box -->
+        <tr>
+            <td style="padding: 0 40px 25px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #F9FAFB; border-radius: 12px; border: 1px solid #E5E7EB;">
+                    <tr>
+                        <td style="padding: 20px;">
+                            <p style="color: #374151; font-size: 14px; font-weight: 700; margin: 0 0 15px;">
+                                🎯 Doelgroep Inzicht: {{functie_titel}} in {{locatie}}
+                            </p>
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td width="50%" style="padding: 8px 0; border-bottom: 1px solid #E5E7EB;">
+                                        <span style="color: #6B7280; font-size: 12px;">Actief zoekend:</span>
+                                    </td>
+                                    <td width="50%" style="padding: 8px 0; border-bottom: 1px solid #E5E7EB; text-align: right;">
+                                        <span style="color: #10B981; font-size: 13px; font-weight: 700;">~{{geschatte_kandidaten_actief}} kandidaten</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; border-bottom: 1px solid #E5E7EB;">
+                                        <span style="color: #6B7280; font-size: 12px;">Passief beschikbaar:</span>
+                                    </td>
+                                    <td style="padding: 8px 0; border-bottom: 1px solid #E5E7EB; text-align: right;">
+                                        <span style="color: #F59E0B; font-size: 13px; font-weight: 700;">~{{geschatte_kandidaten_passief}} kandidaten</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; border-bottom: 1px solid #E5E7EB;">
+                                        <span style="color: #6B7280; font-size: 12px;">Markt salaris mediaan:</span>
+                                    </td>
+                                    <td style="padding: 8px 0; border-bottom: 1px solid #E5E7EB; text-align: right;">
+                                        <span style="color: #374151; font-size: 13px; font-weight: 700;">€{{markt_salaris_mediaan}}</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0; border-bottom: 1px solid #E5E7EB;">
+                                        <span style="color: #6B7280; font-size: 12px;">Top kanalen:</span>
+                                    </td>
+                                    <td style="padding: 8px 0; border-bottom: 1px solid #E5E7EB; text-align: right;">
+                                        <span style="color: #374151; font-size: 12px;">{{top_kanalen}}</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 8px 0;">
+                                        <span style="color: #6B7280; font-size: 12px;">Beste dag om te posten:</span>
+                                    </td>
+                                    <td style="padding: 8px 0; text-align: right;">
+                                        <span style="color: #7C3AED; font-size: 13px; font-weight: 700;">{{beste_dag}}</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        
+        <!-- Dashboard Teaser -->
+        <tr>
+            <td style="padding: 0 40px 25px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: linear-gradient(135deg, #2C3E50, #1E3A5F); border-radius: 12px; overflow: hidden;">
+                    <tr>
+                        <td style="padding: 25px;">
+                            <p style="color: #FF6B35; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 8px;">
+                                📊 Binnenkort Beschikbaar
+                            </p>
+                            <p style="color: #ffffff; font-size: 18px; font-weight: 700; margin: 0 0 15px;">
+                                Labour Market Intelligence Dashboard
+                            </p>
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td width="50%" style="padding: 5px 0;">
+                                        <span style="color: rgba(255,255,255,0.9); font-size: 12px;">✅ Real-time kandidatenaanbod</span>
+                                    </td>
+                                    <td width="50%" style="padding: 5px 0;">
+                                        <span style="color: rgba(255,255,255,0.9); font-size: 12px;">✅ Salaristrends per regio</span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding: 5px 0;">
+                                        <span style="color: rgba(255,255,255,0.9); font-size: 12px;">✅ Concurrentie-analyse</span>
+                                    </td>
+                                    <td style="padding: 5px 0;">
+                                        <span style="color: rgba(255,255,255,0.9); font-size: 12px;">✅ Optimale timing</span>
+                                    </td>
+                                </tr>
+                            </table>
+                            <p style="color: rgba(255,255,255,0.7); font-size: 11px; margin: 18px 0 0;">
+                                🔔 Early Access: <strong style="color: #10B981;">€79/maand</strong> (normaal €149)
+                            </p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+        
+        <!-- CTA Buttons -->
+        <tr>
+            <td style="padding: 0 40px 30px;">
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                    <tr>
+                        <td width="48%" align="center">
+                            <a href="{{early_access_link}}" style="display: block; background: #10B981; color: white; padding: 14px 20px; border-radius: 8px; font-size: 13px; font-weight: 700; text-decoration: none;">
+                                🔔 Early Access Lijst
+                            </a>
+                        </td>
+                        <td width="4%"></td>
+                        <td width="48%" align="center">
+                            <a href="{{calendly_link}}" style="display: block; background: #FF6B35; color: white; padding: 14px 20px; border-radius: 8px; font-size: 13px; font-weight: 700; text-decoration: none;">
+                                📅 Plan Consult
+                            </a>
+                        </td>
+                    </tr>
+                </table>
+                <p style="color: #9CA3AF; font-size: 11px; text-align: center; margin: 15px 0 0;">
+                    Consult nog {{dagen_tot_verval}} dagen geldig
+                </p>
+            </td>
+        </tr>
+        
+        <!-- Footer -->
+        <tr>
+            <td style="padding: 20px 40px; background-color: #F9FAFB; border-top: 1px solid #E5E7EB;">
+                <p style="color: #6B7280; font-size: 12px; margin: 0;">
+                    Groeten,<br>
+                    <strong style="color: #374151;">Team kandidatentekort.nl</strong>
+                </p>
+            </td>
+        </tr>
+    </table>
+</div>
+
+</body>
+</html>

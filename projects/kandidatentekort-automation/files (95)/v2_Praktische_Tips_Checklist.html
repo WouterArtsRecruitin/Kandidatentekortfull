@@ -1,0 +1,1203 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vacature Optimalisatie Checklist | kandidatentekort.nl</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-orange: #FF6B35;
+            --primary-orange-light: #FF8A5E;
+            --primary-orange-dark: #E55A2B;
+            --primary-blue: #2C3E50;
+            --primary-blue-light: #34495E;
+            --success-green: #10B981;
+            --success-green-light: #D1FAE5;
+            --warning-amber: #F59E0B;
+            --danger-red: #EF4444;
+            --purple: #7C3AED;
+            --purple-light: #EDE9FE;
+            --cyan: #06B6D4;
+            --cyan-light: #CFFAFE;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --orange-gradient: linear-gradient(135deg, #FF6B35, #E55A2B);
+            --blue-gradient: linear-gradient(135deg, #2C3E50, #1E3A5F);
+            --success-gradient: linear-gradient(135deg, #10B981, #059669);
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--gray-800);
+            line-height: 1.5;
+            background: var(--gray-50);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-break {
+            page-break-after: always;
+        }
+
+        /* HEADER */
+        .header {
+            background: var(--orange-gradient);
+            padding: 30px 35px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='%23ffffff' fill-opacity='0.08'%3E%3Cpath d='M20 20h20v20H20V20zM0 0h20v20H0V0z'/%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header-left h1 {
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 6px;
+        }
+
+        .header-left p {
+            font-size: 13px;
+            opacity: 0.95;
+        }
+
+        .header-right {
+            text-align: right;
+        }
+
+        .logo-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            background: rgba(255,255,255,0.15);
+            padding: 10px 16px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+        }
+
+        .logo-icon {
+            width: 35px;
+            height: 35px;
+            background: white;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 16px;
+            color: var(--primary-orange);
+        }
+
+        .logo-text {
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        /* PROGRESS TRACKER */
+        .progress-section {
+            padding: 20px 35px;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .progress-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .progress-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .progress-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .progress-stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 12px;
+        }
+
+        .stat-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+        }
+
+        .stat-dot.completed { background: var(--success-green); }
+        .stat-dot.pending { background: var(--gray-300); }
+
+        .progress-bar-container {
+            height: 12px;
+            background: var(--gray-200);
+            border-radius: 6px;
+            overflow: hidden;
+        }
+
+        .progress-bar-fill {
+            height: 100%;
+            background: var(--success-gradient);
+            border-radius: 6px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            padding: 25px 35px;
+        }
+
+        /* INFOGRAPHIC INTRO */
+        .infographic-intro {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 12px;
+            margin-bottom: 25px;
+        }
+
+        .intro-stat {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 16px 12px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .intro-stat::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+        }
+
+        .intro-stat.orange::before { background: var(--primary-orange); }
+        .intro-stat.green::before { background: var(--success-green); }
+        .intro-stat.blue::before { background: var(--cyan); }
+        .intro-stat.purple::before { background: var(--purple); }
+        .intro-stat.amber::before { background: var(--warning-amber); }
+
+        .intro-stat-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+
+        .intro-stat-value {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary-blue);
+        }
+
+        .intro-stat-label {
+            font-size: 10px;
+            color: var(--gray-500);
+            margin-top: 4px;
+        }
+
+        /* CATEGORY SECTIONS */
+        .category-section {
+            margin-bottom: 22px;
+        }
+
+        .category-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .category-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+        }
+
+        .category-icon.orange { background: var(--orange-gradient); }
+        .category-icon.blue { background: linear-gradient(135deg, var(--cyan), #0891B2); }
+        .category-icon.purple { background: linear-gradient(135deg, var(--purple), #6D28D9); }
+        .category-icon.green { background: var(--success-gradient); }
+
+        .category-title-block {
+            flex: 1;
+        }
+
+        .category-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .category-subtitle {
+            font-size: 11px;
+            color: var(--gray-500);
+        }
+
+        .category-impact {
+            background: var(--gray-100);
+            padding: 6px 12px;
+            border-radius: 15px;
+            font-size: 10px;
+            font-weight: 600;
+            color: var(--gray-600);
+        }
+
+        /* TIP CARDS */
+        .tips-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+        }
+
+        .tip-card {
+            background: white;
+            border: 1px solid var(--gray-200);
+            border-radius: 10px;
+            padding: 14px;
+            display: flex;
+            gap: 12px;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .tip-card:hover {
+            border-color: var(--gray-300);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tip-card.high-impact {
+            border-left: 3px solid var(--success-green);
+        }
+
+        .tip-card.medium-impact {
+            border-left: 3px solid var(--warning-amber);
+        }
+
+        .tip-card.quick-win {
+            border-left: 3px solid var(--cyan);
+        }
+
+        .tip-checkbox {
+            width: 22px;
+            height: 22px;
+            border: 2px solid var(--gray-300);
+            border-radius: 6px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .tip-checkbox.checked {
+            background: var(--success-green);
+            border-color: var(--success-green);
+            color: white;
+        }
+
+        .tip-checkbox .check-icon {
+            display: none;
+            font-size: 12px;
+        }
+
+        .tip-checkbox.checked .check-icon {
+            display: block;
+        }
+
+        .tip-content {
+            flex: 1;
+        }
+
+        .tip-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .tip-badge {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-weight: 600;
+        }
+
+        .tip-badge.high { background: var(--success-green-light); color: #047857; }
+        .tip-badge.medium { background: #FEF3C7; color: #92400E; }
+        .tip-badge.quick { background: var(--cyan-light); color: #0E7490; }
+
+        .tip-description {
+            font-size: 11px;
+            color: var(--gray-600);
+            line-height: 1.5;
+        }
+
+        .tip-impact {
+            margin-top: 6px;
+            font-size: 10px;
+            color: var(--success-green);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* PAGE 2 */
+        .page-2-header {
+            background: var(--gray-50);
+            padding: 15px 35px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-2-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        /* IMPLEMENTATION TIMELINE */
+        .timeline-section {
+            background: linear-gradient(135deg, var(--gray-50) 0%, white 100%);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid var(--gray-200);
+        }
+
+        .timeline-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .timeline-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--blue-gradient);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+        }
+
+        .timeline-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .timeline-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .timeline-week {
+            background: white;
+            border-radius: 12px;
+            padding: 18px;
+            border: 1px solid var(--gray-200);
+            position: relative;
+        }
+
+        .timeline-week::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            border-radius: 12px 12px 0 0;
+        }
+
+        .timeline-week.week-1::before { background: var(--cyan); }
+        .timeline-week.week-2::before { background: var(--warning-amber); }
+        .timeline-week.week-3::before { background: var(--success-green); }
+
+        .week-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .week-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .week-type {
+            font-size: 9px;
+            padding: 3px 8px;
+            border-radius: 10px;
+            font-weight: 600;
+        }
+
+        .week-type.quick { background: var(--cyan-light); color: #0E7490; }
+        .week-type.medium { background: #FEF3C7; color: #92400E; }
+        .week-type.high { background: var(--success-green-light); color: #047857; }
+
+        .week-tasks {
+            list-style: none;
+        }
+
+        .week-tasks li {
+            font-size: 11px;
+            color: var(--gray-600);
+            padding: 6px 0;
+            border-bottom: 1px solid var(--gray-100);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .week-tasks li:last-child {
+            border-bottom: none;
+        }
+
+        .task-bullet {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .week-1 .task-bullet { background: var(--cyan); }
+        .week-2 .task-bullet { background: var(--warning-amber); }
+        .week-3 .task-bullet { background: var(--success-green); }
+
+        /* BONUS TIPS */
+        .bonus-section {
+            background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%);
+            border-radius: 16px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border: 1px solid #F6E05E;
+        }
+
+        .bonus-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 18px;
+        }
+
+        .bonus-icon {
+            font-size: 28px;
+        }
+
+        .bonus-title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #92400E;
+        }
+
+        .bonus-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 12px;
+        }
+
+        .bonus-card {
+            background: white;
+            border-radius: 10px;
+            padding: 14px;
+            display: flex;
+            gap: 10px;
+            border: 1px solid #FDE68A;
+        }
+
+        .bonus-card-icon {
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .bonus-card-content h4 {
+            font-size: 12px;
+            font-weight: 700;
+            color: #78350F;
+            margin-bottom: 4px;
+        }
+
+        .bonus-card-content p {
+            font-size: 11px;
+            color: #92400E;
+            line-height: 1.5;
+        }
+
+        /* IMPACT SUMMARY */
+        .impact-summary {
+            background: var(--blue-gradient);
+            border-radius: 16px;
+            padding: 25px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .impact-summary::before {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 50%;
+            top: -100px;
+            right: -100px;
+        }
+
+        .impact-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 20px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .impact-icon {
+            font-size: 28px;
+        }
+
+        .impact-title {
+            font-size: 16px;
+            font-weight: 700;
+        }
+
+        .impact-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            position: relative;
+            z-index: 1;
+        }
+
+        .impact-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 18px;
+            text-align: center;
+            backdrop-filter: blur(10px);
+        }
+
+        .impact-value {
+            font-size: 28px;
+            font-weight: 800;
+            color: var(--primary-orange-light);
+            margin-bottom: 4px;
+        }
+
+        .impact-label {
+            font-size: 10px;
+            opacity: 0.9;
+        }
+
+        .impact-note {
+            margin-top: 18px;
+            padding-top: 18px;
+            border-top: 1px solid rgba(255,255,255,0.2);
+            font-size: 11px;
+            opacity: 0.9;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* FOOTER */
+        .footer {
+            background: var(--gray-800);
+            padding: 18px 35px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-logo {
+            width: 28px;
+            height: 28px;
+            background: var(--primary-orange);
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 13px;
+        }
+
+        .footer-text {
+            font-size: 10px;
+            opacity: 0.8;
+        }
+
+        .footer-cta {
+            background: var(--primary-orange);
+            padding: 10px 18px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* PRINT */
+        @media print {
+            .page { box-shadow: none; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+            .tip-checkbox { border: 2px solid var(--gray-400) !important; }
+        }
+
+        @page { size: A4; margin: 0; }
+    </style>
+</head>
+<body>
+    <!-- PAGE 1 -->
+    <div class="page page-break">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-content">
+                <div class="header-left">
+                    <h1>Vacature Optimalisatie Checklist</h1>
+                    <p>15 bewezen tips om meer gekwalificeerde kandidaten aan te trekken</p>
+                </div>
+                <div class="header-right">
+                    <div class="logo-badge">
+                        <div class="logo-icon">K</div>
+                        <div class="logo-text">kandidatentekort.nl</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PROGRESS TRACKER -->
+        <div class="progress-section">
+            <div class="progress-header">
+                <div class="progress-title">📊 Jouw Voortgang</div>
+                <div class="progress-stats">
+                    <div class="progress-stat">
+                        <div class="stat-dot completed"></div>
+                        <span><strong id="completedCount">0</strong> voltooid</span>
+                    </div>
+                    <div class="progress-stat">
+                        <div class="stat-dot pending"></div>
+                        <span><strong id="pendingCount">15</strong> te gaan</span>
+                    </div>
+                </div>
+            </div>
+            <div class="progress-bar-container">
+                <div class="progress-bar-fill" id="progressBar"></div>
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <!-- INFOGRAPHIC STATS -->
+            <div class="infographic-intro">
+                <div class="intro-stat orange">
+                    <div class="intro-stat-icon">📝</div>
+                    <div class="intro-stat-value">15</div>
+                    <div class="intro-stat-label">Tips totaal</div>
+                </div>
+                <div class="intro-stat green">
+                    <div class="intro-stat-icon">🚀</div>
+                    <div class="intro-stat-value">5</div>
+                    <div class="intro-stat-label">High impact</div>
+                </div>
+                <div class="intro-stat blue">
+                    <div class="intro-stat-icon">⚡</div>
+                    <div class="intro-stat-value">4</div>
+                    <div class="intro-stat-label">Quick wins</div>
+                </div>
+                <div class="intro-stat purple">
+                    <div class="intro-stat-icon">🌈</div>
+                    <div class="intro-stat-value">3</div>
+                    <div class="intro-stat-label">Inclusiviteit</div>
+                </div>
+                <div class="intro-stat amber">
+                    <div class="intro-stat-icon">📈</div>
+                    <div class="intro-stat-value">+40%</div>
+                    <div class="intro-stat-label">Gem. resultaat</div>
+                </div>
+            </div>
+
+            <!-- CATEGORY 1: TEKST & INHOUD -->
+            <div class="category-section">
+                <div class="category-header">
+                    <div class="category-icon orange">📝</div>
+                    <div class="category-title-block">
+                        <div class="category-title">Tekst & Inhoud</div>
+                        <div class="category-subtitle">De basis van een sterke vacaturetekst</div>
+                    </div>
+                    <div class="category-impact">+25% response</div>
+                </div>
+                <div class="tips-grid">
+                    <div class="tip-card high-impact">
+                        <div class="tip-checkbox" onclick="toggleTip(this)">
+                            <span class="check-icon">✓</span>
+                        </div>
+                        <div class="tip-content">
+                            <div class="tip-title">
+                                Begin met een pakkende opening
+                                <span class="tip-badge high">High</span>
+                            </div>
+                            <div class="tip-description">Start met een vraag of statement die de lezer direct aanspreekt. Vermijd saaie intro's als "Wij zijn op zoek naar..."</div>
+                            <div class="tip-impact">📈 +18% meer lezers die doorklikken</div>
+                        </div>
+                    </div>
+                    <div class="tip-card high-impact">
+                        <div class="tip-checkbox" onclick="toggleTip(this)">
+                            <span class="check-icon">✓</span>
+                        </div>
+                        <div class="tip-content">
+                            <div class="tip-title">
+                                Vermeld salaris(indicatie)
+                                <span class="tip-badge high">High</span>
+                            </div>
+                            <div class="tip-description">Vacatures met salaris krijgen tot 35% meer sollicitaties. Geef minimaal een range of "marktconform".</div>
+                            <div class="tip-impact">📈 +35% meer sollicitaties</div>
+                        </div>
+                    </div>
+                    <div class="tip-card medium-impact">
+                        <div class="tip-checkbox" onclick="toggleTip(this)">
+                            <span class="check-icon">✓</span>
+                        </div>
+                        <div class="tip-content">
+                            <div class="tip-title">
+                                Houd het beknopt (max 700 woorden)
+                                <span class="tip-badge medium">Medium</span>
+                            </div>
+                            <div class="tip-description">Te lange vacatures schrikken af. Focus op de belangrijkste punten en gebruik bullets voor scanbare tekst.</div>
+                        </div>
+                    </div>
+                    <div class="tip-card quick-win">
+                        <div class="tip-checkbox" onclick="toggleTip(this)">
+                            <span class="check-icon">✓</span>
+                        </div>
+                        <div class="tip-content">
+                            <div class="tip-title">
+                                Gebruik actieve taal
+                                <span class="tip-badge quick">Quick</span>
+                            </div>
+                            <div class="tip-description">Schrijf "Je ontwikkelt software" in plaats van "De kandidaat wordt geacht software te ontwikkelen".</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CATEGORY 2: SEO & VINDBAARHEID -->
+            <div class="category-section">
+                <div class="category-header">
+                    <div class="category-icon blue">🔍</div>
+                    <div class="category-title-block">
+                        <div class="category-title">SEO & Vindbaarheid</div>
+                        <div class="category-subtitle">Gevonden worden door de juiste kandidaten</div>
+                    </div>
+                    <div class="category-impact">+30% views</div>
+                </div>
+                <div class="tips-grid">
+                    <div class="tip-card high-impact">
+                        <div class="tip-checkbox" onclick="toggleTip(this)">
+                            <span class="check-icon">✓</span>
+                        </div>
+                        <div class="tip-content">
+                            <div class="tip-title">
+                                Gebruik gangbare functietitels
+                                <span class="tip-badge high">High</span>
+                            </div>
+                            <div class="tip-description">Kies "Software Developer" boven "Code Ninja" of interne titels. Kandidaten zoeken op standaard termen.</div>
+                            <div class="tip-impact">📈 +40% meer organisch verkeer</div>
+                        </div>
+                    </div>
+                    <div class="tip-card medium-impact">
+                        <div class="tip-checkbox" onclick="toggleTip(this)">
+                            <span class="check-icon">✓</span>
+                        </div>
+                        <div class="tip-content">
+                            <div class="tip-title">
+                                Voeg locatie toe in titel
+                                <span class="tip-badge medium">Medium</span>
+                            </div>
+                            <div class="tip-description">Veel kandidaten zoeken op "[functie] [stad]". Voeg de locatie toe aan de titel of eerste zin.</div>
+                        </div>
+                    </div>
+                    <div class="tip-card quick-win">
+                        <div class="tip-checkbox" onclick="toggleTip(this)">
+                            <span class="check-icon">✓</span>
+                        </div>
+                        <div class="tip-content">
+                            <div class="tip-title">
+                                Vermijd jargon en afkortingen
+                                <span class="tip-badge quick">Quick</span>
+                            </div>
+                            <div class="tip-description">Schrijf "Machine Learning" uit i.p.v. "ML". Niet iedereen kent interne of niche afkortingen.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CATEGORY 3: INCLUSIVITEIT -->
+            <div class="category-section">
+                <div class="category-header">
+                    <div class="category-icon purple">🌈</div>
+                    <div class="category-title-block">
+                        <div class="category-title">Inclusiviteit</div>
+                        <div class="category-subtitle">Bereik een bredere, diverse talentpool</div>
+                    </div>
+                    <div class="category-impact">+20% bereik</div>
+                </div>
+                <div class="tips-grid">
+                    <div class="tip-card high-impact">
+                        <div class="tip-checkbox" onclick="toggleTip(this)">
+                            <span class="check-icon">✓</span>
+                        </div>
+                        <div class="tip-content">
+                            <div class="tip-title">
+                                Vermijd geslachtsgebonden taal
+                                <span class="tip-badge high">High</span>
+                            </div>
+                            <div class="tip-description">Gebruik "je/jij" i.p.v. "hij/zij". Vermijd woorden als "mannetjesputter" of "salesvrouw".</div>
+                            <div class="tip-impact">📈 +25% meer vrouwelijke sollicitanten</div>
+                        </div>
+                    </div>
+                    <div class="tip-card medium-impact">
+                        <div class="tip-checkbox" onclick="toggleTip(this)">
+                            <span class="check-icon">✓</span>
+                        </div>
+                        <div class="tip-content">
+                            <div class="tip-title">
+                                Beperk eisenlijst tot essentials
+                                <span class="tip-badge medium">Medium</span>
+                            </div>
+                            <div class="tip-description">Vrouwen solliciteren vaak alleen als ze 100% matchen, mannen bij 60%. Houd eisen realistisch.</div>
+                        </div>
+                    </div>
+                    <div class="tip-card quick-win">
+                        <div class="tip-checkbox" onclick="toggleTip(this)">
+                            <span class="check-icon">✓</span>
+                        </div>
+                        <div class="tip-content">
+                            <div class="tip-title">
+                                Voeg inclusiviteitsstatement toe
+                                <span class="tip-badge quick">Quick</span>
+                            </div>
+                            <div class="tip-description">Een kort statement over diversiteit laat zien dat je organisatie open staat voor alle achtergronden.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 2 -->
+    <div class="page">
+        <div class="page-2-header">
+            <div class="page-2-title">📋 Vacature Optimalisatie Checklist (vervolg)</div>
+            <div>Pagina 2/2</div>
+        </div>
+
+        <div class="main-content">
+            <!-- CATEGORY 4: OPMAAK & STRUCTUUR -->
+            <div class="category-section">
+                <div class="category-header">
+                    <div class="category-icon green">📐</div>
+                    <div class="category-title-block">
+                        <div class="category-title">Opmaak & Structuur</div>
+                        <div class="category-subtitle">Visueel aantrekkelijk en scanbaar</div>
+                    </div>
+                    <div class="category-impact">+15% engagement</div>
+                </div>
+                <div class="tips-grid">
+                    <div class="tip-card medium-impact">
+                        <div class="tip-checkbox" onclick="toggleTip(this)">
+                            <span class="check-icon">✓</span>
+                        </div>
+                        <div class="tip-content">
+                            <div class="tip-title">
+                                Gebruik duidelijke koppen
+                                <span class="tip-badge medium">Medium</span>
+                            </div>
+                            <div class="tip-description">Verdeel in secties: Wat ga je doen, Wie ben jij, Wat bieden wij. Dit helpt scannen.</div>
+                        </div>
+                    </div>
+                    <div class="tip-card quick-win">
+                        <div class="tip-checkbox" onclick="toggleTip(this)">
+                            <span class="check-icon">✓</span>
+                        </div>
+                        <div class="tip-content">
+                            <div class="tip-title">
+                                Max 5-7 bullets per sectie
+                                <span class="tip-badge quick">Quick</span>
+                            </div>
+                            <div class="tip-description">Lange lijsten worden niet gelezen. Prioriteer de belangrijkste punten.</div>
+                        </div>
+                    </div>
+                    <div class="tip-card medium-impact">
+                        <div class="tip-checkbox" onclick="toggleTip(this)">
+                            <span class="check-icon">✓</span>
+                        </div>
+                        <div class="tip-content">
+                            <div class="tip-title">
+                                Voeg bedrijfsinfo toe
+                                <span class="tip-badge medium">Medium</span>
+                            </div>
+                            <div class="tip-description">Kandidaten willen weten waar ze gaan werken. Deel cultuur, team size en werksfeer.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CATEGORY 5: CONVERSIE -->
+            <div class="category-section">
+                <div class="category-header">
+                    <div class="category-icon orange">🎯</div>
+                    <div class="category-title-block">
+                        <div class="category-title">Conversie & Actie</div>
+                        <div class="category-subtitle">Van lezer naar sollicitant</div>
+                    </div>
+                    <div class="category-impact">+20% conversie</div>
+                </div>
+                <div class="tips-grid">
+                    <div class="tip-card high-impact">
+                        <div class="tip-checkbox" onclick="toggleTip(this)">
+                            <span class="check-icon">✓</span>
+                        </div>
+                        <div class="tip-content">
+                            <div class="tip-title">
+                                Maak solliciteren makkelijk
+                                <span class="tip-badge high">High</span>
+                            </div>
+                            <div class="tip-description">Vraag niet direct om motivatiebrief. LinkedIn Easy Apply of korte vragenlijst verlaagt drempel.</div>
+                            <div class="tip-impact">📈 +50% meer sollicitaties</div>
+                        </div>
+                    </div>
+                    <div class="tip-card medium-impact">
+                        <div class="tip-checkbox" onclick="toggleTip(this)">
+                            <span class="check-icon">✓</span>
+                        </div>
+                        <div class="tip-content">
+                            <div class="tip-title">
+                                Toon de procedure
+                                <span class="tip-badge medium">Medium</span>
+                            </div>
+                            <div class="tip-description">Beschrijf kort wat kandidaten kunnen verwachten: hoeveel rondes, met wie, en wanneer reactie.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IMPLEMENTATION TIMELINE -->
+            <div class="timeline-section">
+                <div class="timeline-header">
+                    <div class="timeline-icon">📅</div>
+                    <div class="timeline-title">Implementatie Roadmap</div>
+                </div>
+                <div class="timeline-grid">
+                    <div class="timeline-week week-1">
+                        <div class="week-header">
+                            <span class="week-label">Week 1</span>
+                            <span class="week-type quick">Quick Wins</span>
+                        </div>
+                        <ul class="week-tasks">
+                            <li><span class="task-bullet"></span>Salarisindicatie toevoegen</li>
+                            <li><span class="task-bullet"></span>Actieve taal aanpassen</li>
+                            <li><span class="task-bullet"></span>Functietitel optimaliseren</li>
+                            <li><span class="task-bullet"></span>Inclusiviteitscheck</li>
+                        </ul>
+                    </div>
+                    <div class="timeline-week week-2">
+                        <div class="week-header">
+                            <span class="week-label">Week 2</span>
+                            <span class="week-type medium">Medium Impact</span>
+                        </div>
+                        <ul class="week-tasks">
+                            <li><span class="task-bullet"></span>Opening herschrijven</li>
+                            <li><span class="task-bullet"></span>Structuur verbeteren</li>
+                            <li><span class="task-bullet"></span>Bedrijfsinfo uitbreiden</li>
+                            <li><span class="task-bullet"></span>Procedure beschrijven</li>
+                        </ul>
+                    </div>
+                    <div class="timeline-week week-3">
+                        <div class="week-header">
+                            <span class="week-label">Week 3</span>
+                            <span class="week-type high">High Impact</span>
+                        </div>
+                        <ul class="week-tasks">
+                            <li><span class="task-bullet"></span>A/B test opzetten</li>
+                            <li><span class="task-bullet"></span>Video toevoegen</li>
+                            <li><span class="task-bullet"></span>Resultaten meten</li>
+                            <li><span class="task-bullet"></span>Itereren op data</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BONUS TIPS -->
+            <div class="bonus-section">
+                <div class="bonus-header">
+                    <span class="bonus-icon">💡</span>
+                    <div class="bonus-title">Bonus: Geavanceerde Tips</div>
+                </div>
+                <div class="bonus-grid">
+                    <div class="bonus-card">
+                        <span class="bonus-card-icon">🎬</span>
+                        <div class="bonus-card-content">
+                            <h4>Voeg een video toe</h4>
+                            <p>Vacatures met video krijgen 34% meer sollicitaties. Laat het team of kantoor zien.</p>
+                        </div>
+                    </div>
+                    <div class="bonus-card">
+                        <span class="bonus-card-icon">📊</span>
+                        <div class="bonus-card-content">
+                            <h4>Test verschillende versies</h4>
+                            <p>A/B test je vacaturetitel of opening. Kleine wijzigingen kunnen groot verschil maken.</p>
+                        </div>
+                    </div>
+                    <div class="bonus-card">
+                        <span class="bonus-card-icon">⏰</span>
+                        <div class="bonus-card-content">
+                            <h4>Timing is alles</h4>
+                            <p>Publiceer op dinsdag of woensdag ochtend. Dan is engagement het hoogst.</p>
+                        </div>
+                    </div>
+                    <div class="bonus-card">
+                        <span class="bonus-card-icon">🔄</span>
+                        <div class="bonus-card-content">
+                            <h4>Ververs regelmatig</h4>
+                            <p>Herplaats vacatures na 2 weken met kleine updates voor nieuwe exposure.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IMPACT SUMMARY -->
+            <div class="impact-summary">
+                <div class="impact-header">
+                    <span class="impact-icon">🎯</span>
+                    <div class="impact-title">Verwachte Impact bij Volledige Implementatie</div>
+                </div>
+                <div class="impact-grid">
+                    <div class="impact-card">
+                        <div class="impact-value">+40%</div>
+                        <div class="impact-label">Meer sollicitaties</div>
+                    </div>
+                    <div class="impact-card">
+                        <div class="impact-value">+25%</div>
+                        <div class="impact-label">Betere matches</div>
+                    </div>
+                    <div class="impact-card">
+                        <div class="impact-value">-30%</div>
+                        <div class="impact-label">Time-to-hire</div>
+                    </div>
+                    <div class="impact-card">
+                        <div class="impact-value">+20%</div>
+                        <div class="impact-label">Diversiteit</div>
+                    </div>
+                </div>
+                <div class="impact-note">
+                    * Gebaseerd op analyse van 2.500+ geoptimaliseerde vacatures in de Nederlandse markt
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            <div class="footer-brand">
+                <div class="footer-logo">K</div>
+                <div class="footer-text">
+                    kandidatentekort.nl<br>
+                    Powered by Recruitin
+                </div>
+            </div>
+            <div class="footer-cta">
+                <span>📞</span> Hulp nodig? Plan een gratis call
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function toggleTip(checkbox) {
+            checkbox.classList.toggle('checked');
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const total = document.querySelectorAll('.tip-checkbox').length;
+            const completed = document.querySelectorAll('.tip-checkbox.checked').length;
+            const pending = total - completed;
+            const percentage = (completed / total) * 100;
+
+            document.getElementById('completedCount').textContent = completed;
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('progressBar').style.width = percentage + '%';
+        }
+    </script>
+</body>
+</html>

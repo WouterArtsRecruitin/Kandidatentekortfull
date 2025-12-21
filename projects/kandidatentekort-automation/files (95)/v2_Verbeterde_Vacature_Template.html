@@ -1,0 +1,1077 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{functie_titel}} | {{bedrijfsnaam}}</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-orange: #FF6B35;
+            --primary-orange-light: #FF8A5E;
+            --primary-orange-dark: #E55A2B;
+            --primary-blue: #2C3E50;
+            --primary-blue-light: #34495E;
+            --success-green: #10B981;
+            --success-green-light: #D1FAE5;
+            --warning-amber: #F59E0B;
+            --gray-50: #F9FAFB;
+            --gray-100: #F3F4F6;
+            --gray-200: #E5E7EB;
+            --gray-300: #D1D5DB;
+            --gray-400: #9CA3AF;
+            --gray-500: #6B7280;
+            --gray-600: #4B5563;
+            --gray-700: #374151;
+            --gray-800: #1F2937;
+            --orange-gradient: linear-gradient(135deg, #FF6B35, #E55A2B);
+            --blue-gradient: linear-gradient(135deg, #2C3E50, #1E3A5F);
+            --success-gradient: linear-gradient(135deg, #10B981, #059669);
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--gray-800);
+            line-height: 1.6;
+            background: var(--gray-50);
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .page {
+            width: 210mm;
+            min-height: 297mm;
+            margin: 0 auto;
+            background: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .page-break {
+            page-break-after: always;
+        }
+
+        /* HEADER */
+        .header {
+            background: var(--blue-gradient);
+            padding: 35px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .header::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.03'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+        }
+
+        .header-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 25px;
+        }
+
+        .company-logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-placeholder {
+            width: 50px;
+            height: 50px;
+            background: rgba(255,255,255,0.15);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 20px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .company-info h2 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        .company-info span {
+            font-size: 12px;
+            opacity: 0.85;
+        }
+
+        .optimized-badge {
+            background: var(--success-gradient);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 11px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: var(--shadow-md);
+        }
+
+        .job-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            line-height: 1.2;
+        }
+
+        .job-meta {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .meta-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            opacity: 0.95;
+        }
+
+        .meta-icon {
+            font-size: 16px;
+        }
+
+        /* SALARY HIGHLIGHT */
+        .salary-banner {
+            background: linear-gradient(135deg, var(--success-green) 0%, #059669 100%);
+            margin: -1px 35px 0;
+            padding: 18px 25px;
+            border-radius: 0 0 16px 16px;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-lg);
+            position: relative;
+            z-index: 2;
+        }
+
+        .salary-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .salary-icon {
+            font-size: 28px;
+        }
+
+        .salary-details h3 {
+            font-size: 20px;
+            font-weight: 800;
+        }
+
+        .salary-details span {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+
+        .salary-perks {
+            display: flex;
+            gap: 15px;
+        }
+
+        .perk-item {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 12px;
+            background: rgba(255,255,255,0.2);
+            padding: 6px 12px;
+            border-radius: 15px;
+        }
+
+        /* MAIN CONTENT */
+        .main-content {
+            padding: 30px 35px;
+        }
+
+        .intro-section {
+            margin-bottom: 25px;
+        }
+
+        .intro-hook {
+            font-size: 18px;
+            font-weight: 600;
+            color: var(--primary-blue);
+            margin-bottom: 12px;
+            line-height: 1.4;
+        }
+
+        .intro-text {
+            font-size: 14px;
+            color: var(--gray-600);
+            line-height: 1.7;
+        }
+
+        /* SECTION STYLING */
+        .section {
+            margin-bottom: 25px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid var(--gray-200);
+        }
+
+        .section-icon {
+            width: 36px;
+            height: 36px;
+            background: var(--orange-gradient);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: white;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        /* TASK LIST */
+        .task-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        .task-item {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            padding: 12px 15px;
+            background: var(--gray-50);
+            border-radius: 10px;
+            border-left: 3px solid var(--primary-orange);
+            transition: all 0.2s ease;
+        }
+
+        .task-item:hover {
+            background: var(--gray-100);
+            transform: translateX(3px);
+        }
+
+        .task-check {
+            width: 20px;
+            height: 20px;
+            background: var(--success-green);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 11px;
+            flex-shrink: 0;
+            margin-top: 1px;
+        }
+
+        .task-text {
+            font-size: 13px;
+            color: var(--gray-700);
+            line-height: 1.5;
+        }
+
+        /* REQUIREMENTS */
+        .requirements-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .req-column {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--gray-200);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .req-column.must-have {
+            border-top: 3px solid var(--primary-orange);
+        }
+
+        .req-column.nice-have {
+            border-top: 3px solid var(--success-green);
+        }
+
+        .req-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .req-badge {
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .req-badge.must { background: #FEE2E2; color: #B91C1C; }
+        .req-badge.nice { background: var(--success-green-light); color: #047857; }
+
+        .req-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary-blue);
+        }
+
+        .req-list {
+            list-style: none;
+        }
+
+        .req-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 8px;
+            font-size: 13px;
+            color: var(--gray-700);
+            margin-bottom: 10px;
+            line-height: 1.5;
+        }
+
+        .req-list li:last-child {
+            margin-bottom: 0;
+        }
+
+        .req-icon {
+            font-size: 14px;
+            flex-shrink: 0;
+            margin-top: 2px;
+        }
+
+        /* BENEFITS GRID */
+        .benefits-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+        }
+
+        .benefit-card {
+            background: linear-gradient(135deg, var(--gray-50) 0%, white 100%);
+            border: 1px solid var(--gray-200);
+            border-radius: 12px;
+            padding: 18px 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .benefit-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+            border-color: var(--primary-orange-light);
+        }
+
+        .benefit-icon {
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .benefit-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 4px;
+        }
+
+        .benefit-desc {
+            font-size: 11px;
+            color: var(--gray-500);
+        }
+
+        /* PAGE 2 */
+        .page-2-header {
+            background: var(--gray-50);
+            padding: 20px 35px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .page-2-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary-blue);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .page-number {
+            font-size: 12px;
+            color: var(--gray-500);
+        }
+
+        /* COMPANY SECTION */
+        .company-section {
+            background: linear-gradient(135deg, var(--gray-50) 0%, white 100%);
+            border-radius: 16px;
+            padding: 25px;
+            border: 1px solid var(--gray-200);
+            margin-bottom: 25px;
+        }
+
+        .company-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .company-logo-large {
+            width: 60px;
+            height: 60px;
+            background: var(--blue-gradient);
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 24px;
+            color: white;
+            box-shadow: var(--shadow-md);
+        }
+
+        .company-headline h3 {
+            font-size: 20px;
+            font-weight: 800;
+            color: var(--primary-blue);
+            margin-bottom: 4px;
+        }
+
+        .company-headline span {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        .company-stats {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            text-align: center;
+            border: 1px solid var(--gray-200);
+        }
+
+        .stat-value {
+            font-size: 22px;
+            font-weight: 800;
+            color: var(--primary-orange);
+        }
+
+        .stat-label {
+            font-size: 11px;
+            color: var(--gray-500);
+            margin-top: 4px;
+        }
+
+        .company-description {
+            font-size: 14px;
+            color: var(--gray-600);
+            line-height: 1.7;
+        }
+
+        /* TEAM SECTION */
+        .team-section {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            border: 1px solid var(--gray-200);
+            margin-bottom: 25px;
+        }
+
+        .team-content {
+            display: flex;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .team-visual {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .team-avatars {
+            display: flex;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: var(--gray-300);
+            border: 3px solid white;
+            margin-left: -12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: 600;
+            color: var(--gray-600);
+        }
+
+        .avatar:first-child {
+            margin-left: 0;
+        }
+
+        .avatar.more {
+            background: var(--primary-orange);
+            color: white;
+            font-size: 11px;
+        }
+
+        .team-size {
+            font-size: 11px;
+            color: var(--gray-500);
+        }
+
+        .team-text {
+            flex: 1;
+        }
+
+        .team-text h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 6px;
+        }
+
+        .team-text p {
+            font-size: 13px;
+            color: var(--gray-600);
+            line-height: 1.6;
+        }
+
+        /* PROCESS SECTION */
+        .process-section {
+            margin-bottom: 25px;
+        }
+
+        .process-steps {
+            display: flex;
+            gap: 0;
+            position: relative;
+        }
+
+        .process-step {
+            flex: 1;
+            text-align: center;
+            position: relative;
+            padding: 0 10px;
+        }
+
+        .process-step::after {
+            content: '';
+            position: absolute;
+            top: 20px;
+            right: -50%;
+            width: 100%;
+            height: 2px;
+            background: var(--gray-200);
+            z-index: 0;
+        }
+
+        .process-step:last-child::after {
+            display: none;
+        }
+
+        .step-circle {
+            width: 40px;
+            height: 40px;
+            background: var(--orange-gradient);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 16px;
+            font-weight: 700;
+            margin: 0 auto 10px;
+            position: relative;
+            z-index: 1;
+            box-shadow: var(--shadow-md);
+        }
+
+        .step-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--primary-blue);
+            margin-bottom: 4px;
+        }
+
+        .step-duration {
+            font-size: 10px;
+            color: var(--gray-500);
+        }
+
+        /* INCLUSIVITY BANNER */
+        .inclusivity-banner {
+            background: linear-gradient(135deg, #EDE9FE 0%, #DDD6FE 100%);
+            border-radius: 12px;
+            padding: 18px 25px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 25px;
+            border-left: 4px solid #7C3AED;
+        }
+
+        .inclusivity-icon {
+            font-size: 32px;
+        }
+
+        .inclusivity-text {
+            flex: 1;
+        }
+
+        .inclusivity-text h4 {
+            font-size: 14px;
+            font-weight: 700;
+            color: #5B21B6;
+            margin-bottom: 4px;
+        }
+
+        .inclusivity-text p {
+            font-size: 12px;
+            color: #6D28D9;
+            line-height: 1.5;
+        }
+
+        /* CTA SECTION */
+        .cta-section {
+            background: var(--orange-gradient);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            color: white;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cta-section::before {
+            content: '';
+            position: absolute;
+            width: 200px;
+            height: 200px;
+            background: rgba(255,255,255,0.1);
+            border-radius: 50%;
+            top: -100px;
+            right: -100px;
+        }
+
+        .cta-section::after {
+            content: '';
+            position: absolute;
+            width: 150px;
+            height: 150px;
+            background: rgba(255,255,255,0.08);
+            border-radius: 50%;
+            bottom: -75px;
+            left: -75px;
+        }
+
+        .cta-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .cta-title {
+            font-size: 22px;
+            font-weight: 800;
+            margin-bottom: 8px;
+        }
+
+        .cta-subtitle {
+            font-size: 14px;
+            opacity: 0.95;
+            margin-bottom: 20px;
+        }
+
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            color: var(--primary-orange);
+            padding: 14px 30px;
+            border-radius: 30px;
+            font-size: 15px;
+            font-weight: 700;
+            text-decoration: none;
+            box-shadow: var(--shadow-lg);
+            transition: all 0.3s ease;
+        }
+
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.2);
+        }
+
+        .cta-contact {
+            margin-top: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            font-size: 13px;
+        }
+
+        .cta-contact a {
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            opacity: 0.95;
+        }
+
+        /* FOOTER */
+        .footer {
+            background: var(--gray-800);
+            padding: 20px 35px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            color: white;
+        }
+
+        .footer-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .footer-logo {
+            width: 30px;
+            height: 30px;
+            background: var(--primary-orange);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .footer-text {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .footer-badge {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 14px;
+            border-radius: 20px;
+            font-size: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        /* PRINT */
+        @media print {
+            .page { box-shadow: none; }
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; }
+        }
+
+        @page { size: A4; margin: 0; }
+    </style>
+</head>
+<body>
+    <!-- PAGE 1 -->
+    <div class="page page-break">
+        <!-- HEADER -->
+        <div class="header">
+            <div class="header-content">
+                <div class="header-top">
+                    <div class="company-logo">
+                        <div class="logo-placeholder">{{bedrijf_initialen}}</div>
+                        <div class="company-info">
+                            <h2>{{bedrijfsnaam}}</h2>
+                            <span>{{bedrijf_sector}}</span>
+                        </div>
+                    </div>
+                    <div class="optimized-badge">
+                        <span>✨</span> Geoptimaliseerde Vacature
+                    </div>
+                </div>
+                <h1 class="job-title">{{functie_titel}}</h1>
+                <div class="job-meta">
+                    <div class="meta-item">
+                        <span class="meta-icon">📍</span>
+                        <span>{{locatie}}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-icon">⏱️</span>
+                        <span>{{dienstverband}}</span>
+                    </div>
+                    <div class="meta-item">
+                        <span class="meta-icon">🏠</span>
+                        <span>{{#if hybride_mogelijk}}Hybride werken mogelijk{{else}}Op locatie{{/if}}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SALARY BANNER -->
+        <div class="salary-banner">
+            <div class="salary-info">
+                <span class="salary-icon">💰</span>
+                <div class="salary-details">
+                    <h3>{{salaris_range}}</h3>
+                    <span>bruto per maand • o.b.v. {{uren_per_week}} uur</span>
+                </div>
+            </div>
+            <div class="salary-perks">
+                {{#if vakantiegeld}}<div class="perk-item"><span>✓</span> 8% vakantiegeld</div>{{/if}}
+                {{#if dertiende_maand}}<div class="perk-item"><span>✓</span> 13e maand</div>{{/if}}
+                {{#if bonus}}<div class="perk-item"><span>✓</span> Bonus</div>{{/if}}
+            </div>
+        </div>
+
+        <!-- MAIN CONTENT -->
+        <div class="main-content">
+            <!-- INTRO -->
+            <div class="intro-section">
+                <p class="intro-hook">{{intro_hook}}</p>
+                <p class="intro-text">{{intro_tekst}}</p>
+            </div>
+
+            <!-- WERKZAAMHEDEN -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-icon">🎯</div>
+                    <h2 class="section-title">Wat ga je doen?</h2>
+                </div>
+                <div class="task-grid">
+                    {{#each werkzaamheden}}
+                    <div class="task-item">
+                        <span class="task-check">✓</span>
+                        <span class="task-text">{{this}}</span>
+                    </div>
+                    {{/each}}
+                </div>
+            </div>
+
+            <!-- REQUIREMENTS -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-icon">👤</div>
+                    <h2 class="section-title">Wie zoeken wij?</h2>
+                </div>
+                <div class="requirements-split">
+                    <div class="req-column must-have">
+                        <div class="req-header">
+                            <span class="req-badge must">Essentieel</span>
+                            <span class="req-title">Dit heb je nodig</span>
+                        </div>
+                        <ul class="req-list">
+                            {{#each eisen}}
+                            <li>
+                                <span class="req-icon">◆</span>
+                                <span>{{this}}</span>
+                            </li>
+                            {{/each}}
+                        </ul>
+                    </div>
+                    <div class="req-column nice-have">
+                        <div class="req-header">
+                            <span class="req-badge nice">Bonus</span>
+                            <span class="req-title">Dit is mooi meegenomen</span>
+                        </div>
+                        <ul class="req-list">
+                            {{#each nice_to_haves}}
+                            <li>
+                                <span class="req-icon">★</span>
+                                <span>{{this}}</span>
+                            </li>
+                            {{/each}}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BENEFITS -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-icon">🎁</div>
+                    <h2 class="section-title">Wat bieden wij?</h2>
+                </div>
+                <div class="benefits-grid">
+                    {{#each benefits}}
+                    <div class="benefit-card">
+                        <div class="benefit-icon">{{this.icon}}</div>
+                        <div class="benefit-title">{{this.titel}}</div>
+                        <div class="benefit-desc">{{this.beschrijving}}</div>
+                    </div>
+                    {{/each}}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PAGE 2 -->
+    <div class="page">
+        <div class="page-2-header">
+            <div class="page-2-title">
+                <span>📋</span> {{functie_titel}} bij {{bedrijfsnaam}}
+            </div>
+            <div class="page-number">Pagina 2/2</div>
+        </div>
+
+        <div class="main-content">
+            <!-- COMPANY INFO -->
+            <div class="company-section">
+                <div class="company-header">
+                    <div class="company-logo-large">{{bedrijf_initialen}}</div>
+                    <div class="company-headline">
+                        <h3>Over {{bedrijfsnaam}}</h3>
+                        <span>{{bedrijf_tagline}}</span>
+                    </div>
+                </div>
+                <div class="company-stats">
+                    <div class="stat-card">
+                        <div class="stat-value">{{bedrijf_opgericht}}</div>
+                        <div class="stat-label">Opgericht</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">{{bedrijf_medewerkers}}</div>
+                        <div class="stat-label">Medewerkers</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">{{bedrijf_locaties}}</div>
+                        <div class="stat-label">Locaties</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value">{{bedrijf_omzet}}</div>
+                        <div class="stat-label">Omzet</div>
+                    </div>
+                </div>
+                <p class="company-description">{{bedrijf_beschrijving}}</p>
+            </div>
+
+            <!-- TEAM INFO -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-icon">👥</div>
+                    <h2 class="section-title">Je toekomstige team</h2>
+                </div>
+                <div class="team-section">
+                    <div class="team-content">
+                        <div class="team-visual">
+                            <div class="team-avatars">
+                                <div class="avatar">JD</div>
+                                <div class="avatar">MK</div>
+                                <div class="avatar">SV</div>
+                                <div class="avatar more">+{{team_grootte_rest}}</div>
+                            </div>
+                            <div class="team-size">{{team_grootte}} teamleden</div>
+                        </div>
+                        <div class="team-text">
+                            <h4>{{team_naam}}</h4>
+                            <p>{{team_beschrijving}}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- SOLLICITATIE PROCESS -->
+            <div class="section">
+                <div class="section-header">
+                    <div class="section-icon">🚀</div>
+                    <h2 class="section-title">Sollicitatieprocedure</h2>
+                </div>
+                <div class="process-steps">
+                    {{#each sollicitatie_stappen}}
+                    <div class="process-step">
+                        <div class="step-circle">{{@index}}</div>
+                        <div class="step-title">{{this.titel}}</div>
+                        <div class="step-duration">{{this.duur}}</div>
+                    </div>
+                    {{/each}}
+                </div>
+            </div>
+
+            <!-- INCLUSIVITY -->
+            <div class="inclusivity-banner">
+                <div class="inclusivity-icon">🌈</div>
+                <div class="inclusivity-text">
+                    <h4>Diversiteit & Inclusie</h4>
+                    <p>{{inclusiviteit_statement}}</p>
+                </div>
+            </div>
+
+            <!-- CTA -->
+            <div class="cta-section">
+                <div class="cta-content">
+                    <h2 class="cta-title">Klaar voor de volgende stap?</h2>
+                    <p class="cta-subtitle">Solliciteer direct of neem contact op voor meer informatie</p>
+                    <a href="{{solliciteer_link}}" class="cta-button">
+                        <span>📨</span> Direct Solliciteren
+                    </a>
+                    <div class="cta-contact">
+                        <a href="mailto:{{contact_email}}">
+                            <span>✉️</span> {{contact_email}}
+                        </a>
+                        <a href="tel:{{contact_telefoon}}">
+                            <span>📞</span> {{contact_telefoon}}
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- FOOTER -->
+        <div class="footer">
+            <div class="footer-brand">
+                <div class="footer-logo">K</div>
+                <div class="footer-text">
+                    Geoptimaliseerd door kandidatentekort.nl<br>
+                    Powered by Recruitin • the right people, right now
+                </div>
+            </div>
+            <div class="footer-badge">
+                <span>✓</span> Score: {{score_na}}/100 • +{{verwachte_response}}% response
+            </div>
+        </div>
+    </div>
+</body>
+</html>

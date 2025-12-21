@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Je Vacature Analyse is Klaar! | kandidatentekort.nl</title>
+    <!--[if mso]>
+    <noscript>
+        <xml>
+            <o:OfficeDocumentSettings>
+                <o:PixelsPerInch>96</o:PixelsPerInch>
+            </o:OfficeDocumentSettings>
+        </xml>
+    </noscript>
+    <![endif]-->
+    <style>
+        /* Reset */
+        body, table, td, p, a, li { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+        table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+        img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
+        body { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+        
+        /* iOS blue link fix */
+        a[x-apple-data-detectors] { color: inherit !important; text-decoration: none !important; font-size: inherit !important; font-family: inherit !important; font-weight: inherit !important; line-height: inherit !important; }
+        
+        /* Gmail blue link fix */
+        u + #body a { color: inherit; text-decoration: none; font-size: inherit; font-family: inherit; font-weight: inherit; line-height: inherit; }
+        
+        /* Samsung mail fix */
+        #MessageViewBody a { color: inherit; text-decoration: none; font-size: inherit; font-family: inherit; font-weight: inherit; line-height: inherit; }
+        
+        /* Button hover */
+        .button:hover { background-color: #E55A2B !important; }
+        
+        /* Mobile */
+        @media screen and (max-width: 600px) {
+            .wrapper { width: 100% !important; }
+            .mobile-padding { padding: 20px !important; }
+            .score-box { display: block !important; width: 100% !important; margin-bottom: 15px !important; }
+            .mobile-full { width: 100% !important; display: block !important; }
+            .mobile-center { text-align: center !important; }
+            .mobile-hide { display: none !important; }
+        }
+    </style>
+</head>
+<body id="body" style="margin: 0; padding: 0; background-color: #F3F4F6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+    
+    <!-- Preview Text -->
+    <div style="display: none; max-height: 0; overflow: hidden;">
+        Goed nieuws! Je vacature score is gestegen van {{score_voor}} naar {{score_na}} punten (+{{score_verbetering}}). Download je geoptimaliseerde vacature en rapport.
+    </div>
+    
+    <!-- Spacer for preview text -->
+    <div style="display: none; max-height: 0; overflow: hidden;">
+        &nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;
+    </div>
+
+    <!-- Email Container -->
+    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #F3F4F6;">
+        <tr>
+            <td align="center" style="padding: 30px 15px;">
+                
+                <!-- Main Card -->
+                <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="600" class="wrapper" style="background-color: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                    
+                    <!-- Header -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #2C3E50 0%, #1E3A5F 100%); padding: 30px 40px;" class="mobile-padding">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td>
+                                        <!-- Logo -->
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                            <tr>
+                                                <td style="background-color: #FF6B35; width: 40px; height: 40px; border-radius: 10px; text-align: center; vertical-align: middle;">
+                                                    <span style="color: #FFFFFF; font-size: 18px; font-weight: 800;">K</span>
+                                                </td>
+                                                <td style="padding-left: 12px;">
+                                                    <span style="color: #FFFFFF; font-size: 16px; font-weight: 700;">kandidatentekort.nl</span><br>
+                                                    <span style="color: rgba(255,255,255,0.8); font-size: 11px;">Powered by Recruitin</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td align="right" style="vertical-align: top;">
+                                        <span style="color: rgba(255,255,255,0.7); font-size: 11px;">{{datum}}</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Success Banner -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); padding: 25px 40px; text-align: center;" class="mobile-padding">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td align="center">
+                                        <span style="font-size: 32px;">✨</span>
+                                        <h1 style="color: #FFFFFF; font-size: 24px; font-weight: 800; margin: 10px 0 5px 0;">Je Vacature Analyse is Klaar!</h1>
+                                        <p style="color: rgba(255,255,255,0.95); font-size: 14px; margin: 0;">Hallo {{voornaam}}, hier zijn de resultaten van je vacature-optimalisatie</p>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Score Comparison -->
+                    <tr>
+                        <td style="padding: 35px 40px 25px 40px;" class="mobile-padding">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td align="center">
+                                        <p style="color: #6B7280; font-size: 12px; text-transform: uppercase; letter-spacing: 1px; margin: 0 0 20px 0; font-weight: 600;">Score Transformatie</p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <!-- Before Score -->
+                                                <td width="38%" align="center" class="score-box" style="background-color: #FEE2E2; border-radius: 12px; padding: 20px;">
+                                                    <span style="color: #991B1B; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Origineel</span>
+                                                    <p style="color: #DC2626; font-size: 48px; font-weight: 800; margin: 8px 0 0 0; line-height: 1;">{{score_voor}}</p>
+                                                    <span style="color: #991B1B; font-size: 12px;">/100 punten</span>
+                                                </td>
+                                                
+                                                <!-- Arrow -->
+                                                <td width="24%" align="center" class="mobile-hide" style="padding: 0 10px;">
+                                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                                        <tr>
+                                                            <td align="center">
+                                                                <span style="font-size: 28px; color: #10B981;">→</span>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td align="center" style="padding-top: 8px;">
+                                                                <span style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: #FFFFFF; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 700;">+{{score_verbetering}}</span>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                                
+                                                <!-- After Score -->
+                                                <td width="38%" align="center" class="score-box" style="background-color: #D1FAE5; border-radius: 12px; padding: 20px;">
+                                                    <span style="color: #065F46; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px;">Geoptimaliseerd</span>
+                                                    <p style="color: #059669; font-size: 48px; font-weight: 800; margin: 8px 0 0 0; line-height: 1;">{{score_na}}</p>
+                                                    <span style="color: #065F46; font-size: 12px;">/100 punten</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Impact Metrics -->
+                    <tr>
+                        <td style="padding: 0 40px 30px 40px;" class="mobile-padding">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #F9FAFB; border-radius: 12px; border: 1px solid #E5E7EB;">
+                                <tr>
+                                    <td style="padding: 20px;">
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td width="33%" align="center" style="border-right: 1px solid #E5E7EB; padding: 10px;">
+                                                    <span style="font-size: 20px;">📈</span>
+                                                    <p style="color: #10B981; font-size: 22px; font-weight: 800; margin: 5px 0 2px 0;">+{{verwachte_response}}%</p>
+                                                    <span style="color: #6B7280; font-size: 10px;">Verwachte response</span>
+                                                </td>
+                                                <td width="33%" align="center" style="border-right: 1px solid #E5E7EB; padding: 10px;">
+                                                    <span style="font-size: 20px;">🌈</span>
+                                                    <p style="color: #7C3AED; font-size: 22px; font-weight: 800; margin: 5px 0 2px 0;">{{inclusiviteit_na}}/10</p>
+                                                    <span style="color: #6B7280; font-size: 10px;">Inclusiviteit score</span>
+                                                </td>
+                                                <td width="33%" align="center" style="padding: 10px;">
+                                                    <span style="font-size: 20px;">🔍</span>
+                                                    <p style="color: #0891B2; font-size: 22px; font-weight: 800; margin: 5px 0 2px 0;">{{seo_na}}/10</p>
+                                                    <span style="color: #6B7280; font-size: 10px;">Vindbaarheid</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Top Improvements -->
+                    <tr>
+                        <td style="padding: 0 40px 30px 40px;" class="mobile-padding">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background: linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%); border-radius: 12px; border: 1px solid #FDE68A;">
+                                <tr>
+                                    <td style="padding: 20px;">
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td>
+                                                    <p style="color: #92400E; font-size: 13px; font-weight: 700; margin: 0 0 15px 0;">
+                                                        <span style="font-size: 16px;">💡</span> Top 3 Verbeteringen
+                                                    </p>
+                                                </td>
+                                            </tr>
+                                            {{#each top_verbeteringen}}
+                                            <tr>
+                                                <td style="padding-bottom: 12px;">
+                                                    <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                                        <tr>
+                                                            <td width="28" valign="top">
+                                                                <span style="background: linear-gradient(135deg, #10B981 0%, #059669 100%); color: #FFFFFF; width: 22px; height: 22px; border-radius: 50%; display: inline-block; text-align: center; line-height: 22px; font-size: 11px; font-weight: 700;">{{@index}}</span>
+                                                            </td>
+                                                            <td style="padding-left: 10px;">
+                                                                <span style="color: #78350F; font-size: 13px; font-weight: 600;">{{this.titel}}</span>
+                                                                <p style="color: #92400E; font-size: 11px; margin: 4px 0 0 0; line-height: 1.5;">{{this.korte_beschrijving}}</p>
+                                                            </td>
+                                                        </tr>
+                                                    </table>
+                                                </td>
+                                            </tr>
+                                            {{/each}}
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Download Section -->
+                    <tr>
+                        <td style="padding: 0 40px 30px 40px;" class="mobile-padding">
+                            <p style="color: #374151; font-size: 13px; font-weight: 700; margin: 0 0 15px 0;">
+                                <span style="font-size: 16px;">📦</span> Jouw Deliverables
+                            </p>
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <!-- Rapport -->
+                                    <td width="32%" class="mobile-full" style="padding-right: 8px;">
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px;">
+                                            <tr>
+                                                <td style="padding: 18px; text-align: center; border-top: 3px solid #FF6B35; border-radius: 10px 10px 0 0;">
+                                                    <span style="font-size: 28px;">📊</span>
+                                                    <p style="color: #1F2937; font-size: 12px; font-weight: 700; margin: 10px 0 4px 0;">Analyse Rapport</p>
+                                                    <span style="color: #9CA3AF; font-size: 10px;">PDF • 1 pagina</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    
+                                    <!-- Vacature -->
+                                    <td width="32%" class="mobile-full" style="padding: 0 4px;">
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px;">
+                                            <tr>
+                                                <td style="padding: 18px; text-align: center; border-top: 3px solid #10B981; border-radius: 10px 10px 0 0;">
+                                                    <span style="font-size: 28px;">📝</span>
+                                                    <p style="color: #1F2937; font-size: 12px; font-weight: 700; margin: 10px 0 4px 0;">Verbeterde Vacature</p>
+                                                    <span style="color: #9CA3AF; font-size: 10px;">PDF • 2 pagina's</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    
+                                    <!-- Checklist -->
+                                    <td width="32%" class="mobile-full" style="padding-left: 8px;">
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%" style="background-color: #FFFFFF; border: 1px solid #E5E7EB; border-radius: 10px;">
+                                            <tr>
+                                                <td style="padding: 18px; text-align: center; border-top: 3px solid #7C3AED; border-radius: 10px 10px 0 0;">
+                                                    <span style="font-size: 28px;">✅</span>
+                                                    <p style="color: #1F2937; font-size: 12px; font-weight: 700; margin: 10px 0 4px 0;">Tips Checklist</p>
+                                                    <span style="color: #9CA3AF; font-size: 10px;">PDF • 2 pagina's</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- CTA Button -->
+                    <tr>
+                        <td style="padding: 0 40px 35px 40px;" class="mobile-padding">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td align="center">
+                                        <a href="{{download_link}}" class="button" style="background: linear-gradient(135deg, #FF6B35 0%, #E55A2B 100%); color: #FFFFFF; padding: 16px 40px; border-radius: 30px; font-size: 15px; font-weight: 700; text-decoration: none; display: inline-block; box-shadow: 0 4px 15px rgba(255,107,53,0.3);">
+                                            📥 Download Alle Documenten
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td align="center" style="padding-top: 12px;">
+                                        <span style="color: #9CA3AF; font-size: 11px;">Download link is 7 dagen geldig</span>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Next Steps -->
+                    <tr>
+                        <td style="background-color: #F9FAFB; padding: 30px 40px; border-top: 1px solid #E5E7EB;" class="mobile-padding">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td>
+                                        <p style="color: #374151; font-size: 13px; font-weight: 700; margin: 0 0 18px 0;">
+                                            <span style="font-size: 16px;">🚀</span> Volgende Stappen
+                                        </p>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                            <tr>
+                                                <td valign="top" width="30">
+                                                    <span style="background-color: #FF6B35; color: #FFFFFF; width: 24px; height: 24px; border-radius: 50%; display: inline-block; text-align: center; line-height: 24px; font-size: 12px; font-weight: 700;">1</span>
+                                                </td>
+                                                <td style="padding: 0 0 15px 10px;">
+                                                    <span style="color: #374151; font-size: 13px;">Review de verbeterde vacaturetekst en pas bedrijfsspecifieke details aan</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td valign="top" width="30">
+                                                    <span style="background-color: #FF6B35; color: #FFFFFF; width: 24px; height: 24px; border-radius: 50%; display: inline-block; text-align: center; line-height: 24px; font-size: 12px; font-weight: 700;">2</span>
+                                                </td>
+                                                <td style="padding: 0 0 15px 10px;">
+                                                    <span style="color: #374151; font-size: 13px;">Publiceer op Indeed, LinkedIn en je eigen career page</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td valign="top" width="30">
+                                                    <span style="background-color: #FF6B35; color: #FFFFFF; width: 24px; height: 24px; border-radius: 50%; display: inline-block; text-align: center; line-height: 24px; font-size: 12px; font-weight: 700;">3</span>
+                                                </td>
+                                                <td style="padding: 0 0 15px 10px;">
+                                                    <span style="color: #374151; font-size: 13px;">Monitor resultaten en gebruik de checklist voor continue optimalisatie</span>
+                                                </td>
+                                            </tr>
+                                            <tr>
+                                                <td valign="top" width="30">
+                                                    <span style="background-color: #10B981; color: #FFFFFF; width: 24px; height: 24px; border-radius: 50%; display: inline-block; text-align: center; line-height: 24px; font-size: 12px; font-weight: 700;">✓</span>
+                                                </td>
+                                                <td style="padding-left: 10px;">
+                                                    <span style="color: #374151; font-size: 13px;">Verwacht +{{verwachte_response}}% meer sollicitaties binnen 2 weken!</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Support CTA -->
+                    <tr>
+                        <td style="background: linear-gradient(135deg, #2C3E50 0%, #1E3A5F 100%); padding: 25px 40px; text-align: center;" class="mobile-padding">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td align="center">
+                                        <p style="color: #FFFFFF; font-size: 16px; font-weight: 700; margin: 0 0 6px 0;">Vragen over je rapport?</p>
+                                        <p style="color: rgba(255,255,255,0.85); font-size: 13px; margin: 0 0 18px 0;">Plan een gratis 15-minuten call met een recruitment specialist</p>
+                                        <a href="{{calendly_link}}" style="background-color: #FFFFFF; color: #FF6B35; padding: 12px 28px; border-radius: 25px; font-size: 13px; font-weight: 700; text-decoration: none; display: inline-block;">
+                                            📅 Plan een Call
+                                        </a>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Footer -->
+                    <tr>
+                        <td style="padding: 25px 40px; border-top: 1px solid #E5E7EB;" class="mobile-padding">
+                            <table role="presentation" cellspacing="0" cellpadding="0" border="0" width="100%">
+                                <tr>
+                                    <td>
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                            <tr>
+                                                <td style="background-color: #FF6B35; width: 32px; height: 32px; border-radius: 8px; text-align: center; vertical-align: middle;">
+                                                    <span style="color: #FFFFFF; font-size: 14px; font-weight: 800;">K</span>
+                                                </td>
+                                                <td style="padding-left: 10px;">
+                                                    <span style="color: #374151; font-size: 13px; font-weight: 600;">kandidatentekort.nl</span><br>
+                                                    <span style="color: #9CA3AF; font-size: 10px;">Powered by Recruitin • the right people, right now</span>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                    <td align="right" valign="top">
+                                        <table role="presentation" cellspacing="0" cellpadding="0" border="0">
+                                            <tr>
+                                                <td style="padding-right: 10px;">
+                                                    <a href="{{website_url}}" style="color: #6B7280; font-size: 11px; text-decoration: none;">Website</a>
+                                                </td>
+                                                <td style="padding-right: 10px;">
+                                                    <a href="{{linkedin_url}}" style="color: #6B7280; font-size: 11px; text-decoration: none;">LinkedIn</a>
+                                                </td>
+                                                <td>
+                                                    <a href="{{unsubscribe_url}}" style="color: #9CA3AF; font-size: 11px; text-decoration: none;">Uitschrijven</a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </td>
+                                </tr>
+                            </table>
+                        </td>
+                    </tr>
+
+                    <!-- Legal Footer -->
+                    <tr>
+                        <td style="padding: 0 40px 25px 40px; text-align: center;" class="mobile-padding">
+                            <p style="color: #9CA3AF; font-size: 10px; margin: 0; line-height: 1.6;">
+                                © {{jaar}} Recruitin B.V. • KvK 12345678 • BTW NL123456789B01<br>
+                                Je ontvangt deze email omdat je een vacature hebt aangemeld via kandidatentekort.nl
+                            </p>
+                        </td>
+                    </tr>
+
+                </table>
+                <!-- End Main Card -->
+
+            </td>
+        </tr>
+    </table>
+    <!-- End Email Container -->
+
+</body>
+</html>
