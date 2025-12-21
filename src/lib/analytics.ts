@@ -182,7 +182,7 @@ export const initAnalytics = () => {
   'https://connect.facebook.com/en_US/fbevents.js');
 
   // @ts-ignore
-  fbq('init', '1735907367288442');
+  fbq('init', '238226887541404');
   // @ts-ignore
   fbq('track', 'PageView', utmParams);
 };
