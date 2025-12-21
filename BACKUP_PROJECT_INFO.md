@@ -60,10 +60,10 @@ https://kandidatentekort.nl/?utm_source=google&utm_medium=cpc&utm_campaign=vacat
   - `exit_intent_cta_clicked`
 
 ### Facebook
-- **Pixel ID:** `1735907367288442`
+- **Pixel ID:** `238226887541404`
 - **App ID:** `757606233848402`
-- **App Secret:** `9ee40f5aa3ba931320ac3c3e61233401`
-- **Access Token:** `EAASX9Iy8fL8BP...` (zie environment variables)
+- **App Secret:** ⚠️ NIET OPSLAAN IN CODE - gebruik environment variables
+- **Access Token:** ⚠️ NIET OPSLAAN IN CODE - gebruik environment variables
 
 ### Typeform
 - **Form ID:** `01KARQKA6091587B0YQE19KZB5`
