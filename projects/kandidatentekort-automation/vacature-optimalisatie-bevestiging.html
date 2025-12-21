@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bedankt voor je aanvraag - Vacature Analyse | Recruitin</title>
+    <meta name="description" content="Je vacature analyse aanvraag is succesvol ontvangen. Je ontvangt binnen 24 uur een persoonlijke analyse.">
+    <meta name="robots" content="noindex, nofollow">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <!-- Facebook Pixel -->
+    <script>
+        !function(f,b,e,v,n,t,s)
+        {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+        n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+        if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+        n.queue=[];t=b.createElement(e);t.async=!0;
+        t.src=v;s=b.getElementsByTagName(e)[0];
+        s.parentNode.insertBefore(t,s)}(window, document,'script',
+        'https://connect.facebook.net/en_US/fbevents.js');
+        fbq('init', '238226887541404');
+        fbq('track', 'PageView');
+        fbq('track', 'CompleteRegistration');
+    </script>
+    <noscript>
+        <img height="1" width="1" style="display:none"
+             src="https://www.facebook.com/tr?id=238226887541404&ev=PageView&noscript=1"/>
+    </noscript>
+    
+    <!-- Google Analytics 4 -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-W6G1NY28BD"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-W6G1NY28BD');
+        gtag('event', 'conversion', {
+            'send_to': 'G-W6G1NY28BD',
+            'event_category': 'form',
+            'event_label': 'vacancy_analysis_completed'
+        });
+    </script>
+    
+    <style>
+        :root {
+            --primary-color: #FF6B35;
+            --secondary-color: #1E3A8A;
+            --accent-color: #10B981;
+            --dark-color: #1F2937;
+            --light-color: #F9FAFB;
+            --text-color: #374151;
+        }
+        
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            line-height: 1.6;
+            color: var(--text-color);
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 2rem;
+            padding: 3rem;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.15);
+            text-align: center;
+            animation: fadeInUp 0.6s ease-out;
+        }
+        
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .success-icon {
+            font-size: 4rem;
+            margin-bottom: 1.5rem;
+            animation: bounce 0.5s ease-out 0.3s;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+        }
+        
+        h1 {
+            color: var(--dark-color);
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        
+        .lead-text {
+            font-size: 1.2rem;
+            color: var(--text-color);
+            margin-bottom: 2rem;
+        }
+        
+        .info-box {
+            background: var(--light-color);
+            padding: 1.5rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+            border-left: 4px solid var(--accent-color);
+        }
+        
+        .info-box h2 {
+            color: var(--dark-color);
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+        
+        .timeline {
+            display: flex;
+            justify-content: space-around;
+            margin: 2rem 0;
+            position: relative;
+        }
+        
+        .timeline::before {
+            content: '';
+            position: absolute;
+            top: 20px;
+            left: 20%;
+            right: 20%;
+            height: 2px;
+            background: var(--border-color, #E5E7EB);
+        }
+        
+        .timeline-item {
+            position: relative;
+            text-align: center;
+            flex: 1;
+        }
+        
+        .timeline-dot {
+            width: 40px;
+            height: 40px;
+            background: white;
+            border: 3px solid var(--accent-color);
+            border-radius: 50%;
+            margin: 0 auto 0.5rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            position: relative;
+            z-index: 1;
+        }
+        
+        .timeline-text {
+            font-size: 0.9rem;
+            color: var(--text-color);
+        }
+        
+        .cta-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 2rem;
+        }
+        
+        .cta-button {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.8rem 1.5rem;
+            border-radius: 50px;
+            text-decoration: none;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .primary-button {
+            background: var(--accent-color);
+            color: white;
+            box-shadow: 0 4px 15px rgba(16, 185, 129, 0.3);
+        }
+        
+        .primary-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.4);
+        }
+        
+        .secondary-button {
+            background: #25D366;
+            color: white;
+        }
+        
+        .secondary-button:hover {
+            background: #1fa855;
+        }
+        
+        .footer-text {
+            margin-top: 2rem;
+            font-size: 0.9rem;
+            color: #6B7280;
+        }
+        
+        @media (max-width: 600px) {
+            .container {
+                padding: 2rem 1.5rem;
+                margin: 1rem;
+            }
+            
+            .timeline {
+                flex-direction: column;
+                gap: 1.5rem;
+            }
+            
+            .timeline::before {
+                display: none;
+            }
+            
+            .cta-buttons {
+                flex-direction: column;
+            }
+            
+            .cta-button {
+                width: 100%;
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="success-icon">🎉</div>
+        
+        <h1>Bedankt voor je aanvraag!</h1>
+        
+        <p class="lead-text">
+            Je vacature analyse is succesvol aangevraagd. We gaan direct aan de slag met je vacaturetekst.
+        </p>
+        
+        <div class="info-box">
+            <h2>📧 Check je inbox</h2>
+            <p>Je ontvangt binnen enkele minuten een bevestigingsmail met de details van je aanvraag.</p>
+        </div>
+        
+        <div class="timeline">
+            <div class="timeline-item">
+                <div class="timeline-dot">✅</div>
+                <div class="timeline-text">Aanvraag<br>ontvangen</div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot">🔍</div>
+                <div class="timeline-text">Analyse<br>in uitvoering</div>
+            </div>
+            <div class="timeline-item">
+                <div class="timeline-dot">📊</div>
+                <div class="timeline-text">Rapport<br>binnen 24u</div>
+            </div>
+        </div>
+        
+        <div class="info-box">
+            <h2>💡 Wat gebeurt er nu?</h2>
+            <p>Ons team analyseert je vacaturetekst op:</p>
+            <ul style="list-style: none; padding: 0; margin-top: 0.5rem;">
+                <li>✓ Aantrekkingskracht voor kandidaten</li>
+                <li>✓ Duidelijkheid van functie-eisen</li>
+                <li>✓ Tone of voice en werkgeversmerk</li>
+                <li>✓ SEO en vindbaarheid</li>
+            </ul>
+        </div>
+        
+        <div class="cta-buttons">
+            <a href="https://calendly.com/wouter-arts-/vacature-analyse-advies" 
+               class="cta-button primary-button"
+               onclick="fbq('track', 'Schedule'); trackServerEvent('Schedule');">
+                📅 Plan alvast een gesprek
+            </a>
+            
+            <a href="https://wa.me/31614314593?text=Hoi%20Wouter,%20ik%20heb%20zojuist%20mijn%20vacature%20geüpload%20voor%20analyse" 
+               class="cta-button secondary-button"
+               onclick="fbq('track', 'Contact'); trackServerEvent('Contact');">
+                💬 WhatsApp direct
+            </a>
+        </div>
+        
+        <p class="footer-text">
+            Vragen? Stuur een mail naar <a href="mailto:wouter@recruitin.nl" style="color: var(--primary-color);">wouter@recruitin.nl</a>
+        </p>
+    </div>
+    
+    <script>
+        // Server-side event tracking
+        function trackServerEvent(eventName, customData = {}) {
+            fetch('/.netlify/functions/track-conversion', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    event_name: eventName,
+                    event_source_url: window.location.href,
+                    custom_data: customData
+                })
+            }).catch(err => console.log('Conversions API error:', err));
+        }
+        
+        // Track page view as conversion
+        trackServerEvent('CompleteRegistration', { value: 1, currency: 'EUR' });
+        
+        // Redirect to homepage after 30 seconds
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 30000);
+    </script>
+</body>
+</html>
