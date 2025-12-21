@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { motion, AnimatePresence } from "motion/react";
 import { trackEvent } from "../../lib/analytics";
-import { Loader2, AlertTriangle, CheckCircle2, Sparkles, FileText, BarChart2, ShieldCheck, ArrowRight, Calendar, PartyPopper } from "lucide-react";
+import { analyzeVacancy, type AnalysisResult, type Finding, type QuickWin } from "../../lib/vacancyAnalysis";
+import { Loader2, AlertTriangle, CheckCircle2, Sparkles, FileText, BarChart2, ShieldCheck, ArrowRight, Calendar, PartyPopper, Zap, TrendingUp, Lightbulb } from "lucide-react";
 import { Button } from "../ui/button";
 
 // Updated Typeform ID from user snippet
@@ -100,8 +101,8 @@ export const VacancyAnalyzer = () => {
   const [analysisStep, setAnalysisStep] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [showThankYou, setShowThankYou] = useState(false);
-  const [score, setScore] = useState("0.0");
-  const [findings, setFindings] = useState<{title: string, desc: string, type: 'warning' | 'error' | 'success'}[]>([]);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [isAiPowered, setIsAiPowered] = useState(false);
 
   const loadDemo = (type: string) => {
     // @ts-ignore
@@ -110,59 +111,69 @@ export const VacancyAnalyzer = () => {
     trackEvent('demo_clicked', { template_type: type });
   };
 
-  const analyzeText = (text: string) => {
-    const newFindings: {title: string, desc: string, type: 'warning' | 'error' | 'success'}[] = [];
-    const lowerText = text.toLowerCase();
-    
-    // Analysis logic
-    if (text.includes('€') || lowerText.includes('salaris') || lowerText.includes('bruto') || lowerText.includes('vergoeding')) {
-      newFindings.push({ title: "✅ Salarisindicatie gevonden", desc: "Goed bezig! Vacatures met een concreet salaris krijgen tot 40% meer reacties.", type: 'success' });
-    } else {
-      newFindings.push({ title: "⚠️ Vaag salaris bereik", desc: "Je vacature mist concrete salaris informatie. 63% van kandidaten skipt vacatures zonder duidelijk salaris.", type: 'error' });
-    }
-    const weCount = (lowerText.match(/\b(wij|ons|onze|bedrijf)\b/g) || []).length;
-    const youCount = (lowerText.match(/\b(jij|je|jouw|jou)\b/g) || []).length;
-    if (youCount > weCount) {
-      newFindings.push({ title: "✅ Kandidaat-gericht geschreven", desc: "Je spreekt de kandidaat direct aan. Dit verhoogt de leesbaarheid en betrokkenheid aanzienlijk.", type: 'success' });
-    } else {
-      newFindings.push({ title: "❌ Te veel 'Wij' vs 'Jij'", desc: `Je gebruikt ${weCount}x 'wij' en slechts ${youCount}x 'jij'. Draai dit om naar de voordelen voor de kandidaat.`, type: 'error' });
-    }
-    const bulletCount = (text.match(/[-•*] /g) || []).length;
-    if (bulletCount > 5) {
-      newFindings.push({ title: "✅ Goede scanbaarheid", desc: "Het gebruik van bulletpoints maakt je vacature goed scanbaar voor mobiele bezoekers.", type: 'success' });
-    } else {
-      newFindings.push({ title: "⚠️ Tekstmuur gedetecteerd", desc: "Gebruik meer opsommingstekens. Mobiele bezoekers haken af bij lange lappen tekst.", type: 'warning' });
-    }
-    if (newFindings.length < 3) {
-      newFindings.push({ title: "🎯 Geen unique selling point", desc: "Wat maakt deze rol uniek? Waarom zou een kandidaat specifiek voor jou moeten kiezen?", type: 'warning' });
-    }
-
-    setFindings(newFindings.slice(0, 3));
-    let baseScore = 4.5;
-    newFindings.forEach(f => {
-      if (f.type === 'success') baseScore += 1.5;
-      if (f.type === 'warning') baseScore += 0.5;
-    });
-    const finalScore = Math.min(8.2, baseScore + Math.random()).toFixed(1);
-    setScore(finalScore);
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (vacancyText.trim().length < 50) {
-      alert('⚠️ De tekst is te kort voor een goede analyse. Plak minimaal 50 karakters.');
+      alert('De tekst is te kort voor een goede analyse. Plak minimaal 50 karakters.');
       return;
     }
-    trackEvent('initiate_checkout', { content_name: 'Recruitment Quickscan' });
+
+    trackEvent('initiate_checkout', { content_name: 'Recruitment Quickscan AI' });
     setIsAnalyzing(true);
     setAnalysisStep(0);
-    analyzeText(vacancyText);
-    setTimeout(() => setAnalysisStep(1), 1200);
-    setTimeout(() => setAnalysisStep(2), 2400);
-    setTimeout(() => {
+    setIsAiPowered(false);
+
+    // Start step animation
+    const stepTimer1 = setTimeout(() => setAnalysisStep(1), 1500);
+    const stepTimer2 = setTimeout(() => setAnalysisStep(2), 3000);
+    const stepTimer3 = setTimeout(() => setAnalysisStep(3), 4500);
+
+    try {
+      // Call Claude AI via Netlify function
+      const result = await analyzeVacancy(vacancyText);
+
+      // Clear timers and set final step
+      clearTimeout(stepTimer1);
+      clearTimeout(stepTimer2);
+      clearTimeout(stepTimer3);
+      setAnalysisStep(4);
+
+      setAnalysisResult(result);
+      setIsAiPowered(!result.error);
+
+      // Small delay for UX before showing results
+      setTimeout(() => {
+        setIsAnalyzing(false);
+        setShowResults(true);
+        trackEvent('analysis_complete', {
+          score: result.score,
+          sector: result.sector,
+          ai_powered: !result.error
+        });
+      }, 500);
+
+    } catch (error) {
+      console.error('Analysis failed:', error);
+      clearTimeout(stepTimer1);
+      clearTimeout(stepTimer2);
+      clearTimeout(stepTimer3);
+
+      // Fallback to basic analysis
+      const fallbackResult: AnalysisResult = {
+        score: 5.5,
+        sector: 'general',
+        sectorDisplay: 'Algemeen',
+        findings: [
+          { title: 'Analyse tijdelijk niet beschikbaar', description: 'Probeer het later opnieuw.', type: 'warning' }
+        ],
+        quickWins: [],
+        fullAnalysis: 'De AI analyse is tijdelijk niet beschikbaar.',
+        error: 'API niet bereikbaar'
+      };
+      setAnalysisResult(fallbackResult);
       setIsAnalyzing(false);
       setShowResults(true);
-    }, 3500);
+    }
   };
 
   const openFullAnalysisForm = () => {
@@ -285,18 +296,23 @@ export const VacancyAnalyzer = () => {
       {/* Loading Modal */}
       <AnimatePresence>
         {isAnalyzing && (
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-sm"
           >
             <div className="bg-white rounded-3xl p-8 max-w-lg w-full text-center shadow-2xl">
-              <Loader2 className="w-12 h-12 animate-spin text-orange-600 mx-auto mb-6" />
-              <h3 className="text-2xl font-black text-slate-900 mb-2">Analyseren...</h3>
-              <p className="text-slate-600 mb-8">We scannen je vacature op psychologische triggers.</p>
+              <div className="relative w-16 h-16 mx-auto mb-6">
+                <Loader2 className="w-16 h-16 animate-spin text-orange-600" />
+                <Sparkles className="w-6 h-6 text-orange-500 absolute top-0 right-0 animate-pulse" />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 mb-2">AI Analyse bezig...</h3>
+              <p className="text-slate-600 mb-8">Claude AI scant je vacature op 12+ conversie-factoren.</p>
               <div className="space-y-3 max-w-xs mx-auto text-left">
-                 <Step active={analysisStep >= 0} label="Structuur checken" />
-                 <Step active={analysisStep >= 1} label="Salaris & Tone-of-voice" />
-                 <Step active={analysisStep >= 2} label="Score berekenen" />
+                 <Step active={analysisStep >= 0} label="Vacature parsen" />
+                 <Step active={analysisStep >= 1} label="Sector detecteren" />
+                 <Step active={analysisStep >= 2} label="Conversie-killers vinden" />
+                 <Step active={analysisStep >= 3} label="Quick wins genereren" />
+                 <Step active={analysisStep >= 4} label="Rapport opstellen" />
               </div>
             </div>
           </motion.div>
@@ -305,52 +321,122 @@ export const VacancyAnalyzer = () => {
 
       {/* Results Modal */}
       <AnimatePresence>
-        {showResults && (
-          <motion.div 
+        {showResults && analysisResult && (
+          <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 bg-slate-900/90 z-[100] flex items-center justify-center p-4 backdrop-blur-md overflow-y-auto"
           >
-            <motion.div 
+            <motion.div
               initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }}
-              className="bg-white rounded-2xl p-6 md:p-8 max-w-2xl w-full shadow-2xl relative my-4"
+              className="bg-white rounded-2xl p-6 md:p-8 max-w-3xl w-full shadow-2xl relative my-4 max-h-[90vh] overflow-y-auto"
             >
-              <button onClick={() => setShowResults(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600">✕</button>
-              
+              <button onClick={() => setShowResults(false)} className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 z-10">✕</button>
+
+              {/* Header with Score */}
               <div className="text-center mb-8 border-b border-slate-100 pb-6">
-                 <div className={`inline-flex items-center justify-center w-20 h-20 rounded-full text-3xl font-black border-4 mb-4 ${Number(score) > 7 ? 'border-emerald-100 text-emerald-600 bg-emerald-50' : 'border-orange-100 text-orange-600 bg-orange-50'}`}>
-                    {score}
+                 <div className="flex items-center justify-center gap-2 mb-3">
+                   {isAiPowered && (
+                     <span className="inline-flex items-center gap-1 px-3 py-1 bg-gradient-to-r from-purple-500 to-indigo-500 text-white text-xs font-bold rounded-full">
+                       <Sparkles className="w-3 h-3" /> AI-Powered
+                     </span>
+                   )}
+                   <span className="inline-flex items-center gap-1 px-3 py-1 bg-slate-100 text-slate-600 text-xs font-bold rounded-full">
+                     {analysisResult.sectorDisplay}
+                   </span>
+                 </div>
+                 <div className={`inline-flex items-center justify-center w-24 h-24 rounded-full text-4xl font-black border-4 mb-4 ${analysisResult.score >= 7 ? 'border-emerald-200 text-emerald-600 bg-emerald-50' : analysisResult.score >= 5 ? 'border-orange-200 text-orange-600 bg-orange-50' : 'border-red-200 text-red-600 bg-red-50'}`}>
+                    {analysisResult.score.toFixed(1)}
                  </div>
                  <h2 className="text-2xl font-black text-slate-900">
-                    {Number(score) > 7 ? "Sterke basis, maar kan scherper" : "Gemiste kansen gedetecteerd"}
+                    {analysisResult.score >= 7 ? "Sterke basis! Nog enkele verbeterpunten." : analysisResult.score >= 5 ? "Gemiste kansen gedetecteerd" : "Urgente verbetering nodig"}
                  </h2>
                  <p className="text-slate-600 mt-2">
-                    Hieronder de eerste bevindingen uit onze scan.
+                    {isAiPowered ? "AI-analyse van jouw vacaturetekst" : "Basisanalyse van jouw vacaturetekst"}
                  </p>
               </div>
 
-              <div className="space-y-3 mb-8">
-                {findings.map((finding, idx) => (
-                   <div key={idx} className={`p-4 rounded-xl border flex gap-3 ${finding.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-900' : finding.type === 'error' ? 'bg-red-50 border-red-100 text-red-900' : 'bg-orange-50 border-orange-100 text-orange-900'}`}>
-                      <div className="shrink-0 mt-0.5">
-                        {finding.type === 'success' ? <CheckCircle2 className="w-5 h-5 text-emerald-600" /> : <AlertTriangle className="w-5 h-5 text-orange-600" />}
-                      </div>
-                      <div>
-                        <div className="font-bold text-sm">{finding.title}</div>
-                        <div className="text-xs opacity-90">{finding.desc}</div>
-                      </div>
-                   </div>
-                ))}
+              {/* Findings */}
+              <div className="mb-8">
+                <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                  <AlertTriangle className="w-5 h-5 text-orange-500" /> Bevindingen
+                </h3>
+                <div className="space-y-3">
+                  {analysisResult.findings.map((finding, idx) => (
+                     <div key={idx} className={`p-4 rounded-xl border flex gap-3 ${finding.type === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-900' : finding.type === 'error' ? 'bg-red-50 border-red-100 text-red-900' : 'bg-orange-50 border-orange-100 text-orange-900'}`}>
+                        <div className="shrink-0 mt-0.5">
+                          {finding.type === 'success' ? <CheckCircle2 className="w-5 h-5 text-emerald-600" /> : finding.type === 'error' ? <AlertTriangle className="w-5 h-5 text-red-500" /> : <AlertTriangle className="w-5 h-5 text-orange-500" />}
+                        </div>
+                        <div className="flex-1">
+                          <div className="font-bold text-sm flex items-center justify-between">
+                            {finding.title}
+                            {finding.impactPercentage && (
+                              <span className="text-xs font-normal opacity-75">-{finding.impactPercentage}% sollicitaties</span>
+                            )}
+                          </div>
+                          <div className="text-sm opacity-90 mt-1">{finding.description}</div>
+                        </div>
+                     </div>
+                  ))}
+                </div>
               </div>
 
+              {/* Quick Wins */}
+              {analysisResult.quickWins && analysisResult.quickWins.length > 0 && (
+                <div className="mb-8">
+                  <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <Zap className="w-5 h-5 text-yellow-500" /> Quick Wins
+                  </h3>
+                  <div className="space-y-3">
+                    {analysisResult.quickWins.map((win, idx) => (
+                       <div key={idx} className="p-4 rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 to-white">
+                          <div className="flex items-start justify-between gap-3">
+                            <div className="flex-1">
+                              <div className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                                <Lightbulb className="w-4 h-4 text-yellow-500" />
+                                {win.action}
+                              </div>
+                              {win.implementation && (
+                                <div className="text-sm text-slate-600 mt-2 p-3 bg-white rounded-lg border border-slate-100 font-mono text-xs">
+                                  {win.implementation}
+                                </div>
+                              )}
+                            </div>
+                            {win.expectedImprovement > 0 && (
+                              <div className="shrink-0 flex items-center gap-1 text-emerald-600 font-bold text-sm">
+                                <TrendingUp className="w-4 h-4" />
+                                +{win.expectedImprovement}%
+                              </div>
+                            )}
+                          </div>
+                       </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Rewritten Intro */}
+              {analysisResult.rewrittenIntro && (
+                <div className="mb-8">
+                  <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <Sparkles className="w-5 h-5 text-purple-500" /> Verbeterde Opening
+                  </h3>
+                  <div className="p-4 rounded-xl border-2 border-purple-200 bg-purple-50">
+                    <p className="text-slate-800 italic">"{analysisResult.rewrittenIntro}"</p>
+                  </div>
+                </div>
+              )}
+
+              {/* CTA */}
               <div className="bg-slate-900 text-white p-6 rounded-xl text-center relative overflow-hidden">
                  <div className="relative z-10">
-                    <h4 className="font-bold text-lg mb-2">🚀 Ontvang je verbeterde vacaturetekst</h4>
-                    <p className="text-slate-300 text-sm mb-4">Inclusief volledige analyse en direct toepasbare tips.</p>
+                    <h4 className="font-bold text-lg mb-2">Volledige optimalisatie ontvangen?</h4>
+                    <p className="text-slate-300 text-sm mb-4">Ontvang je compleet herschreven vacaturetekst + persoonlijk advies.</p>
                     <button
                       onClick={openFullAnalysisForm}
-                      className="bg-orange-600 hover:bg-orange-500 text-white font-bold w-full py-4 px-6 rounded-lg text-base sm:text-lg transition-colors"
+                      className="bg-orange-600 hover:bg-orange-500 text-white font-bold w-full py-4 px-6 rounded-lg text-base sm:text-lg transition-colors flex items-center justify-center gap-2"
                     >
-                      Gratis geoptimaliseerde tekst ontvangen
+                      <Calendar className="w-5 h-5" />
+                      Gratis adviesgesprek plannen
                     </button>
                  </div>
               </div>
