@@ -1543,7 +1543,29 @@ Geef daarna:
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✍️ VERBETERDE VACATURETEKST
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[Volledig herschreven vacaturetekst met alle verbeteringen toegepast]
+
+BELANGRIJK: Schrijf een VOLLEDIG NIEUWE, PROFESSIONELE vacaturetekst die:
+- Minimaal 400-600 woorden bevat
+- Een pakkende, emotionele openingszin heeft die nieuwsgierigheid wekt
+- Concrete taken en verantwoordelijkheden beschrijft (geen vage bullet points)
+- Duidelijke groei- en ontwikkelmogelijkheden noemt
+- Een aantrekkelijk werkgeversprofiel schetst met bedrijfscultuur
+- Salarisindicatie of "marktconform + uitstekende secundaire voorwaarden" bevat
+- Cialdini overtuigingsprincipes toepast (social proof, scarcity, authority)
+- Een krachtige call-to-action heeft
+- Professioneel en wervend is geschreven - GEEN droge opsomming
+- Direct copy-paste klaar is voor publicatie
+
+Structuur de vacaturetekst als volgt:
+1. Pakkende kop/titel
+2. Wervende intro (2-3 zinnen die de rol en impact beschrijven)
+3. "Dit ga je doen" - concrete taken
+4. "Dit breng je mee" - realistische eisen (must-haves vs nice-to-haves)
+5. "Dit krijg je van ons" - arbeidsvoorwaarden en benefits
+6. "Over [bedrijfsnaam]" - employer branding
+7. Call-to-action met sollicitatieinstructie
+
+[Schrijf hier de complete, wervende vacaturetekst - minimaal 400 woorden]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 💡 BONUS: CIALDINI POWER-UPS
