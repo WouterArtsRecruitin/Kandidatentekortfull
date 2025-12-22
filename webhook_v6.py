@@ -32,7 +32,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import mm, cm
 from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
-from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY, TA_RIGHT
 from reportlab.graphics.shapes import Drawing, Rect, String
 from reportlab.graphics.charts.barcharts import HorizontalBarChart
 
@@ -365,11 +365,381 @@ def create_score_circle_drawing(score):
     return d
 
 
-def generate_pdf_report(contact_name, company_name, vacancy_title, analysis_result, score=None):
-    """Generate a professional PDF report inspired by MTEE APK template design."""
+def generate_pdf_analysis_report(contact_name, company_name, vacancy_title, analysis_result, score=None, original_vacancy_text=""):
+    """
+    BIJLAGE 1: Analyse Rapport (2 pagina's)
+    - Pagina 1: Score overzicht + ALLE 12 criteria met individuele scores
+    - Pagina 2: TOP QUICK WINS + WAT WE VERBETERD HEBBEN (voor/na)
+    """
+    from reportlab.platypus import PageBreak
 
     # Parse analysis sections
     sections = parse_analysis_sections(analysis_result)
+
+    # Create PDF buffer
+    buffer = io.BytesIO()
+
+    # Create document
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=1.8*cm,
+        leftMargin=1.8*cm,
+        topMargin=1.2*cm,
+        bottomMargin=1.2*cm
+    )
+
+    page_width = A4[0] - 3.6*cm  # Usable width
+
+    # Score level determination
+    score_value = score if score else 0
+    if score_value >= 70:
+        score_color = SCORE_GREEN
+        score_label = "EXCELLENT"
+        score_emoji = "🏆"
+    elif score_value >= 50:
+        score_color = SCORE_BLUE
+        score_label = "GOED"
+        score_emoji = "✓"
+    elif score_value >= 30:
+        score_color = SCORE_YELLOW
+        score_label = "MATIG"
+        score_emoji = "⚠"
+    else:
+        score_color = SCORE_RED
+        score_label = "KRITIEK"
+        score_emoji = "✗"
+
+    story = []
+
+    # ═══════════════════════════════════════════════════════════════
+    # PAGINA 1: SCORE OVERZICHT + 12 CRITERIA
+    # ═══════════════════════════════════════════════════════════════
+
+    # === COMPACT HEADER ===
+    header = Table(
+        [[
+            Paragraph(
+                f"<font color='#FFFFFF' size='16'><b>VACATURE ANALYSE</b></font>",
+                ParagraphStyle('Header', leading=18)
+            ),
+            Paragraph(
+                f"<font color='#FFFFFF' size='9'><b>{company_name}</b><br/>{vacancy_title or 'Vacature'}</font>",
+                ParagraphStyle('HeaderRight', alignment=TA_RIGHT, leading=12)
+            )
+        ]],
+        colWidths=[page_width*0.6, page_width*0.4]
+    )
+    header.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), RECRUITIN_DARK),
+        ('TOPPADDING', (0, 0), (-1, -1), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+        ('LEFTPADDING', (0, 0), (-1, -1), 15),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 15),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    ]))
+    story.append(header)
+    story.append(Spacer(1, 15))
+
+    # === SCORE HERO (Compact) ===
+    score_circle = create_score_circle_drawing(score_value)
+
+    score_hero = Table(
+        [[
+            score_circle,
+            Paragraph(
+                f"<font size='24' color='{score_color.hexval()}'><b>{score_label}</b></font><br/>"
+                f"<font size='10' color='#6B7280'>Gebaseerd op 12 professionele criteria</font>",
+                ParagraphStyle('ScoreLabel', leading=28)
+            )
+        ]],
+        colWidths=[4*cm, page_width - 4*cm]
+    )
+    score_hero.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('LEFTPADDING', (1, 0), (1, 0), 20),
+    ]))
+    story.append(score_hero)
+    story.append(Spacer(1, 18))
+
+    # === ALLE 12 CRITERIA MET SCORES ===
+    story.append(Paragraph(
+        "<font size='12' color='#1F2937'><b>SCORE PER CRITERIUM</b></font>",
+        ParagraphStyle('SectionTitle', spaceAfter=10)
+    ))
+
+    # Define all 12 criteria with Dutch labels
+    criteria_list = [
+        ('openingszin', 'Openingszin', 'Vangt de eerste zin direct de aandacht?'),
+        ('bedrijf', 'Bedrijfsprofiel', 'Wat maakt dit bedrijf uniek als werkgever?'),
+        ('rolklarheid', 'Rolklarheid', 'Zijn de dagelijkse taken concreet beschreven?'),
+        ('vereisten', 'Vereisten Realisme', 'Zijn de eisen realistisch voor het niveau?'),
+        ('groei', 'Groei-narratief', 'Zijn doorgroeimogelijkheden beschreven?'),
+        ('inclusie', 'Inclusie & Bias', 'Is de tekst genderneutraal en inclusief?'),
+        ('cialdini', 'Cialdini Triggers', 'Worden overtuigingsprincipes toegepast?'),
+        ('salaris', 'Salarisbenchmark', 'Is salarisindicatie marktconform?'),
+        ('cta', 'Call-to-Action', 'Is er een duidelijke sollicitatie-oproep?'),
+        ('competitief', 'Competitieve Delta', 'Wat onderscheidt deze vacature?'),
+        ('confidence', 'Confidence Score', 'Algehele professionaliteit van de tekst'),
+        ('implementatie', 'Implementatie', 'Hoe snel zijn verbeteringen toe te passen?'),
+    ]
+
+    # Build criteria table rows
+    criteria_rows = []
+    for i, (key, label, description) in enumerate(criteria_list, 1):
+        score_val = sections['scores'].get(key, 5)
+
+        # Score color
+        if score_val >= 8:
+            s_color = "#10B981"
+        elif score_val >= 6:
+            s_color = "#3B82F6"
+        elif score_val >= 4:
+            s_color = "#F59E0B"
+        else:
+            s_color = "#EF4444"
+
+        # Visual bar (using unicode blocks)
+        filled = int(score_val)
+        empty = 10 - filled
+        bar = "█" * filled + "░" * empty
+
+        row = [
+            Paragraph(f"<font size='8' color='#6B7280'>{i}.</font>", ParagraphStyle('Num')),
+            Paragraph(f"<font size='9' color='#1F2937'><b>{label}</b></font>", ParagraphStyle('Label')),
+            Paragraph(f"<font size='8' color='{s_color}'>{bar}</font>", ParagraphStyle('Bar', fontName='Helvetica')),
+            Paragraph(f"<font size='10' color='{s_color}'><b>{score_val}/10</b></font>", ParagraphStyle('Score', alignment=TA_RIGHT)),
+        ]
+        criteria_rows.append(row)
+
+    criteria_table = Table(
+        criteria_rows,
+        colWidths=[0.6*cm, 3.8*cm, 7*cm, 1.5*cm]
+    )
+    criteria_table.setStyle(TableStyle([
+        ('TOPPADDING', (0, 0), (-1, -1), 5),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
+        ('LEFTPADDING', (0, 0), (-1, -1), 3),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 3),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('LINEBELOW', (0, 0), (-1, -2), 0.5, colors.HexColor("#E5E7EB")),
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#F9FAFB")),
+    ]))
+    story.append(criteria_table)
+
+    # === QUICK SUMMARY BOX ===
+    story.append(Spacer(1, 15))
+
+    # Find top 2 strengths and weaknesses
+    all_scores = [(k, v) for k, v in sections['scores'].items()]
+    sorted_scores = sorted(all_scores, key=lambda x: x[1], reverse=True)
+
+    strengths = [s for s in sorted_scores if s[1] >= 7][:2]
+    weaknesses = [s for s in sorted_scores if s[1] <= 5][:2]
+
+    # Label lookup
+    label_map = {k: v for k, v, _ in criteria_list}
+
+    summary_text = "<font size='10' color='#1F2937'><b>In één oogopslag:</b></font><br/>"
+    if strengths:
+        summary_text += "<font size='9' color='#10B981'>✓ Sterk: "
+        summary_text += ", ".join([label_map.get(s[0], s[0]) for s in strengths])
+        summary_text += "</font><br/>"
+    if weaknesses:
+        summary_text += "<font size='9' color='#EF4444'>✗ Aandacht nodig: "
+        summary_text += ", ".join([label_map.get(s[0], s[0]) for s in weaknesses])
+        summary_text += "</font>"
+
+    summary_box = Table(
+        [[Paragraph(summary_text, ParagraphStyle('Summary', leading=14))]],
+        colWidths=[page_width]
+    )
+    summary_box.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#F0F9FF")),
+        ('TOPPADDING', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+        ('LEFTPADDING', (0, 0), (-1, -1), 12),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#3B82F6")),
+    ]))
+    story.append(summary_box)
+
+    # ═══════════════════════════════════════════════════════════════
+    # PAGINA 2: QUICK WINS + VOOR/NA VERGELIJKING
+    # ═══════════════════════════════════════════════════════════════
+    story.append(PageBreak())
+
+    # === PAGE 2 HEADER ===
+    header2 = Table(
+        [[
+            Paragraph(
+                f"<font color='#FFFFFF' size='14'><b>WAT WE VERBETERD HEBBEN</b></font>",
+                ParagraphStyle('Header2', leading=16)
+            ),
+            Paragraph(
+                f"<font color='#9CA3AF' size='9'>Pagina 2/2</font>",
+                ParagraphStyle('PageNum', alignment=TA_RIGHT)
+            )
+        ]],
+        colWidths=[page_width*0.8, page_width*0.2]
+    )
+    header2.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), RECRUITIN_DARK),
+        ('TOPPADDING', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+        ('LEFTPADDING', (0, 0), (-1, -1), 15),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 15),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    ]))
+    story.append(header2)
+    story.append(Spacer(1, 15))
+
+    # === TOP 3 QUICK WINS ===
+    story.append(Paragraph(
+        "<font size='12' color='#FF6B35'><b>🚀 TOP 3 QUICK WINS</b></font>",
+        ParagraphStyle('QuickWinTitle', spaceAfter=10)
+    ))
+
+    if sections['quick_wins']:
+        for i, win in enumerate(sections['quick_wins'][:3], 1):
+            win_text = win[:180] + "..." if len(win) > 180 else win
+            win_row = Table(
+                [[
+                    Paragraph(f"<font size='12' color='#FF6B35'><b>{i}</b></font>", ParagraphStyle('WinNum', alignment=TA_CENTER)),
+                    Paragraph(f"<font size='9' color='#374151'>{win_text}</font>", ParagraphStyle('WinText', leading=13))
+                ]],
+                colWidths=[0.8*cm, page_width - 0.8*cm]
+            )
+            win_row.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (0, -1), colors.HexColor("#FFF7ED")),
+                ('TOPPADDING', (0, 0), (-1, -1), 8),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+                ('LEFTPADDING', (0, 0), (-1, -1), 6),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 8),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+                ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor("#FDBA74")),
+            ]))
+            story.append(win_row)
+            story.append(Spacer(1, 5))
+
+    story.append(Spacer(1, 15))
+
+    # === VOOR / NA VERGELIJKING ===
+    story.append(Paragraph(
+        "<font size='12' color='#1F2937'><b>📝 VOOR / NA VERGELIJKING</b></font>",
+        ParagraphStyle('CompareTitle', spaceAfter=10)
+    ))
+
+    # Extract first 150 chars of original for comparison
+    original_snippet = original_vacancy_text[:200] + "..." if len(original_vacancy_text) > 200 else original_vacancy_text
+    original_snippet = original_snippet.replace('\n', ' ').strip()
+
+    # Extract first part of improved text
+    improved_snippet = sections['improved_text'][:200] + "..." if len(sections['improved_text']) > 200 else sections['improved_text']
+    improved_snippet = improved_snippet.replace('\n', ' ').replace('**', '').replace('##', '').strip()
+
+    # VOOR box
+    voor_box = Table(
+        [[
+            Paragraph("<font size='9' color='#EF4444'><b>VOOR</b></font>", ParagraphStyle('VoorLabel')),
+        ],
+        [
+            Paragraph(f"<font size='8' color='#6B7280'><i>{original_snippet or 'Originele tekst niet beschikbaar'}</i></font>",
+                     ParagraphStyle('VoorText', leading=11))
+        ]],
+        colWidths=[page_width]
+    )
+    voor_box.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FEE2E2")),
+        ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#FEF2F2")),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('LEFTPADDING', (0, 0), (-1, -1), 10),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#FECACA")),
+    ]))
+    story.append(voor_box)
+    story.append(Spacer(1, 8))
+
+    # NA box
+    na_box = Table(
+        [[
+            Paragraph("<font size='9' color='#10B981'><b>NA</b></font>", ParagraphStyle('NaLabel')),
+        ],
+        [
+            Paragraph(f"<font size='8' color='#374151'>{improved_snippet or 'Verbeterde tekst wordt gegenereerd...'}</font>",
+                     ParagraphStyle('NaText', leading=11))
+        ]],
+        colWidths=[page_width]
+    )
+    na_box.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#D1FAE5")),
+        ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#ECFDF5")),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('LEFTPADDING', (0, 0), (-1, -1), 10),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#A7F3D0")),
+    ]))
+    story.append(na_box)
+
+    story.append(Spacer(1, 15))
+
+    # === CIALDINI TIPS (if available) ===
+    if sections['cialdini_tips']:
+        story.append(Paragraph(
+            "<font size='10' color='#6B7280'><b>💡 CIALDINI POWER-UPS</b></font>",
+            ParagraphStyle('CialdiniTitle', spaceAfter=6)
+        ))
+        for tip in sections['cialdini_tips'][:3]:
+            tip_text = tip[:140] + "..." if len(tip) > 140 else tip
+            story.append(Paragraph(
+                f"<font size='8' color='#6B7280'>• {tip_text}</font>",
+                ParagraphStyle('CialdiniTip', leading=11, leftIndent=8, spaceBefore=2, spaceAfter=2)
+            ))
+
+    # === FOOTER ===
+    story.append(Spacer(1, 20))
+    footer = Table(
+        [[
+            Paragraph(
+                "<font color='#9CA3AF' size='7'><b>Recruitin B.V.</b> | info@recruitin.nl | www.kandidatentekort.nl</font>",
+                ParagraphStyle('FooterLeft', alignment=TA_LEFT)
+            ),
+            Paragraph(
+                f"<font color='#9CA3AF' size='7'>{datetime.now().strftime('%d-%m-%Y')} | Vertrouwelijk</font>",
+                ParagraphStyle('FooterRight', alignment=TA_RIGHT)
+            )
+        ]],
+        colWidths=[page_width*0.6, page_width*0.4]
+    )
+    footer.setStyle(TableStyle([
+        ('LINEABOVE', (0, 0), (-1, -1), 0.5, colors.HexColor("#E5E7EB")),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    story.append(footer)
+
+    # Build PDF
+    doc.build(story)
+
+    pdf_content = buffer.getvalue()
+    buffer.close()
+
+    logger.info(f"PDF Bijlage 1 (Analyse Rapport) generated for {company_name}, size: {len(pdf_content)} bytes")
+    return pdf_content
+
+
+def generate_pdf_vacancy_text(company_name, vacancy_title, analysis_result):
+    """
+    BIJLAGE 2: Geoptimaliseerde Vacaturetekst (1 pagina)
+    - Clean, copy-paste ready versie van de verbeterde vacaturetekst
+    """
+
+    # Parse analysis sections
+    sections = parse_analysis_sections(analysis_result)
+
+    if not sections['improved_text']:
+        return None
 
     # Create PDF buffer
     buffer = io.BytesIO()
@@ -384,379 +754,103 @@ def generate_pdf_report(contact_name, company_name, vacancy_title, analysis_resu
         bottomMargin=1.5*cm
     )
 
-    page_width = A4[0] - 4*cm  # Usable width
-
-    # Score level determination
-    score_value = score if score else 0
-    if score_value >= 70:
-        score_color = SCORE_GREEN
-        score_label = "EXCELLENT"
-        score_desc = "Uw vacaturetekst behoort tot de top 15% van de markt"
-        score_bg = colors.HexColor("#ECFDF5")
-        score_border = colors.HexColor("#10B981")
-    elif score_value >= 50:
-        score_color = SCORE_BLUE
-        score_label = "GOED"
-        score_desc = "Solide basis met duidelijke verbeterkansen"
-        score_bg = colors.HexColor("#EFF6FF")
-        score_border = colors.HexColor("#3B82F6")
-    elif score_value >= 30:
-        score_color = SCORE_YELLOW
-        score_label = "MATIG"
-        score_desc = "Significante verbeteringen nodig voor impact"
-        score_bg = colors.HexColor("#FFFBEB")
-        score_border = colors.HexColor("#F59E0B")
-    else:
-        score_color = SCORE_RED
-        score_label = "KRITIEK"
-        score_desc = "Dringende actie vereist - tekst mist essentiële elementen"
-        score_bg = colors.HexColor("#FEF2F2")
-        score_border = colors.HexColor("#EF4444")
+    page_width = A4[0] - 4*cm
 
     story = []
 
-    # === HEADER BAR - Professional dark header ===
-    header_table = Table(
+    # === COMPACT HEADER ===
+    header = Table(
         [[
             Paragraph(
-                f"<font color='#FFFFFF' size='18'><b>VACATURE ANALYSE</b></font><br/>"
-                f"<font color='#9CA3AF' size='10'>Recruitment APK Rapport</font>",
-                ParagraphStyle('HeaderTitle', leading=22)
+                f"<font color='#FFFFFF' size='14'><b>GEOPTIMALISEERDE VACATURETEKST</b></font>",
+                ParagraphStyle('Header', leading=16)
             ),
             Paragraph(
-                f"<font color='#FFFFFF' size='11'><b>{company_name}</b></font><br/>"
-                f"<font color='#9CA3AF' size='9'>{vacancy_title or 'Vacature'}<br/>"
-                f"{datetime.now().strftime('%d %B %Y')}</font>",
-                ParagraphStyle('HeaderRight', alignment=TA_RIGHT, leading=14)
+                f"<font color='#10B981' size='9'><b>✓ READY TO USE</b></font>",
+                ParagraphStyle('Badge', alignment=TA_RIGHT)
             )
         ]],
-        colWidths=[page_width*0.55, page_width*0.45]
+        colWidths=[page_width*0.7, page_width*0.3]
     )
-    header_table.setStyle(TableStyle([
+    header.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, -1), RECRUITIN_DARK),
-        ('TOPPADDING', (0, 0), (-1, -1), 18),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 18),
-        ('LEFTPADDING', (0, 0), (-1, -1), 20),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 20),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-    ]))
-    story.append(header_table)
-
-    # === SCORE HERO SECTION ===
-    story.append(Spacer(1, 20))
-
-    # Score circle and info side by side
-    score_circle = create_score_circle_drawing(score_value)
-
-    score_info = Paragraph(
-        f"<font size='16' color='{score_color.hexval()}'><b>{score_label}</b></font><br/><br/>"
-        f"<font size='11' color='#4B5563'>{score_desc}</font><br/><br/>"
-        f"<font size='9' color='#9CA3AF'>Gebaseerd op 12 professionele criteria | "
-        f"Benchmark: Nederlandse IT-sector 2024</font>",
-        ParagraphStyle('ScoreInfo', leading=16)
-    )
-
-    score_hero = Table(
-        [[score_circle, score_info]],
-        colWidths=[4.5*cm, page_width - 4.5*cm]
-    )
-    score_hero.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), score_bg),
-        ('TOPPADDING', (0, 0), (-1, -1), 20),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 20),
+        ('TOPPADDING', (0, 0), (-1, -1), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
         ('LEFTPADDING', (0, 0), (-1, -1), 15),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 20),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 15),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('BOX', (0, 0), (-1, -1), 2, score_border),
     ]))
-    story.append(score_hero)
+    story.append(header)
 
-    # === THEMA OVERZICHT - 4 Category Cards like MTEE ===
-    story.append(Spacer(1, 20))
+    # === SUBTITLE ===
+    story.append(Spacer(1, 10))
     story.append(Paragraph(
-        "<font size='14' color='#1F2937'><b>THEMA ANALYSE</b></font>",
-        ParagraphStyle('SectionTitle', spaceBefore=5, spaceAfter=15)
+        f"<font size='11' color='#1F2937'><b>{company_name}</b> | {vacancy_title or 'Vacature'}</font>",
+        ParagraphStyle('Subtitle', alignment=TA_CENTER, spaceAfter=15)
     ))
 
-    # Group scores into 4 themes
-    themes = [
-        {
-            'name': 'Content & Boodschap',
-            'scores': ['openingszin', 'bedrijf', 'rolklarheid'],
-            'labels': ['Openingszin', 'Bedrijfsprofiel', 'Rolklarheid']
-        },
-        {
-            'name': 'Wervingskracht',
-            'scores': ['cialdini', 'cta', 'competitief'],
-            'labels': ['Cialdini Triggers', 'Call-to-Action', 'Onderscheidend']
-        },
-        {
-            'name': 'Inclusiviteit',
-            'scores': ['inclusie', 'vereisten', 'groei'],
-            'labels': ['Bias Check', 'Realistische Eisen', 'Groeiperspectief']
-        },
-        {
-            'name': 'Marktpositie',
-            'scores': ['salaris', 'confidence', 'implementatie'],
-            'labels': ['Salaris', 'Haalbaarheid', 'Implementatie']
-        }
-    ]
+    # === VACATURETEKST ===
+    improved_text = sections['improved_text']
 
-    theme_rows = []
-    for theme in themes:
-        theme_scores = [sections['scores'].get(s, 5) for s in theme['scores']]
-        theme_avg = sum(theme_scores) / len(theme_scores)
+    # Split into paragraphs
+    paragraphs = [p.strip() for p in improved_text.split('\n\n') if p.strip()]
+    if len(paragraphs) < 2:
+        paragraphs = [p.strip() for p in improved_text.split('\n') if p.strip()]
 
-        # Theme color based on average
-        if theme_avg >= 7:
-            t_color = SCORE_GREEN
-            t_bg = colors.HexColor("#ECFDF5")
-        elif theme_avg >= 5:
-            t_color = SCORE_BLUE
-            t_bg = colors.HexColor("#EFF6FF")
-        else:
-            t_color = SCORE_YELLOW
-            t_bg = colors.HexColor("#FFFBEB")
+    for para in paragraphs[:20]:  # Max 20 paragraphs
+        # Clean up markdown
+        para = para.replace('**', '')
+        para = para.replace('##', '')
+        para = para.strip('# ')
 
-        # Individual score pills
-        score_pills = ""
-        for i, (s, lbl) in enumerate(zip(theme_scores, theme['labels'])):
-            score_pills += f"{lbl}: {s}/10   "
+        if not para:
+            continue
 
-        theme_cell = Table(
-            [[
-                Paragraph(
-                    f"<font size='11' color='#1F2937'><b>{theme['name']}</b></font>",
-                    ParagraphStyle('ThemeName')
-                ),
-                Paragraph(
-                    f"<font size='16' color='{t_color.hexval()}'><b>{theme_avg:.1f}</b></font>",
-                    ParagraphStyle('ThemeScore', alignment=TA_CENTER)
-                )
-            ],
-            [
-                Paragraph(
-                    f"<font size='8' color='#6B7280'>{score_pills}</font>",
-                    ParagraphStyle('ThemeDetails')
-                ),
-                ''
-            ]],
-            colWidths=[6.5*cm, 1.5*cm]
-        )
-        theme_cell.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, -1), t_bg),
-            ('TOPPADDING', (0, 0), (-1, -1), 10),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-            ('LEFTPADDING', (0, 0), (-1, -1), 12),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 12),
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('SPAN', (0, 1), (1, 1)),
-            ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#E5E7EB")),
-            ('LINEABOVE', (0, 0), (-1, 0), 3, t_color),
-        ]))
-        theme_rows.append(theme_cell)
-
-    # 2x2 grid of themes
-    theme_grid = Table(
-        [[theme_rows[0], theme_rows[1]], [theme_rows[2], theme_rows[3]]],
-        colWidths=[page_width/2, page_width/2],
-        hAlign='CENTER'
-    )
-    theme_grid.setStyle(TableStyle([
-        ('TOPPADDING', (0, 0), (-1, -1), 5),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-        ('LEFTPADDING', (0, 0), (-1, -1), 3),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 3),
-    ]))
-    story.append(theme_grid)
-
-    # === TOP VERBETERPUNTEN ===
-    if sections['quick_wins']:
-        story.append(Spacer(1, 20))
-        story.append(Paragraph(
-            "<font size='14' color='#1F2937'><b>TOP VERBETERPUNTEN</b></font>",
-            ParagraphStyle('SectionTitle', spaceBefore=5, spaceAfter=12)
-        ))
-
-        for i, win in enumerate(sections['quick_wins'][:3], 1):
-            win_text = win[:200] + "..." if len(win) > 200 else win
-            win_row = Table(
-                [[
-                    Paragraph(f"<font size='14' color='#FF6B35'><b>{i}</b></font>",
-                             ParagraphStyle('WinNum', alignment=TA_CENTER)),
-                    Paragraph(f"<font size='10' color='#374151'>{win_text}</font>",
-                             ParagraphStyle('WinText', leading=14))
-                ]],
-                colWidths=[1*cm, page_width - 1*cm]
-            )
-            win_row.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (0, -1), colors.HexColor("#FFF7ED")),
-                ('TOPPADDING', (0, 0), (-1, -1), 10),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-                ('LEFTPADDING', (0, 0), (-1, -1), 8),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 10),
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor("#FDBA74")),
-            ]))
-            story.append(win_row)
-            story.append(Spacer(1, 6))
-
-    # === VERBETERDE VACATURETEKST - Professional Presentation ===
-    if sections['improved_text']:
-        story.append(Spacer(1, 20))
-
-        # Section header with accent bar
-        vacancy_header = Table(
-            [[
-                Paragraph(
-                    "<font size='14' color='#1F2937'><b>GEOPTIMALISEERDE VACATURETEKST</b></font><br/>"
-                    "<font size='9' color='#6B7280'>Direct te gebruiken - Alle verbeteringen toegepast</font>",
-                    ParagraphStyle('VacancyHeader', leading=16)
-                ),
-                Paragraph(
-                    "<font size='9' color='#10B981'><b>READY TO USE</b></font>",
-                    ParagraphStyle('VacancyBadge', alignment=TA_RIGHT)
-                )
-            ]],
-            colWidths=[page_width*0.75, page_width*0.25]
-        )
-        vacancy_header.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#ECFDF5")),
-            ('TOPPADDING', (0, 0), (-1, -1), 12),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
-            ('LEFTPADDING', (0, 0), (-1, -1), 15),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 15),
-            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-            ('LINEABOVE', (0, 0), (-1, 0), 3, SCORE_GREEN),
-        ]))
-        story.append(vacancy_header)
-
-        # Process improved text for better presentation
-        improved_text = sections['improved_text'][:2500]
-
-        # Split into paragraphs for better formatting
-        paragraphs = [p.strip() for p in improved_text.split('\n\n') if p.strip()]
-        if len(paragraphs) < 2:
-            paragraphs = [p.strip() for p in improved_text.split('\n') if p.strip()]
-
-        # Build paragraph elements
-        text_elements = []
-        for i, para in enumerate(paragraphs[:12]):  # Max 12 paragraphs
-            # Clean up markdown
-            para = para.replace('**', '')
-            para = para.replace('##', '')
-            para = para.strip('# ')
-
-            if not para:
-                continue
-
-            # Detect headers (short lines that might be section headers)
-            if len(para) < 60 and not para.endswith('.') and not para.endswith(':'):
-                # Treat as subheader
-                text_elements.append(
-                    Paragraph(
-                        f"<font size='10' color='#1F2937'><b>{para}</b></font>",
-                        ParagraphStyle('VacancySubhead', spaceBefore=8, spaceAfter=4)
-                    )
-                )
-            else:
-                # Regular paragraph
-                text_elements.append(
-                    Paragraph(
-                        f"<font size='9' color='#374151'>{para}</font>",
-                        ParagraphStyle('VacancyPara', leading=14, spaceBefore=3, spaceAfter=6, alignment=TA_JUSTIFY)
-                    )
-                )
-
-        # Create vacancy text box
-        vacancy_content = []
-        for elem in text_elements:
-            vacancy_content.append([elem])
-
-        if vacancy_content:
-            vacancy_box = Table(
-                vacancy_content,
-                colWidths=[page_width - 30]
-            )
-            vacancy_box.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, -1), colors.white),
-                ('TOPPADDING', (0, 0), (-1, -1), 2),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
-                ('LEFTPADDING', (0, 0), (-1, -1), 0),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 0),
-            ]))
-
-            # Wrap in outer container with border
-            vacancy_container = Table(
-                [[vacancy_box]],
-                colWidths=[page_width]
-            )
-            vacancy_container.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (-1, -1), colors.white),
-                ('TOPPADDING', (0, 0), (-1, -1), 15),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
-                ('LEFTPADDING', (0, 0), (-1, -1), 15),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 15),
-                ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#D1D5DB")),
-                ('LINEBELOW', (0, 0), (-1, -1), 0, colors.white),
-            ]))
-            story.append(vacancy_container)
-
-        # Add tip footer
-        tip_footer = Table(
-            [[Paragraph(
-                "<font size='8' color='#6B7280'><i>Tip: Kopieer deze tekst en pas aan waar nodig. "
-                "Houd de structuur en overtuigingstechnieken intact voor maximale impact.</i></font>",
-                ParagraphStyle('VacancyTip', alignment=TA_CENTER)
-            )]],
-            colWidths=[page_width]
-        )
-        tip_footer.setStyle(TableStyle([
-            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#F9FAFB")),
-            ('TOPPADDING', (0, 0), (-1, -1), 8),
-            ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-            ('LEFTPADDING', (0, 0), (-1, -1), 10),
-            ('RIGHTPADDING', (0, 0), (-1, -1), 10),
-        ]))
-        story.append(tip_footer)
-
-    # === CIALDINI TIPS ===
-    if sections['cialdini_tips']:
-        story.append(Spacer(1, 15))
-        story.append(Paragraph(
-            "<font size='12' color='#6B7280'><b>OVERTUIGINGSPRINCIPES (CIALDINI)</b></font>",
-            ParagraphStyle('SectionTitle', spaceBefore=5, spaceAfter=10)
-        ))
-        for tip in sections['cialdini_tips'][:3]:
-            tip_text = tip[:150] + "..." if len(tip) > 150 else tip
+        # Detect headers (short lines)
+        if len(para) < 50 and not para.endswith('.') and not para.endswith(':'):
             story.append(Paragraph(
-                f"<font size='9' color='#6B7280'><i>&#8226; {tip_text}</i></font>",
-                ParagraphStyle('CialdiniTip', leading=12, leftIndent=8, spaceBefore=3, spaceAfter=3)
+                f"<font size='11' color='#1F2937'><b>{para}</b></font>",
+                ParagraphStyle('SubHead', spaceBefore=12, spaceAfter=4)
+            ))
+        else:
+            story.append(Paragraph(
+                f"<font size='10' color='#374151'>{para}</font>",
+                ParagraphStyle('BodyText', leading=14, spaceBefore=3, spaceAfter=6, alignment=TA_JUSTIFY)
             ))
 
-    # === PROFESSIONAL FOOTER ===
-    story.append(Spacer(1, 25))
-
-    footer_table = Table(
-        [[
-            Paragraph(
-                "<font color='#9CA3AF' size='8'><b>Recruitin B.V.</b> | Vacature Optimalisatie Experts<br/>"
-                "info@recruitin.nl | www.kandidatentekort.nl</font>",
-                ParagraphStyle('FooterLeft', alignment=TA_LEFT, leading=11)
-            ),
-            Paragraph(
-                f"<font color='#9CA3AF' size='8'>Rapport ID: {company_name[:8].upper()}-{datetime.now().strftime('%Y%m%d')}<br/>"
-                "Vertrouwelijk document</font>",
-                ParagraphStyle('FooterRight', alignment=TA_RIGHT, leading=11)
-            )
-        ]],
-        colWidths=[page_width*0.6, page_width*0.4]
+    # === TIP FOOTER ===
+    story.append(Spacer(1, 20))
+    tip = Table(
+        [[Paragraph(
+            "<font size='8' color='#6B7280'><i>💡 Tip: Kopieer deze tekst direct naar je ATS of vacatureplatform. "
+            "Alle verbeteringen zijn al toegepast.</i></font>",
+            ParagraphStyle('Tip', alignment=TA_CENTER)
+        )]],
+        colWidths=[page_width]
     )
-    footer_table.setStyle(TableStyle([
-        ('LINEABOVE', (0, 0), (-1, -1), 0.5, colors.HexColor("#E5E7EB")),
-        ('TOPPADDING', (0, 0), (-1, -1), 12),
+    tip.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#F0F9FF")),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
+        ('LEFTPADDING', (0, 0), (-1, -1), 10),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 10),
     ]))
-    story.append(footer_table)
+    story.append(tip)
+
+    # === FOOTER ===
+    story.append(Spacer(1, 15))
+    footer = Table(
+        [[Paragraph(
+            f"<font color='#9CA3AF' size='7'>Recruitin B.V. | {datetime.now().strftime('%d-%m-%Y')}</font>",
+            ParagraphStyle('Footer', alignment=TA_CENTER)
+        )]],
+        colWidths=[page_width]
+    )
+    footer.setStyle(TableStyle([
+        ('LINEABOVE', (0, 0), (-1, -1), 0.5, colors.HexColor("#E5E7EB")),
+        ('TOPPADDING', (0, 0), (-1, -1), 8),
+    ]))
+    story.append(footer)
 
     # Build PDF
     doc.build(story)
@@ -764,8 +858,14 @@ def generate_pdf_report(contact_name, company_name, vacancy_title, analysis_resu
     pdf_content = buffer.getvalue()
     buffer.close()
 
-    logger.info(f"Professional PDF generated for {company_name}, size: {len(pdf_content)} bytes")
+    logger.info(f"PDF Bijlage 2 (Vacaturetekst) generated for {company_name}, size: {len(pdf_content)} bytes")
     return pdf_content
+
+
+# Keep old function name as alias for backwards compatibility
+def generate_pdf_report(contact_name, company_name, vacancy_title, analysis_result, score=None):
+    """Backwards compatible wrapper - calls new analysis report function."""
+    return generate_pdf_analysis_report(contact_name, company_name, vacancy_title, analysis_result, score, "")
 
 
 def generate_score_bar_html(label, score, emoji="📊"):
@@ -800,7 +900,7 @@ def generate_score_bar_html(label, score, emoji="📊"):
 
 
 def generate_email_html(contact_name, company_name, vacancy_title, analysis_result, score=None):
-    """Generate beautiful HTML email with visual analysis results."""
+    """Generate SHORT & PUNCHY HTML email with score teaser - details in PDF attachments."""
 
     # Parse the analysis into sections
     sections = parse_analysis_sections(analysis_result)
@@ -811,86 +911,72 @@ def generate_email_html(contact_name, company_name, vacancy_title, analysis_resu
             score_color = "#10B981"
             score_label = "Uitstekend"
             score_emoji = "🏆"
+            score_msg = "Indrukwekkend! Je vacature scoort bovengemiddeld."
         elif score >= 50:
             score_color = "#3B82F6"
             score_label = "Goed"
             score_emoji = "👍"
+            score_msg = "Solide basis met duidelijke verbeterkansen."
         elif score >= 30:
             score_color = "#F59E0B"
             score_label = "Verbetering nodig"
             score_emoji = "⚠️"
+            score_msg = "Met enkele aanpassingen haal je veel meer uit je vacature."
         else:
             score_color = "#EF4444"
             score_label = "Kritiek"
             score_emoji = "🔴"
+            score_msg = "Je vacature mist essentiële elementen. Tijd voor actie!"
     else:
         score_color = "#6B7280"
         score_label = "Analyse"
         score_emoji = "📊"
+        score_msg = "Je vacaturetekst is geanalyseerd."
         score = "?"
 
-    # Build score bars HTML
-    score_bars = ""
-    score_mapping = [
-        ('Openingszin', 'openingszin', '✍️'),
-        ('Bedrijf', 'bedrijf', '🏢'),
-        ('Rolklarheid', 'rolklarheid', '🎯'),
-        ('Vereisten', 'vereisten', '📋'),
-        ('Groei', 'groei', '📈'),
-        ('Inclusie', 'inclusie', '🌍'),
-        ('Cialdini', 'cialdini', '🧠'),
-        ('Salaris', 'salaris', '💰'),
-        ('CTA', 'cta', '🚀'),
-        ('Competitief', 'competitief', '⚡'),
-        ('Vertrouwen', 'confidence', '✅'),
-        ('Implementatie', 'implementatie', '🔧')
-    ]
-
-    for label, key, emoji in score_mapping:
-        s = sections['scores'].get(key, 5)
-        score_bars += generate_score_bar_html(label, s, emoji)
-
-    # Build quick wins HTML
-    quick_wins_html = ""
-    for i, win in enumerate(sections['quick_wins'][:3], 1):
-        quick_wins_html += f'''
-        <div style="background: #ECFDF5; border-radius: 8px; padding: 12px 15px; margin-bottom: 10px; border-left: 4px solid #10B981;">
-            <span style="color: #059669; font-weight: 600;">Quick Win {i}:</span>
-            <span style="color: #065F46;"> {win[:150]}{'...' if len(win) > 150 else ''}</span>
-        </div>'''
-
-    if not quick_wins_html:
-        quick_wins_html = '<p style="color: #6B7280;">Zie de volledige analyse hieronder voor verbeterpunten.</p>'
-
-    # Build Cialdini tips HTML
-    cialdini_html = ""
-    for tip in sections['cialdini_tips'][:3]:
-        cialdini_html += f'''
-        <div style="background: #FEF3C7; border-radius: 8px; padding: 12px 15px; margin-bottom: 10px; border-left: 4px solid #F59E0B;">
-            <span style="color: #92400E;">💡 </span>
-            <span style="color: #78350F; font-style: italic;">"{tip[:120]}{'...' if len(tip) > 120 else ''}"</span>
-        </div>'''
-
-    # Executive summary
-    exec_summary = sections['executive_summary'][:300] if sections['executive_summary'] else "Je vacaturetekst is geanalyseerd op 12 criteria. Bekijk hieronder de scores en concrete verbeterpunten."
-
-    # Improved text (truncated for email)
-    improved_text = sections['improved_text'][:1500] if sections['improved_text'] else ""
-    if improved_text:
-        improved_text_html = f'''
-        <div style="background: white; border-radius: 16px; padding: 25px; margin: 20px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-            <h2 style="color: #1F2937; margin: 0 0 15px 0; font-size: 18px;">
-                ✍️ Verbeterde Vacaturetekst
-            </h2>
-            <div style="background: #F9FAFB; border-radius: 8px; padding: 20px; border: 1px solid #E5E7EB;">
-                <p style="color: #374151; line-height: 1.7; margin: 0; font-size: 14px; white-space: pre-wrap;">{improved_text}{'...' if len(sections['improved_text']) > 1500 else ''}</p>
-            </div>
-            <p style="color: #9CA3AF; font-size: 12px; margin: 15px 0 0 0; text-align: center;">
-                📋 Volledige tekst beschikbaar in je Pipedrive notities
-            </p>
-        </div>'''
+    # Find top strength and weaknesses from scores
+    scores_dict = sections['scores']
+    if scores_dict:
+        sorted_scores = sorted(scores_dict.items(), key=lambda x: x[1], reverse=True)
+        top_strength = sorted_scores[0] if sorted_scores else None
+        weaknesses = [s for s in sorted_scores if s[1] <= 5][:2]
     else:
-        improved_text_html = ""
+        top_strength = None
+        weaknesses = []
+
+    # Map score keys to readable labels
+    score_labels = {
+        'openingszin': 'Openingszin',
+        'bedrijf': 'Bedrijfsprofiel',
+        'rolklarheid': 'Rolklarheid',
+        'vereisten': 'Vereisten',
+        'groei': 'Groeiperspectief',
+        'inclusie': 'Inclusiviteit',
+        'cialdini': 'Overtuigingskracht',
+        'salaris': 'Salaris',
+        'cta': 'Call-to-Action',
+        'competitief': 'Onderscheidend vermogen',
+        'confidence': 'Professionaliteit',
+        'implementatie': 'Implementatie'
+    }
+
+    # Build highlights HTML
+    highlights_html = ""
+    if top_strength:
+        label = score_labels.get(top_strength[0], top_strength[0])
+        highlights_html += f'''
+        <div style="display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #E5E7EB;">
+            <span style="color: #10B981; font-size: 18px; margin-right: 12px;">✓</span>
+            <span style="color: #374151;"><strong>Sterk:</strong> {label} ({top_strength[1]}/10)</span>
+        </div>'''
+
+    for weakness in weaknesses:
+        label = score_labels.get(weakness[0], weakness[0])
+        highlights_html += f'''
+        <div style="display: flex; align-items: center; padding: 10px 0; border-bottom: 1px solid #E5E7EB;">
+            <span style="color: #EF4444; font-size: 18px; margin-right: 12px;">✗</span>
+            <span style="color: #374151;"><strong>Verbeterpunt:</strong> {label} ({weakness[1]}/10)</span>
+        </div>'''
 
     html = f"""
 <!DOCTYPE html>
@@ -901,17 +987,14 @@ def generate_email_html(contact_name, company_name, vacancy_title, analysis_resu
 </head>
 <body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #F3F4F6;">
 
-    <!-- Header with Logo -->
-    <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #FF6B35 0%, #FF8F5C 100%); padding: 30px 20px;">
+    <!-- Compact Header -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #FF6B35 0%, #FF8F5C 100%); padding: 25px 20px;">
         <tr>
             <td align="center">
-                <div style="background: white; width: 60px; height: 60px; border-radius: 12px; display: inline-block; text-align: center; line-height: 60px; font-size: 28px; margin-bottom: 15px;">
-                    🎯
-                </div>
-                <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 700;">
-                    Vacature Analyse Rapport
+                <h1 style="color: white; margin: 0; font-size: 22px; font-weight: 700;">
+                    🎯 Je Vacature Analyse is klaar!
                 </h1>
-                <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 15px;">
+                <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 14px;">
                     {company_name} • {vacancy_title or 'Vacature'}
                 </p>
             </td>
@@ -923,102 +1006,62 @@ def generate_email_html(contact_name, company_name, vacancy_title, analysis_resu
         <tr>
             <td style="padding: 20px;">
 
-                <!-- Score Hero Card -->
-                <div style="background: white; border-radius: 20px; padding: 30px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.07); text-align: center;">
-                    <div style="position: relative; display: inline-block;">
-                        <div style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, {score_color}22 0%, {score_color}11 100%); border: 4px solid {score_color}; display: flex; align-items: center; justify-content: center;">
-                            <span style="font-size: 42px; font-weight: 800; color: {score_color};">{score}</span>
-                        </div>
+                <!-- Score Hero - Compact -->
+                <div style="background: white; border-radius: 16px; padding: 25px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.07); text-align: center;">
+                    <div style="display: inline-block; width: 100px; height: 100px; border-radius: 50%; background: linear-gradient(135deg, {score_color}22 0%, {score_color}11 100%); border: 4px solid {score_color}; line-height: 100px;">
+                        <span style="font-size: 36px; font-weight: 800; color: {score_color};">{score}</span>
                     </div>
-                    <div style="margin-top: 15px;">
-                        <span style="font-size: 24px;">{score_emoji}</span>
-                        <p style="color: {score_color}; font-size: 18px; font-weight: 700; margin: 5px 0 0 0;">
-                            {score_label}
-                        </p>
-                        <p style="color: #9CA3AF; font-size: 13px; margin: 5px 0 0 0;">
-                            van de 100 punten
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Executive Summary -->
-                <div style="background: white; border-radius: 16px; padding: 25px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                    <h2 style="color: #1F2937; margin: 0 0 12px 0; font-size: 18px;">
-                        👋 Beste {contact_name},
-                    </h2>
-                    <p style="color: #4B5563; line-height: 1.6; margin: 0; font-size: 15px;">
-                        {exec_summary}
+                    <p style="color: {score_color}; font-size: 16px; font-weight: 700; margin: 12px 0 4px 0;">
+                        {score_emoji} {score_label}
+                    </p>
+                    <p style="color: #6B7280; font-size: 13px; margin: 0;">
+                        {score_msg}
                     </p>
                 </div>
 
-                <!-- Score Breakdown -->
-                <div style="background: white; border-radius: 16px; padding: 25px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                    <h2 style="color: #1F2937; margin: 0 0 20px 0; font-size: 18px; display: flex; align-items: center;">
-                        📊 Score per Criterium
+                <!-- Quick Highlights -->
+                <div style="background: white; border-radius: 16px; padding: 20px 25px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    <h2 style="color: #1F2937; margin: 0 0 10px 0; font-size: 16px;">
+                        In één oogopslag
                     </h2>
-                    <table width="100%" cellpadding="0" cellspacing="0">
-                        {score_bars}
-                    </table>
+                    {highlights_html}
                 </div>
 
-                <!-- Quick Wins -->
-                <div style="background: white; border-radius: 16px; padding: 25px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                    <h2 style="color: #1F2937; margin: 0 0 15px 0; font-size: 18px;">
-                        🚀 Top 3 Quick Wins
-                    </h2>
-                    {quick_wins_html}
+                <!-- Attachments Notice -->
+                <div style="background: linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%); border-radius: 16px; padding: 25px; margin-bottom: 20px; border: 1px solid #93C5FD; text-align: center;">
+                    <span style="font-size: 32px;">📎</span>
+                    <h3 style="color: #1E40AF; margin: 10px 0 8px 0; font-size: 16px;">
+                        Open de bijlagen voor details
+                    </h3>
+                    <p style="color: #3B82F6; font-size: 13px; margin: 0 0 5px 0;">
+                        <strong>Bijlage 1:</strong> Volledig Analyse Rapport (12 criteria + verbeteringen)
+                    </p>
+                    <p style="color: #3B82F6; font-size: 13px; margin: 0;">
+                        <strong>Bijlage 2:</strong> Je geoptimaliseerde vacaturetekst (copy-paste ready)
+                    </p>
                 </div>
-
-                <!-- Cialdini Tips (if available) -->
-                {f'''<div style="background: white; border-radius: 16px; padding: 25px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                    <h2 style="color: #1F2937; margin: 0 0 15px 0; font-size: 18px;">
-                        🧠 Overtuigingstips
-                    </h2>
-                    {cialdini_html}
-                </div>''' if cialdini_html else ''}
-
-                <!-- Improved Text -->
-                {improved_text_html}
 
                 <!-- CTA Button -->
                 <div style="text-align: center; margin: 25px 0;">
                     <a href="https://recruitin.nl/contact"
                        style="display: inline-block; background: linear-gradient(135deg, #FF6B35 0%, #FF8F5C 100%); color: white; text-decoration: none;
-                              padding: 16px 32px; border-radius: 10px; font-weight: 600; font-size: 15px;
+                              padding: 14px 28px; border-radius: 10px; font-weight: 600; font-size: 14px;
                               box-shadow: 0 4px 14px rgba(255,107,53,0.35);">
-                        📞 Gratis adviesgesprek inplannen
+                        📞 Hulp nodig? Plan een gratis gesprek
                     </a>
-                </div>
-
-                <!-- What's Next Card -->
-                <div style="background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%); border-radius: 16px; padding: 25px; margin-bottom: 20px; border: 1px solid #FDBA74;">
-                    <h3 style="color: #9A3412; margin: 0 0 12px 0; font-size: 16px;">
-                        💡 Volgende stappen
-                    </h3>
-                    <ol style="color: #78350F; margin: 0; padding-left: 20px; line-height: 1.9; font-size: 14px;">
-                        <li>Implementeer de Quick Wins in je vacaturetekst</li>
-                        <li>Gebruik de verbeterde tekst als inspiratie</li>
-                        <li>Meet het resultaat (meer sollicitaties!)</li>
-                    </ol>
                 </div>
 
             </td>
         </tr>
     </table>
 
-    <!-- Footer -->
-    <table width="100%" cellpadding="0" cellspacing="0" style="background: #1F2937; padding: 30px 20px;">
+    <!-- Compact Footer -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="background: #1F2937; padding: 20px;">
         <tr>
             <td align="center">
-                <p style="color: white; font-size: 15px; font-weight: 600; margin: 0 0 5px 0;">
-                    Recruitin B.V.
-                </p>
-                <p style="color: #9CA3AF; font-size: 13px; margin: 0 0 15px 0;">
-                    Kandidatentekort.nl
-                </p>
-                <p style="color: #6B7280; font-size: 11px; margin: 0;">
-                    Dit rapport is automatisch gegenereerd door AI.<br>
-                    Vragen? Mail naar <a href="mailto:info@recruitin.nl" style="color: #FF6B35;">info@recruitin.nl</a>
+                <p style="color: #9CA3AF; font-size: 12px; margin: 0;">
+                    Recruitin B.V. | Kandidatentekort.nl<br>
+                    <a href="mailto:info@recruitin.nl" style="color: #FF6B35;">info@recruitin.nl</a>
                 </p>
             </td>
         </tr>
@@ -1085,8 +1128,11 @@ def send_confirmation_email(to_email, company_name, contact_name):
         return False
 
 
-def send_analysis_email(to_email, contact_name, company_name, vacancy_title, analysis_result, score=None):
-    """Send the analysis report email with PDF attachment."""
+def send_analysis_email(to_email, contact_name, company_name, vacancy_title, analysis_result, score=None, original_vacancy_text=""):
+    """Send the analysis report email with TWO PDF attachments:
+    - Bijlage 1: Analyse Rapport (12 criteria + voor/na vergelijking)
+    - Bijlage 2: Geoptimaliseerde Vacaturetekst (copy-paste ready)
+    """
     if not GMAIL_APP_PASSWORD:
         logger.error("GMAIL_APP_PASSWORD not set")
         return False
@@ -1101,40 +1147,66 @@ def send_analysis_email(to_email, contact_name, company_name, vacancy_title, ana
         # Create alternative part for HTML email
         msg_alternative = MIMEMultipart('alternative')
 
-        # Generate HTML email
+        # Generate HTML email (short & punchy - details in PDFs)
         html = generate_email_html(contact_name, company_name, vacancy_title, analysis_result, score)
         msg_alternative.attach(MIMEText(html, 'html'))
         msg.attach(msg_alternative)
 
-        # Generate and attach PDF
+        # Create safe filename base
+        safe_company = "".join(c for c in company_name if c.isalnum() or c in (' ', '-', '_')).strip()
+        safe_company = safe_company.replace(' ', '_')[:30]
+        date_str = datetime.now().strftime('%Y%m%d')
+
+        # ═══════════════════════════════════════════════════════════════
+        # BIJLAGE 1: Analyse Rapport (2 pagina's, 12 criteria + voor/na)
+        # ═══════════════════════════════════════════════════════════════
         try:
-            pdf_content = generate_pdf_report(contact_name, company_name, vacancy_title, analysis_result, score)
-
-            # Create safe filename
-            safe_company = "".join(c for c in company_name if c.isalnum() or c in (' ', '-', '_')).strip()
-            safe_company = safe_company.replace(' ', '_')[:30]
-            pdf_filename = f"Vacature_Analyse_{safe_company}_{datetime.now().strftime('%Y%m%d')}.pdf"
-
-            # Attach PDF
-            pdf_attachment = MIMEBase('application', 'pdf')
-            pdf_attachment.set_payload(pdf_content)
-            encoders.encode_base64(pdf_attachment)
-            pdf_attachment.add_header(
-                'Content-Disposition',
-                f'attachment; filename="{pdf_filename}"'
+            pdf_analysis = generate_pdf_analysis_report(
+                contact_name, company_name, vacancy_title,
+                analysis_result, score, original_vacancy_text
             )
-            msg.attach(pdf_attachment)
-            logger.info(f"PDF attachment added: {pdf_filename}")
+
+            pdf_filename_1 = f"Bijlage1_Analyse_Rapport_{safe_company}_{date_str}.pdf"
+
+            pdf_attachment_1 = MIMEBase('application', 'pdf')
+            pdf_attachment_1.set_payload(pdf_analysis)
+            encoders.encode_base64(pdf_attachment_1)
+            pdf_attachment_1.add_header(
+                'Content-Disposition',
+                f'attachment; filename="{pdf_filename_1}"'
+            )
+            msg.attach(pdf_attachment_1)
+            logger.info(f"PDF Bijlage 1 (Analyse Rapport) added: {pdf_filename_1}")
 
         except Exception as pdf_error:
-            logger.error(f"PDF generation failed, sending without attachment: {pdf_error}")
-            # Continue sending email without PDF if generation fails
+            logger.error(f"PDF Bijlage 1 generation failed: {pdf_error}")
+
+        # ═══════════════════════════════════════════════════════════════
+        # BIJLAGE 2: Geoptimaliseerde Vacaturetekst (copy-paste ready)
+        # ═══════════════════════════════════════════════════════════════
+        try:
+            pdf_vacancy = generate_pdf_vacancy_text(company_name, vacancy_title, analysis_result)
+
+            pdf_filename_2 = f"Bijlage2_Vacaturetekst_{safe_company}_{date_str}.pdf"
+
+            pdf_attachment_2 = MIMEBase('application', 'pdf')
+            pdf_attachment_2.set_payload(pdf_vacancy)
+            encoders.encode_base64(pdf_attachment_2)
+            pdf_attachment_2.add_header(
+                'Content-Disposition',
+                f'attachment; filename="{pdf_filename_2}"'
+            )
+            msg.attach(pdf_attachment_2)
+            logger.info(f"PDF Bijlage 2 (Vacaturetekst) added: {pdf_filename_2}")
+
+        except Exception as pdf_error:
+            logger.error(f"PDF Bijlage 2 generation failed: {pdf_error}")
 
         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
             server.login(GMAIL_USER, GMAIL_APP_PASSWORD)
             server.send_message(msg)
 
-        logger.info(f"Analysis email with PDF sent to {to_email}")
+        logger.info(f"Analysis email with 2 PDFs sent to {to_email}")
         return True
 
     except Exception as e:
@@ -1331,8 +1403,11 @@ def process_analysis_async(email, contact_name, company_name, vacancy_title, vac
         analysis_result, score = analyze_vacancy_with_claude(vacancy_text, company_name, vacancy_title)
 
         if analysis_result:
-            # Send analysis email
-            send_analysis_email(email, contact_name, company_name, vacancy_title, analysis_result, score)
+            # Send analysis email with BOTH PDFs (pass original vacancy_text for voor/na comparison)
+            send_analysis_email(
+                email, contact_name, company_name, vacancy_title,
+                analysis_result, score, original_vacancy_text=vacancy_text
+            )
 
             # Add to Pipedrive
             add_analysis_to_pipedrive(deal_id, analysis_result, score)
@@ -1350,7 +1425,7 @@ def health():
     """Health check endpoint."""
     return jsonify({
         "status": "healthy",
-        "version": "7.1",
+        "version": "7.2",
         "features": {
             "email": bool(GMAIL_APP_PASSWORD),
             "pipedrive": bool(PIPEDRIVE_API_TOKEN),
@@ -1485,7 +1560,7 @@ def home():
     """Home endpoint."""
     return jsonify({
         "service": "Kandidatentekort Webhook V7",
-        "version": "7.1",
+        "version": "7.2",
         "features": [
             "email",
             "pipedrive",
