@@ -1,4 +1,4 @@
-# Kandidatentekort Auto - Python Dependencies
+# Kandidatentekort Auto V5.0 - Python Dependencies
 # Install with: pip install -r requirements.txt
 
 # Core dependencies
@@ -6,6 +6,10 @@ anthropic>=0.25.0       # Claude API client
 flask>=3.0.0            # Webhook server
 requests>=2.31.0        # HTTP client for Pipedrive
 
-# Optional dependencies
+# File extraction (V5.0)
+PyPDF2>=3.0.1           # PDF text extraction
+python-docx>=1.1.0      # DOCX text extraction
+
+# Production dependencies
 gunicorn>=21.0.0        # Production WSGI server
 python-dotenv>=1.0.0    # Environment variable management

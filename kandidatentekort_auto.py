@@ -1,1131 +1,1559 @@
 #!/usr/bin/env python3
 """
-Kandidatentekort Automatische Vacature Analyse
-===============================================
-Nederlandse Technische & Industriele Vacature Optimizer
-Met sector-specifieke analyse voor maximale sollicitatie conversie.
-
-Sectoren: Oil & Gas, Manufacturing, Automation, Renewable Energy, Construction
+KANDIDATENTEKORT.NL - WEBHOOK AUTOMATION V5.0
+Deploy: Render.com | Updated: 2025-11-28
+- V2: Pipedrive organization, person, deal creation
+- V3: Claude AI vacancy analysis + report email
+- V3.1: Professional report template with Before/After comparison
+- V3.2: PDF, DOCX and Word file extraction for vacancy analysis
+- V3.3: Fixed Typeform file download with authentication
+- V4.0: ULTIMATE email template - Score visualization, Category breakdown,
+        Before/After comparison, Full improved text, Numbered checklist, Bonus tips
+- V4.1: OUTLOOK COMPATIBLE - Full table-based layout, MSO conditionals, no flex/gradients
+- V5.0: TRUST-FIRST EMAIL NURTURE - 8 automated follow-up emails over 30 days
 """
 
 import os
-import re
+import io
 import json
-import time
 import logging
-from datetime import datetime
-from typing import Dict, Any, Optional, Tuple
-from dataclasses import dataclass
-from enum import Enum
+import smtplib
+import requests
+import threading
+import time
+from datetime import datetime, timedelta
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+from flask import Flask, request, jsonify
 
-# Third-party imports (install via: pip install anthropic flask requests)
+# PDF and DOCX extraction
 try:
-    import anthropic
+    from PyPDF2 import PdfReader
+    PDF_AVAILABLE = True
 except ImportError:
-    anthropic = None
-    print("Warning: anthropic package not installed. Run: pip install anthropic")
-
-try:
-    from flask import Flask, request, jsonify
-except ImportError:
-    Flask = None
-    print("Warning: flask package not installed. Run: pip install flask")
+    PDF_AVAILABLE = False
 
 try:
-    import requests
+    from docx import Document
+    DOCX_AVAILABLE = True
 except ImportError:
-    requests = None
-    print("Warning: requests package not installed. Run: pip install requests")
+    DOCX_AVAILABLE = False
 
-# ===============================================
-# CONFIGURATION
-# ===============================================
-
-# Logging setup - StreamHandler only for cloud compatibility (Render, Heroku, etc.)
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(levelname)s - %(message)s',
-    handlers=[logging.StreamHandler()]
-)
+logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
-# Environment variables
-CLAUDE_API_KEY = os.getenv('CLAUDE_API_KEY', '')
-PIPEDRIVE_API_KEY = os.getenv('PIPEDRIVE_API_KEY', '')
-TYPEFORM_PERSONAL_TOKEN = os.getenv('TYPEFORM_PERSONAL_TOKEN', '')
-SMTP_HOST = os.getenv('SMTP_HOST', 'smtp.gmail.com')
-SMTP_PORT = int(os.getenv('SMTP_PORT', '587'))
-SMTP_USER = os.getenv('SMTP_USER', '')
-SMTP_PASSWORD = os.getenv('SMTP_PASSWORD', '')
+app = Flask(__name__)
 
+# Config
+ANTHROPIC_API_KEY = os.getenv('ANTHROPIC_API_KEY')
+PIPEDRIVE_API_TOKEN = os.getenv('PIPEDRIVE_API_TOKEN')
+TYPEFORM_API_TOKEN = os.getenv('TYPEFORM_API_TOKEN')  # For file downloads
+GMAIL_USER = os.getenv('GMAIL_USER', 'artsrecruitin@gmail.com')
+GMAIL_APP_PASSWORD = os.getenv('GMAIL_APP_PASSWORD') or os.getenv('GMAIL_PASS')
+PIPEDRIVE_BASE = "https://api.pipedrive.com/v1"
+PIPELINE_ID = 4
+STAGE_ID = 21
 
-# ===============================================
-# SECTOR DEFINITIONS
-# ===============================================
+# Email Nurture Custom Field Keys (from Pipedrive)
+FIELD_RAPPORT_VERZONDEN = "337f9ccca15334e6e4f937ca5ef0055f13ed0c63"
+FIELD_EMAIL_SEQUENCE_STATUS = "22d33c7f119119e178f391a272739c571cf2e29b"
+FIELD_LAATSTE_EMAIL = "753f37a1abc8e161c7982c1379a306b21fae1bab"
 
-class TechnicalSector(Enum):
-    OIL_GAS = "oil_gas"
-    MANUFACTURING = "manufacturing"
-    AUTOMATION = "automation"
-    RENEWABLE = "renewable"
-    CONSTRUCTION = "construction"
-    GENERAL = "general"
-
-
-@dataclass
-class SectorBenchmark:
-    """Benchmark scores per sector based on market research"""
-    name: str
-    display_name: str
-    avg_score_range: Tuple[int, int]
-    key_focus: str
-    keywords: list
-
-
-SECTOR_BENCHMARKS = {
-    TechnicalSector.OIL_GAS: SectorBenchmark(
-        name="oil_gas",
-        display_name="Oil & Gas",
-        avg_score_range=(28, 38),
-        key_focus="safety & compliance",
-        keywords=['oil', 'gas', 'petrochemical', 'refinery', 'offshore', 'pipeline',
-                  'drilling', 'lpg', 'lng', 'chemical plant', 'hsse', 'ppe']
-    ),
-    TechnicalSector.MANUFACTURING: SectorBenchmark(
-        name="manufacturing",
-        display_name="Manufacturing",
-        avg_score_range=(35, 45),
-        key_focus="process optimization",
-        keywords=['manufacturing', 'productie', 'quality', 'process', 'lean',
-                  'six sigma', 'production', 'assembly', 'oem', 'fabriek']
-    ),
-    TechnicalSector.AUTOMATION: SectorBenchmark(
-        name="automation",
-        display_name="Automation",
-        avg_score_range=(32, 42),
-        key_focus="technology advancement",
-        keywords=['automation', 'plc', 'scada', 'control', 'robotics', 'dcs',
-                  'instrumentation', 'hmi', 'siemens', 'allen bradley', 'abb']
-    ),
-    TechnicalSector.RENEWABLE: SectorBenchmark(
-        name="renewable",
-        display_name="Renewable Energy",
-        avg_score_range=(30, 40),
-        key_focus="sustainability & impact",
-        keywords=['renewable', 'wind', 'solar', 'energy', 'duurzaam', 'sustainable',
-                  'green', 'turbine', 'biomass', 'hydrogen', 'battery storage']
-    ),
-    TechnicalSector.CONSTRUCTION: SectorBenchmark(
-        name="construction",
-        display_name="Construction",
-        avg_score_range=(25, 35),
-        key_focus="project delivery",
-        keywords=['construction', 'civil', 'project', 'infrastructure', 'building',
-                  'architect', 'structural', 'bouw', 'civiel', 'grondwerk']
-    )
+# Email sequence timing (days after rapport verzonden)
+EMAIL_SCHEDULE = {
+    1: {"day": 1, "template_id": 55, "name": "Check-in"},
+    2: {"day": 3, "template_id": 56, "name": "Is het gelukt"},
+    3: {"day": 5, "template_id": 57, "name": "Resultaten"},
+    4: {"day": 8, "template_id": 58, "name": "Tip Functietitel"},
+    5: {"day": 11, "template_id": 59, "name": "Tip Salaris"},
+    6: {"day": 14, "template_id": 60, "name": "Tip Opening"},
+    7: {"day": 21, "template_id": 61, "name": "Gesprek Aanbod"},
+    8: {"day": 30, "template_id": 62, "name": "Final Check-in"},
 }
 
-
-# ===============================================
-# TECHNICAL MASTER PROMPT v2.0
-# ===============================================
-
-TECHNICAL_MASTER_PROMPT = """
-# NEDERLANDSE TECHNISCHE & INDUSTRIELE VACATURE ANALYSE EXPERT
-
-## EXPERTISE & CONTEXT
-Je bent een senior vacature-analyse specialist gespecialiseerd in TECHNISCHE EN INDUSTRIELE SECTOREN.
-Je combineert Intelligence Group's VacatureVerbeteraar expertise met 15+ jaar ervaring in Oil & Gas,
-Manufacturing, Automation, Renewable Energy en Construction recruitment.
-
-ALLEEN technische en industriele rollen voor bedrijven met 50-800 medewerkers in Gelderland,
-Overijssel, Noord-Brabant.
-
-## NEDERLANDSE RECRUITMENT INTELLIGENCE (2025)
-
-### Sector Benchmarks:
-- Oil & Gas: 28-38/100 - Hoge salarisverwachtingen, safety focus, internationale projecten
-- Manufacturing: 35-45/100 - Proces optimalisatie, kwaliteit driven, lean cultuur
-- Automation: 32-42/100 - Technology advancement, innovation driven, cutting-edge tech
-- Renewable Energy: 30-40/100 - Sustainability motivated, growth sector, purpose-driven
-- Construction: 25-35/100 - Project mentality, result oriented, team dynamics
-
-**Minimaal 45+ punten nodig voor decent results, 60+ voor moeilijke functies**
-
-## ANALYSE FRAMEWORK
-
-### 1. FUNCTIETITEL KRACHT (SEO + herkenbaarheid)
-- Is de titel SEO-geoptimaliseerd voor technische zoekopdrachten?
-- Herkenbaar voor technici in de sector?
-- Vermijd vage titels zoals "Specialist" of "Medewerker"
-
-### 2. SALARIS TRANSPARANTIE (Nederlandse wet 2025 compliance)
-- Concrete salary range vermeld?
-- Marktconform voor de sector en regio?
-- Secundaire arbeidsvoorwaarden specifiek benoemd?
-
-### 3. TECHNISCHE CHALLENGE
-- Concrete projecten en projectschaal genoemd?
-- Specifieke technologieen/systemen/tools?
-- Team samenstelling en senioriteit?
-- Equipment / software / tech stack?
-
-### 4. PROCES & KWALITEIT FOCUS (voor manufacturing/process engineers)
-- Lean/Six Sigma cultuur aanwezig?
-- Continuous improvement opportunities?
-- Kwaliteitssystemen en certificeringen?
-
-### 5. CAREER DEVELOPMENT
-- Groeipad en doorgroeimogelijkheden?
-- Training en certificeringen aangeboden?
-- Internationale exposure mogelijk?
-- Mentorship en kennisdeling?
-
-### 6. COMPANY CREDIBILITY
-- Financiele gezondheid van het bedrijf?
-- Referentie projecten en klanten?
-- Innovatie-mindset zichtbaar?
-
-## OUTPUT FORMAT (STRICT JSON):
-
-{
-    "vacature_score": 7.5,
-    "sector": "manufacturing",
-    "sector_display": "Manufacturing",
-    "confidence": 0.85,
-
-    "critical_blockers": [
-        {
-            "issue": "Geen salarisindicatie",
-            "impact_percentage": 35,
-            "fix": "Voeg salary range toe: EUR 55.000 - 70.000 bruto per jaar"
-        },
-        {
-            "issue": "Vage functievereisten",
-            "impact_percentage": 25,
-            "fix": "Specificeer: 'Ervaring met SAP Quality Module' ipv 'ERP ervaring'"
-        },
-        {
-            "issue": "Geen projectvoorbeelden",
-            "impact_percentage": 20,
-            "fix": "Voeg toe: 'Je werkt aan de nieuwe productielijn van EUR 5M'"
-        }
-    ],
-
-    "week1_quick_wins": [
-        {
-            "action": "Voeg concrete salarisindicatie toe",
-            "expected_improvement": 35,
-            "implementation": "Tussen EUR 55.000 - 70.000 bruto, afhankelijk van ervaring"
-        },
-        {
-            "action": "Specificeer de technische tools",
-            "expected_improvement": 15,
-            "implementation": "Lijst specifieke systemen: SAP QM, Minitab, SPC tools"
-        }
-    ],
-
-    "roi_impact": {
-        "expected_application_increase": 45,
-        "expected_time_to_hire_reduction_days": 12,
-        "quality_improvement_score": 3.5
-    },
-
-    "sector_specific_advice": "Voor Manufacturing vacatures is het cruciaal om de productieomgeving te beschrijven. Kandidaten willen weten: moderne of legacy faciliteiten? Batch of continuous production? Lean/Six Sigma cultuur?",
-
-    "rewritten_intro": "Als Quality Manager bij [Bedrijf] leid je een team van 5 QA Engineers in onze state-of-the-art productieomgeving (Industry 4.0). Je bent verantwoordelijk voor EUR 25M aan jaarlijkse output en werkt direct samen met R&D aan nieuwe productontwikkeling. Salaris: EUR 65.000-75.000 + auto + bonus.",
-
-    "full_analysis": "Uitgebreide analyse tekst hier..."
-}
-
-## BELANGRIJKE RICHTLIJNEN:
-1. Wees SPECIFIEK - geen vage adviezen zoals "verbeter de tekst"
-2. Geef CONCRETE cijfers en percentages
-3. Focus op wat TECHNISCHE professionals belangrijk vinden
-4. Vergelijk met marktstandaarden in de sector
-5. Geef KOPIEERBARE verbeteringen die direct implementeerbaar zijn
-6. Maak elke aanbeveling DIRECT implementeerbaar voor Nederlandse technische recruitment
-
-## GEWENST OUTPUT FORMAT (naast JSON):
-
-**VACATURE SCORE: X.X/10**
-**SECTOR: [Oil&Gas/Manufacturing/Automation/Renewable/Construction]**
-**DOELGROEP: [Process Engineer/Project Manager/Maintenance/etc]**
-
-**TOP 3 CRITICAL BLOCKERS:**
-1. [Specifieke blocker] - kost [%] sollicitaties
-2. [Specifieke blocker] - kost [%] sollicitaties
-3. [Specifieke blocker] - kost [%] sollicitaties
-
-**WEEK 1 QUICK WINS (implementatie <2 uur):**
-- [Concrete tekstwijziging met rationale]
-- [Concrete verbetering met expected impact]
-- [Specifieke optimalisatie met % verbetering]
-
-**STRATEGISCHE VERBETERINGEN:**
-- [Sector-specifieke optimalisatie]
-- [Doelgroep-gerichte aanpassing]
-- [Competitive advantage enhancement]
-
-**ROI IMPACT:**
-- Expected: +[X]% meer sollicitaties
-- Expected: +[X]% betere kwalificatie rate
-- Expected: -[X] dagen snellere time-to-hire
-
-Analyseer nu de volgende vacature en geef je expert oordeel:
-"""
+# Stage filter: Only send nurture emails to deals in stage 21 (Gekwalificeerd)
+# Deals in stage 22+ have active contact, so no automated emails needed
+NURTURE_ACTIVE_STAGE = 21  # Gekwalificeerd
 
 
-# ===============================================
-# SECTOR DETECTION
-# ===============================================
-
-def detect_technical_sector(vacature_text: str) -> Tuple[TechnicalSector, float]:
+def extract_text_from_file(file_url):
     """
-    Detect the technical sector of a vacancy based on keyword matching.
-
-    Returns:
-        Tuple of (sector, confidence_score)
+    Download and extract text from PDF, DOCX, or DOC files.
+    Returns extracted text or empty string on failure.
+    Typeform file URLs require Bearer token authentication.
     """
-    text_lower = vacature_text.lower()
-
-    sector_scores = {}
-
-    for sector, benchmark in SECTOR_BENCHMARKS.items():
-        # Count keyword matches
-        matches = sum(1 for keyword in benchmark.keywords if keyword in text_lower)
-
-        # Weight by keyword specificity (longer keywords = more specific = higher weight)
-        weighted_score = sum(
-            len(keyword) / 5 for keyword in benchmark.keywords if keyword in text_lower
-        )
-
-        sector_scores[sector] = {
-            'matches': matches,
-            'weighted': weighted_score
-        }
-
-    # Find best matching sector
-    if not sector_scores:
-        return TechnicalSector.GENERAL, 0.5
-
-    best_sector = max(sector_scores, key=lambda s: sector_scores[s]['weighted'])
-    best_score = sector_scores[best_sector]
-
-    # Calculate confidence (0.5 - 1.0 range)
-    max_possible = len(SECTOR_BENCHMARKS[best_sector].keywords) * 2
-    confidence = min(0.5 + (best_score['weighted'] / max_possible) * 0.5, 1.0)
-
-    # If no clear winner, default to manufacturing (most common)
-    if best_score['matches'] == 0:
-        return TechnicalSector.MANUFACTURING, 0.5
-
-    return best_sector, confidence
-
-
-# ===============================================
-# CLAUDE API INTEGRATION
-# ===============================================
-
-def call_claude_api(prompt: str, max_tokens: int = 4000) -> Optional[str]:
-    """
-    Call the Claude API with the given prompt.
-
-    Returns:
-        Response text or None if failed
-    """
-    if not CLAUDE_API_KEY:
-        logger.error("CLAUDE_API_KEY not configured")
-        return None
-
-    if anthropic is None:
-        logger.error("anthropic package not installed")
-        return None
+    if not file_url:
+        return ""
 
     try:
-        client = anthropic.Anthropic(api_key=CLAUDE_API_KEY)
+        logger.info(f"📄 Downloading file: {file_url[:80]}...")
 
-        message = client.messages.create(
-            model="claude-sonnet-4-20250514",
-            max_tokens=max_tokens,
-            temperature=0.3,
-            messages=[
-                {"role": "user", "content": prompt}
-            ]
-        )
+        # Prepare headers - Typeform API requires authentication
+        headers = {}
+        if TYPEFORM_API_TOKEN and 'typeform.com' in file_url:
+            headers['Authorization'] = f'Bearer {TYPEFORM_API_TOKEN}'
+            logger.info("🔑 Using Typeform API authentication")
 
-        if message.content and len(message.content) > 0:
-            return message.content[0].text
+        # Download the file
+        response = requests.get(file_url, headers=headers, timeout=30)
 
-        return None
+        # Log response details for debugging
+        content_type = response.headers.get('content-type', 'unknown')
+        logger.info(f"📦 Response: status={response.status_code}, content-type={content_type}, size={len(response.content)} bytes")
+
+        if response.status_code != 200:
+            logger.error(f"❌ Failed to download file: {response.status_code}")
+            return ""
+
+        content = response.content
+
+        # Check if we got an error page instead of the file
+        if len(content) < 100 and b'error' in content.lower():
+            logger.error(f"❌ Got error response: {content[:200]}")
+            return ""
+
+        # Detect file type by content (magic bytes) - most reliable
+        if content[:4] == b'%PDF':
+            logger.info("📄 Detected PDF by magic bytes")
+            return extract_pdf_text(content)
+        elif content[:2] == b'PK':  # DOCX/XLSX/ZIP files start with PK
+            logger.info("📄 Detected DOCX/ZIP by magic bytes")
+            return extract_docx_text(content)
+        elif content[:8] == b'\xd0\xcf\x11\xe0\xa1\xb1\x1a\xe1':  # Old .doc format (OLE)
+            logger.warning("⚠️ Old .doc (OLE) format - not supported, try converting to DOCX")
+            return ""
+
+        # Fallback: try by content-type header
+        if 'pdf' in content_type:
+            return extract_pdf_text(content)
+        elif 'wordprocessingml' in content_type or 'msword' in content_type:
+            return extract_docx_text(content)
+
+        # Last resort: try by URL extension
+        file_url_lower = file_url.lower()
+        if '.pdf' in file_url_lower:
+            return extract_pdf_text(content)
+        elif '.docx' in file_url_lower:
+            return extract_docx_text(content)
+
+        logger.warning(f"⚠️ Could not determine file type. Content starts with: {content[:20]}")
+        return ""
 
     except Exception as e:
-        logger.error(f"Claude API error: {str(e)}")
+        logger.error(f"❌ File extraction error: {e}")
+        return ""
+
+
+def extract_pdf_text(content):
+    """Extract text from PDF content"""
+    if not PDF_AVAILABLE:
+        logger.error("❌ PyPDF2 not available")
+        return ""
+
+    try:
+        pdf_file = io.BytesIO(content)
+        reader = PdfReader(pdf_file)
+
+        text_parts = []
+        for page in reader.pages:
+            page_text = page.extract_text()
+            if page_text:
+                text_parts.append(page_text)
+
+        full_text = "\n".join(text_parts)
+        logger.info(f"✅ PDF extracted: {len(full_text)} characters from {len(reader.pages)} pages")
+        return full_text.strip()
+
+    except Exception as e:
+        logger.error(f"❌ PDF extraction failed: {e}")
+        return ""
+
+
+def extract_docx_text(content):
+    """Extract text from DOCX content"""
+    if not DOCX_AVAILABLE:
+        logger.error("❌ python-docx not available")
+        return ""
+
+    try:
+        docx_file = io.BytesIO(content)
+        doc = Document(docx_file)
+
+        text_parts = []
+        for paragraph in doc.paragraphs:
+            if paragraph.text.strip():
+                text_parts.append(paragraph.text)
+
+        # Also extract text from tables
+        for table in doc.tables:
+            for row in table.rows:
+                for cell in row.cells:
+                    if cell.text.strip():
+                        text_parts.append(cell.text)
+
+        full_text = "\n".join(text_parts)
+        logger.info(f"✅ DOCX extracted: {len(full_text)} characters")
+        return full_text.strip()
+
+    except Exception as e:
+        logger.error(f"❌ DOCX extraction failed: {e}")
+        return ""
+
+
+def get_confirmation_email_html(voornaam, bedrijf, functie):
+    return f'''<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;font-family:Inter,-apple-system,sans-serif;background:#f9fafb;">
+<table width="100%" style="padding:40px 20px;"><tr><td align="center">
+<table width="600" style="background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(44,62,80,0.12);">
+<tr><td style="background:linear-gradient(135deg,#ff6b35,#e55a2b);color:#fff;padding:40px 30px;text-align:center;">
+<div style="font-size:28px;font-weight:800;">✅ Ontvangen!</div>
+<div style="font-size:16px;opacity:0.95;">Je vacature-analyse aanvraag is binnen</div></td></tr>
+<tr><td style="padding:35px 30px;">
+<p style="font-size:19px;font-weight:700;">Hoi {voornaam},</p>
+<p style="color:#374151;">Bedankt! We hebben je vacature voor <strong style="color:#ff6b35;">{functie}</strong> bij <strong style="color:#ff6b35;">{bedrijf}</strong> ontvangen.</p>
+<table width="100%" style="background:#f0f4f8;border-left:5px solid #ff6b35;border-radius:0 12px 12px 0;margin:25px 0;">
+<tr><td style="padding:25px;">
+<div style="font-size:18px;font-weight:700;color:#2c3e50;">⏰ Wat kun je verwachten?</div>
+<ul style="color:#374151;padding-left:20px;">
+<li><strong>Binnen 24 uur</strong> ontvang je een uitgebreide analyse</li>
+<li>Concrete verbeterpunten voor meer sollicitanten</li>
+<li>Score-overzicht op 6 belangrijke gebieden</li>
+<li>Direct toepasbare tips</li></ul></td></tr></table>
+<p style="color:#374151;">Vragen? Reply gewoon op deze email.</p></td></tr>
+<tr><td style="padding:0 30px 35px;border-top:1px solid #f1f3f4;">
+<table style="padding-top:25px;"><tr><td>
+<p style="margin:0 0 5px;font-weight:700;color:#2c3e50;">Wouter Arts</p>
+<p style="margin:0;color:#6b7280;font-size:14px;">Founder & Recruitment Specialist</p>
+<p style="margin:0;color:#ff6b35;font-size:14px;font-weight:600;">Kandidatentekort.nl</p>
+</td></tr></table></td></tr>
+<tr><td style="background:#2c3e50;color:#fff;padding:20px 30px;text-align:center;font-size:12px;">
+© 2025 Kandidatentekort.nl | Recruitin B.V.</td></tr>
+</table></td></tr></table></body></html>'''
+
+
+def send_email(to_email, subject, html_body):
+    logger.info(f"📧 Sending to: {to_email}")
+    if not GMAIL_APP_PASSWORD:
+        logger.error("❌ GMAIL_APP_PASSWORD not set!")
+        return False
+    try:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = f"Kandidatentekort.nl <{GMAIL_USER}>"
+        msg['To'] = to_email
+        msg.attach(MIMEText(html_body, 'html', 'utf-8'))
+        server = smtplib.SMTP('smtp.gmail.com', 587, timeout=30)
+        server.starttls()
+        server.login(GMAIL_USER, GMAIL_APP_PASSWORD.replace(" ", ""))
+        server.send_message(msg)
+        server.quit()
+        logger.info(f"✅ Email sent to {to_email}")
+        return True
+    except Exception as e:
+        logger.error(f"❌ Email failed: {e}")
+        return False
+
+
+def send_confirmation_email(to_email, voornaam, bedrijf, functie):
+    return send_email(to_email, f"✅ Ontvangen: Vacature-analyse voor {functie}",
+                      get_confirmation_email_html(voornaam, bedrijf, functie))
+
+
+def analyze_vacancy_with_claude(vacature_text, bedrijf, sector=""):
+    """Analyze vacancy text with Claude AI and return structured analysis"""
+    if not ANTHROPIC_API_KEY:
+        logger.error("❌ ANTHROPIC_API_KEY not set!")
+        return None
+
+    prompt = f"""Je bent een expert recruitment copywriter gespecialiseerd in de Nederlandse technische arbeidsmarkt. Analyseer deze vacaturetekst en verbeter ze voor maximale kandidaat-conversie.
+
+## VACATURETEKST OM TE ANALYSEREN:
+
+{vacature_text}
+
+## CONTEXT:
+- Bedrijf: {bedrijf}
+- Sector: {sector if sector else 'Niet opgegeven'}
+
+## JOUW OPDRACHT:
+
+Analyseer deze vacaturetekst en lever het volgende in EXACT dit JSON format:
+
+{{
+    "overall_score": 7.2,
+    "score_section": "Aantrekkelijkheid: 7/10 - Duidelijkheid: 6/10 - USP's: 5/10 - Call-to-action: 8/10",
+    "top_3_improvements": [
+        "Eerste concrete verbetering",
+        "Tweede concrete verbetering",
+        "Derde concrete verbetering"
+    ],
+    "improved_text": "De volledige verbeterde vacaturetekst hier (400-600 woorden, pakkende opening, duidelijke functie-inhoud, concrete arbeidsvoorwaarden, sterke employer branding, overtuigende call-to-action)",
+    "bonus_tips": [
+        "Eerste bonus tip voor de recruiter",
+        "Tweede bonus tip"
+    ]
+}}
+
+BELANGRIJK: Antwoord ALLEEN met valid JSON, geen tekst ervoor of erna."""
+
+    try:
+        logger.info("🤖 Starting Claude analysis...")
+        r = requests.post(
+            "https://api.anthropic.com/v1/messages",
+            headers={
+                "x-api-key": ANTHROPIC_API_KEY,
+                "anthropic-version": "2023-06-01",
+                "content-type": "application/json"
+            },
+            json={
+                "model": "claude-sonnet-4-20250514",
+                "max_tokens": 4000,
+                "messages": [{"role": "user", "content": prompt}]
+            },
+            timeout=60
+        )
+
+        if r.status_code == 200:
+            response_text = r.json()['content'][0]['text']
+            # Extract JSON from response
+            json_start = response_text.find('{')
+            json_end = response_text.rfind('}') + 1
+            if json_start >= 0 and json_end > json_start:
+                analysis = json.loads(response_text[json_start:json_end])
+                logger.info(f"✅ Claude analysis complete: score={analysis.get('overall_score')}")
+                return analysis
+            else:
+                logger.error(f"❌ No JSON found in Claude response")
+                return None
+        else:
+            logger.error(f"❌ Claude API error: {r.status_code} - {r.text[:200]}")
+            return None
+
+    except Exception as e:
+        logger.error(f"❌ Claude analysis failed: {e}")
         return None
 
 
-# ===============================================
-# MAIN ANALYSIS FUNCTION
-# ===============================================
-
-def analyze_vacature_technical(
-    vacature_text: str,
-    bedrijf_naam: str = "",
-    functie_titel: str = ""
-) -> Dict[str, Any]:
+def get_analysis_email_html(voornaam, bedrijf, analysis, original_text=""):
     """
-    Analyze a technical vacancy and provide sector-specific recommendations.
-
-    Args:
-        vacature_text: The full vacancy text
-        bedrijf_naam: Company name (optional)
-        functie_titel: Job title (optional)
-
-    Returns:
-        Dictionary with analysis results
+    Generate the ULTIMATE professional analysis report email HTML V4.1
+    OUTLOOK COMPATIBLE - No flex, no gradients, all table-based layout
+    Features: Score visualization, Before/After, Checklist, Improved text, Tips
     """
-    start_time = time.time()
+    score = analysis.get('overall_score', 'N/A')
+    score_section = analysis.get('score_section', '')
+    improvements = analysis.get('top_3_improvements', [])
+    improved_text = analysis.get('improved_text', '')
+    bonus_tips = analysis.get('bonus_tips', [])
 
-    # Step 1: Detect sector
-    sector, sector_confidence = detect_technical_sector(vacature_text)
-    benchmark = SECTOR_BENCHMARKS.get(sector)
+    # Generate HTML for improvements (numbered) - OUTLOOK COMPATIBLE
+    improvements_html = ''.join([
+        f'''<tr>
+        <td style="padding:12px 0;border-bottom:1px solid #FDE68A;">
+        <table cellpadding="0" cellspacing="0" width="100%"><tr>
+        <td width="40" valign="top"><table cellpadding="0" cellspacing="0"><tr><td style="width:32px;height:32px;background-color:#F59E0B;text-align:center;font-weight:bold;color:white;font-size:14px;font-family:Arial,sans-serif;mso-line-height-rule:exactly;line-height:32px;">{i+1}</td></tr></table></td>
+        <td style="padding-left:12px;color:#78350F;font-size:14px;line-height:22px;font-family:Arial,sans-serif;">{imp}</td>
+        </tr></table>
+        </td></tr>''' for i, imp in enumerate(improvements)
+    ])
 
-    logger.info(f"Detected sector: {sector.value} (confidence: {sector_confidence:.2f})")
+    # Generate HTML for bonus tips - OUTLOOK COMPATIBLE (table-based)
+    tips_html = ''.join([
+        f'''<tr><td style="padding:8px 0;">
+        <table cellpadding="0" cellspacing="0" width="100%" style="background-color:#ffffff;"><tr>
+        <td width="40" valign="top" style="padding:12px;font-size:18px;">💡</td>
+        <td style="padding:12px;color:#5B21B6;font-size:14px;line-height:22px;font-family:Arial,sans-serif;">{tip}</td>
+        </tr></table>
+        </td></tr>''' for tip in bonus_tips
+    ])
 
-    # Step 2: Build analysis prompt
-    sector_info = f"""
-## GEDETECTEERDE SECTOR: {benchmark.display_name if benchmark else 'Algemeen'}
-- Benchmark score range: {benchmark.avg_score_range if benchmark else 'N/A'}
-- Key focus: {benchmark.key_focus if benchmark else 'N/A'}
-- Sector confidence: {sector_confidence:.0%}
-"""
+    # Truncate original text for before/after display
+    original_display = original_text[:500] + '...' if len(original_text) > 500 else original_text
+    improved_preview = improved_text[:500] + '...' if len(improved_text) > 500 else improved_text
 
-    analysis_prompt = f"""{TECHNICAL_MASTER_PROMPT}
+    # Escape newlines for HTML display
+    original_display = original_display.replace('\n', '<br>')
+    improved_preview = improved_preview.replace('\n', '<br>')
+    improved_text_html = improved_text.replace('\n', '<br>')
 
-{sector_info}
-
-## TE ANALYSEREN VACATURE:
-**Bedrijf:** {bedrijf_naam or 'Niet gespecificeerd'}
-**Functie:** {functie_titel or 'Niet gespecificeerd'}
-
-**Vacaturetekst:**
-{vacature_text}
-
----
-
-Geef je complete analyse in het opgegeven JSON format. Wees specifiek en actionable.
-"""
-
-    # Step 3: Call Claude API
-    response_text = call_claude_api(analysis_prompt)
-
-    if not response_text:
-        logger.error("Failed to get Claude API response")
-        return {
-            'success': False,
-            'error': 'API call failed',
-            'sector': sector.value,
-            'sector_display': benchmark.display_name if benchmark else 'Algemeen'
-        }
-
-    # Step 4: Parse response
-    try:
-        # Try to extract JSON from response
-        json_match = re.search(r'\{[\s\S]*\}', response_text)
-        if json_match:
-            analysis_data = json.loads(json_match.group())
+    # Calculate score color and label based on score
+    if isinstance(score, (int, float)):
+        score_num = float(score)
+        if score_num >= 8.0:
+            score_color = "#10B981"
+            score_bg = "#ECFDF5"
+            score_border = "#10B981"
+            score_label = "Uitstekend"
+            score_emoji = "🏆"
+        elif score_num >= 6.5:
+            score_color = "#3B82F6"
+            score_bg = "#EFF6FF"
+            score_border = "#3B82F6"
+            score_label = "Goed"
+            score_emoji = "👍"
+        elif score_num >= 5.0:
+            score_color = "#F59E0B"
+            score_bg = "#FFFBEB"
+            score_border = "#F59E0B"
+            score_label = "Kan beter"
+            score_emoji = "📈"
         else:
-            analysis_data = {'raw_analysis': response_text}
-    except json.JSONDecodeError:
-        analysis_data = {'raw_analysis': response_text}
+            score_color = "#EF4444"
+            score_bg = "#FEF2F2"
+            score_border = "#EF4444"
+            score_label = "Verbetering nodig"
+            score_emoji = "⚠️"
+    else:
+        score_color = "#6B7280"
+        score_bg = "#F9FAFB"
+        score_border = "#6B7280"
+        score_label = "Beoordeeld"
+        score_emoji = "📊"
 
-    # Step 5: Extract score
-    score = analysis_data.get('vacature_score', 7.5)
-    if isinstance(score, str):
-        score_match = re.search(r'(\d+\.?\d*)', score)
-        score = float(score_match.group(1)) if score_match else 7.5
+    # Parse score_section into categories - OUTLOOK COMPATIBLE
+    categories_html = ""
+    if score_section:
+        import re
+        score_parts = re.findall(r'([A-Za-z-]+):\s*(\d+)/10', score_section)
+        if score_parts:
+            categories_html = '<table width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;"><tr>'
+            for name, cat_score in score_parts[:4]:
+                cat_score_int = int(cat_score)
+                if cat_score_int >= 7:
+                    cat_color = "#10B981"
+                    cat_icon = "✅"
+                elif cat_score_int >= 5:
+                    cat_color = "#F59E0B"
+                    cat_icon = "⚡"
+                else:
+                    cat_color = "#EF4444"
+                    cat_icon = "❗"
+                categories_html += f'''<td width="25%" align="center" style="padding:10px;">
+                <table cellpadding="0" cellspacing="0"><tr><td align="center" style="font-size:24px;padding-bottom:4px;">{cat_icon}</td></tr>
+                <tr><td align="center" style="font-size:24px;font-weight:bold;color:{cat_color};font-family:Arial,sans-serif;">{cat_score}</td></tr>
+                <tr><td align="center" style="font-size:11px;color:#6B7280;text-transform:uppercase;font-family:Arial,sans-serif;">{name}</td></tr></table>
+                </td>'''
+            categories_html += '</tr></table>'
 
-    # Ensure score is in valid range
-    score = max(0, min(10, float(score)))
+    return f'''<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<!--[if mso]>
+<xml>
+<o:OfficeDocumentSettings>
+<o:AllowPNG/>
+<o:PixelsPerInch>96</o:PixelsPerInch>
+</o:OfficeDocumentSettings>
+</xml>
+<![endif]-->
+<style type="text/css">
+body, table, td {{margin:0;padding:0;font-family:Arial,Helvetica,sans-serif;}}
+img {{border:0;height:auto;line-height:100%;outline:none;text-decoration:none;}}
+table {{border-collapse:collapse !important;}}
+</style>
+</head>
+<body style="margin:0;padding:0;background-color:#f3f4f6;width:100%;">
 
-    # Step 6: Build result
-    elapsed_time = time.time() - start_time
+<!-- OUTLOOK WRAPPER -->
+<!--[if mso]>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f3f4f6;">
+<tr><td align="center" style="padding:30px 0;">
+<![endif]-->
 
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f3f4f6;">
+<tr><td align="center" style="padding:30px 15px;">
+
+<table role="presentation" width="650" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;max-width:650px;">
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- HEADER -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<tr>
+<td style="background-color:#1E3A8A;padding:40px 35px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td width="60" valign="middle">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0">
+<tr><td style="width:56px;height:56px;background-color:#FF6B35;text-align:center;font-size:26px;font-weight:bold;color:#ffffff;font-family:Arial,sans-serif;line-height:56px;">R</td></tr>
+</table>
+</td>
+<td style="padding-left:16px;" valign="middle">
+<p style="margin:0;color:#ffffff;font-size:20px;font-weight:bold;font-family:Arial,sans-serif;">RECRUITIN</p>
+<p style="margin:4px 0 0 0;color:#E0E7FF;font-size:12px;font-family:Arial,sans-serif;">Vacature Intelligence Platform</p>
+</td>
+</tr>
+</table>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:30px;">
+<tr><td>
+<p style="margin:0 0 8px 0;color:#93C5FD;font-size:12px;font-weight:bold;text-transform:uppercase;letter-spacing:1px;font-family:Arial,sans-serif;">AI-POWERED ANALYSE</p>
+<p style="margin:0;color:#ffffff;font-size:28px;font-weight:bold;font-family:Arial,sans-serif;">📊 Vacature Analyse Rapport</p>
+<p style="margin:10px 0 0 0;color:#E0E7FF;font-size:15px;font-family:Arial,sans-serif;">Gepersonaliseerd voor <strong style="color:#ffffff;">{bedrijf}</strong></p>
+</td></tr>
+</table>
+</td>
+</tr>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- SCORE SECTION -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<tr>
+<td style="padding:45px 35px;background-color:#f8fafc;" align="center">
+<!-- Score Box -->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
+<tr><td align="center" style="width:140px;height:140px;border:8px solid {score_color};background-color:#ffffff;">
+<p style="margin:0;font-size:52px;font-weight:bold;color:{score_color};font-family:Arial,sans-serif;line-height:1;">{score}</p>
+<p style="margin:5px 0 0 0;font-size:16px;color:#9CA3AF;font-family:Arial,sans-serif;">/10</p>
+</td></tr>
+</table>
+<!-- Score Label -->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:15px;">
+<tr><td style="background-color:{score_bg};border:2px solid {score_border};padding:10px 24px;">
+<p style="margin:0;font-size:14px;font-weight:bold;color:{score_color};font-family:Arial,sans-serif;">{score_emoji} {score_label}</p>
+</td></tr>
+</table>
+<!-- Score Breakdown -->
+<p style="margin:0;color:#6B7280;font-size:13px;font-family:Arial,sans-serif;line-height:1.6;max-width:450px;">{score_section}</p>
+{categories_html}
+</td>
+</tr>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- INTRO -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<tr>
+<td style="padding:0 35px 30px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td width="4" style="background-color:#FF6B35;"></td>
+<td style="padding-left:20px;">
+<p style="margin:0 0 12px 0;font-size:20px;font-weight:bold;color:#1F2937;font-family:Arial,sans-serif;">Hoi {voornaam}! 👋</p>
+<p style="margin:0;color:#4B5563;font-size:15px;line-height:24px;font-family:Arial,sans-serif;">Bedankt voor het uploaden van je vacature via <strong style="color:#FF6B35;">kandidatentekort.nl</strong>. Onze AI heeft je tekst grondig geanalyseerd. Hieronder vind je de complete resultaten met concrete verbeteringen.</p>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- TOP 3 VERBETERPUNTEN -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<tr>
+<td style="padding:0 35px 30px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#FFFBEB;border:2px solid #F59E0B;">
+<tr><td style="padding:25px;">
+<!-- Header -->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
+<tr>
+<td width="48" valign="middle"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="width:44px;height:44px;background-color:#F59E0B;text-align:center;font-size:20px;line-height:44px;">🎯</td></tr></table></td>
+<td style="padding-left:14px;" valign="middle">
+<p style="margin:0 0 2px 0;font-size:11px;font-weight:bold;color:#B45309;text-transform:uppercase;font-family:Arial,sans-serif;">Prioriteit</p>
+<p style="margin:0;font-size:18px;font-weight:bold;color:#92400E;font-family:Arial,sans-serif;">Top 3 Verbeterpunten</p>
+</td>
+</tr>
+</table>
+<!-- List -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">{improvements_html}</table>
+</td></tr>
+</table>
+</td>
+</tr>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- BEFORE / AFTER -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<tr>
+<td style="padding:0 35px 30px;">
+<p style="margin:0 0 20px 0;text-align:center;font-size:20px;font-weight:bold;color:#1F2937;font-family:Arial,sans-serif;">📝 Voor & Na Optimalisatie</p>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr>
+<!-- BEFORE -->
+<td width="48%" valign="top" style="background-color:#FEF2F2;border:2px solid #FECACA;padding:18px;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;">
+<tr><td style="background-color:#EF4444;padding:5px 12px;"><p style="margin:0;font-size:11px;font-weight:bold;color:#ffffff;text-transform:uppercase;font-family:Arial,sans-serif;">❌ Origineel</p></td></tr>
+</table>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;border:1px solid #FECACA;">
+<tr><td style="padding:14px;font-size:12px;color:#6B7280;line-height:20px;font-family:Arial,sans-serif;">{original_display}</td></tr>
+</table>
+</td>
+<td width="4%"></td>
+<!-- AFTER -->
+<td width="48%" valign="top" style="background-color:#ECFDF5;border:2px solid #A7F3D0;padding:18px;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:12px;">
+<tr><td style="background-color:#10B981;padding:5px 12px;"><p style="margin:0;font-size:11px;font-weight:bold;color:#ffffff;text-transform:uppercase;font-family:Arial,sans-serif;">✅ Geoptimaliseerd</p></td></tr>
+</table>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;border:1px solid #A7F3D0;">
+<tr><td style="padding:14px;font-size:12px;color:#374151;line-height:20px;font-family:Arial,sans-serif;">{improved_preview}</td></tr>
+</table>
+</td>
+</tr>
+</table>
+</td>
+</tr>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- FULL IMPROVED TEXT -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<tr>
+<td style="padding:0 35px 30px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#ECFDF5;border:2px solid #10B981;">
+<tr><td style="padding:25px;">
+<!-- Header -->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
+<tr>
+<td width="48" valign="middle"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="width:44px;height:44px;background-color:#10B981;text-align:center;font-size:20px;line-height:44px;">✍️</td></tr></table></td>
+<td style="padding-left:14px;" valign="middle">
+<p style="margin:0 0 2px 0;font-size:11px;font-weight:bold;color:#047857;text-transform:uppercase;font-family:Arial,sans-serif;">Direct te gebruiken</p>
+<p style="margin:0;font-size:18px;font-weight:bold;color:#065F46;font-family:Arial,sans-serif;">Verbeterde Vacaturetekst</p>
+</td>
+</tr>
+</table>
+<!-- Text -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#ffffff;border:1px solid #A7F3D0;">
+<tr><td style="padding:20px;font-size:14px;color:#374151;line-height:24px;font-family:Arial,sans-serif;">{improved_text_html}</td></tr>
+</table>
+<p style="margin:18px 0 0 0;text-align:center;font-size:13px;color:#059669;font-family:Arial,sans-serif;">💾 Kopieer deze tekst en plaats direct in je vacature</p>
+</td></tr>
+</table>
+</td>
+</tr>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- BONUS TIPS -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<tr>
+<td style="padding:0 35px 30px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#F5F3FF;border:2px solid #8B5CF6;">
+<tr><td style="padding:25px;">
+<!-- Header -->
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
+<tr>
+<td width="48" valign="middle"><table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr><td style="width:44px;height:44px;background-color:#8B5CF6;text-align:center;font-size:20px;line-height:44px;">🚀</td></tr></table></td>
+<td style="padding-left:14px;" valign="middle">
+<p style="margin:0 0 2px 0;font-size:11px;font-weight:bold;color:#6D28D9;text-transform:uppercase;font-family:Arial,sans-serif;">Extra waarde</p>
+<p style="margin:0;font-size:18px;font-weight:bold;color:#5B21B6;font-family:Arial,sans-serif;">Bonus Tips van de Expert</p>
+</td>
+</tr>
+</table>
+<!-- Tips -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">{tips_html}</table>
+</td></tr>
+</table>
+</td>
+</tr>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- CTA SECTION -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<tr>
+<td style="padding:0 35px 35px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background-color:#1E3A8A;">
+<tr><td style="padding:35px;text-align:center;">
+<p style="margin:0 0 10px 0;font-size:22px;font-weight:bold;color:#ffffff;font-family:Arial,sans-serif;">Wil je nog meer resultaat?</p>
+<p style="margin:0 0 25px 0;font-size:15px;color:#E0E7FF;line-height:22px;font-family:Arial,sans-serif;">Plan een gratis adviesgesprek van 30 minuten.<br>Bespreek je vacature met een recruitment specialist.</p>
+<table role="presentation" cellpadding="0" cellspacing="0" border="0" align="center">
+<tr>
+<td style="padding:0 6px;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0">
+<tr><td style="background-color:#10B981;padding:14px 24px;">
+<a href="https://calendly.com/wouter-arts-/vacature-analyse-advies" style="color:#ffffff;font-size:14px;font-weight:bold;text-decoration:none;font-family:Arial,sans-serif;">📅 Plan Adviesgesprek</a>
+</td></tr>
+</table>
+</td>
+<td style="padding:0 6px;">
+<table role="presentation" cellpadding="0" cellspacing="0" border="0">
+<tr><td style="background-color:#25D366;padding:14px 24px;">
+<a href="https://wa.me/31614314593?text=Hoi%20Wouter,%20ik%20heb%20mijn%20vacature-analyse%20ontvangen!" style="color:#ffffff;font-size:14px;font-weight:bold;text-decoration:none;font-family:Arial,sans-serif;">💬 WhatsApp</a>
+</td></tr>
+</table>
+</td>
+</tr>
+</table>
+</td></tr>
+</table>
+</td>
+</tr>
+
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<!-- FOOTER -->
+<!-- ════════════════════════════════════════════════════════════════════════ -->
+<tr>
+<td style="background-color:#111827;padding:30px 35px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0">
+<tr>
+<td valign="top">
+<p style="margin:0 0 4px 0;font-size:17px;font-weight:bold;color:#ffffff;font-family:Arial,sans-serif;">Wouter Arts</p>
+<p style="margin:0 0 2px 0;font-size:13px;color:#9CA3AF;font-family:Arial,sans-serif;">Founder & Recruitment Specialist</p>
+<p style="margin:0;font-size:14px;font-weight:bold;color:#FF6B35;font-family:Arial,sans-serif;">Kandidatentekort.nl</p>
+</td>
+<td valign="top" align="right">
+<p style="margin:0;font-size:12px;color:#9CA3AF;line-height:22px;font-family:Arial,sans-serif;">
+📞 06-14314593<br>
+📧 warts@recruitin.nl<br>
+🌐 kandidatentekort.nl
+</p>
+</td>
+</tr>
+</table>
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-top:20px;border-top:1px solid #374151;">
+<tr><td style="padding-top:20px;text-align:center;">
+<p style="margin:0;color:#6B7280;font-size:11px;font-family:Arial,sans-serif;">© 2025 Kandidatentekort.nl | Recruitin B.V. | Made with ❤️ in Nederland</p>
+</td></tr>
+</table>
+</td>
+</tr>
+
+</table>
+</td></tr>
+</table>
+
+<!--[if mso]>
+</td></tr>
+</table>
+<![endif]-->
+
+</body>
+</html>'''
+
+
+def send_analysis_email(to_email, voornaam, bedrijf, analysis, original_text=""):
+    """Send the vacancy analysis report email"""
+    return send_email(
+        to_email,
+        f"🎯 Jouw Vacature-Analyse voor {bedrijf} is Klaar!",
+        get_analysis_email_html(voornaam, bedrijf, analysis, original_text)
+    )
+
+
+def parse_typeform_data(webhook_data):
+    """
+    Parse Typeform webhook - handles ALL field types robustly
+    """
     result = {
-        'success': True,
-        'analysis': analysis_data,
-        'score': score,
-        'sector': sector.value,
-        'sector_display': benchmark.display_name if benchmark else 'Algemeen',
-        'sector_confidence': sector_confidence,
-        'benchmark_range': benchmark.avg_score_range if benchmark else None,
-        'processing_time': round(elapsed_time, 2),
-        'timestamp': datetime.now().isoformat()
+        'email': '',
+        'voornaam': 'daar',
+        'contact': 'Onbekend',
+        'telefoon': '',
+        'bedrijf': 'Onbekend',
+        'vacature': '',
+        'functie': 'vacature',
+        'sector': '',
+        'file_url': ''
     }
 
-    logger.info(f"Success! Score: {score}/10 | Sector: {sector.value} | Time: {elapsed_time:.2f}s")
+    try:
+        form_response = webhook_data.get('form_response', {})
+        answers = form_response.get('answers', [])
+
+        logger.info(f"📋 Parsing {len(answers)} answers")
+
+        # Collect all values by type
+        texts = []  # All short_text values
+
+        for i, answer in enumerate(answers):
+            if not isinstance(answer, dict):
+                continue
+
+            field = answer.get('field', {})
+            if not isinstance(field, dict):
+                continue
+
+            field_type = field.get('type', '')
+            field_id = field.get('id', '')
+
+            logger.info(f"📋 Answer {i}: type={field_type}, id={field_id}")
+
+            # Extract value based on field type
+            if field_type == 'email':
+                result['email'] = answer.get('email', '')
+                logger.info(f"✅ Found email: {result['email']}")
+
+            elif field_type == 'phone_number':
+                result['telefoon'] = answer.get('phone_number', '')
+                logger.info(f"✅ Found phone: {result['telefoon']}")
+
+            elif field_type == 'short_text':
+                text = answer.get('text', '')
+                texts.append(text)
+                logger.info(f"📝 Found text: {text[:50]}...")
+
+            elif field_type == 'long_text':
+                text = answer.get('text', '')
+                result['vacature'] = text
+                result['functie'] = text.split('\n')[0][:50] if text else 'vacature'
+                logger.info(f"📝 Found long text (vacature)")
+
+            elif field_type == 'multiple_choice':
+                choice = answer.get('choice', {})
+                if isinstance(choice, dict):
+                    label = choice.get('label', '')
+                    if not result['sector']:
+                        result['sector'] = label
+                    logger.info(f"📝 Found choice: {label}")
+
+            elif field_type == 'file_upload':
+                result['file_url'] = answer.get('file_url', '')
+                logger.info(f"📎 Found file: {result['file_url'][:50]}...")
+
+            elif field_type == 'contact_info':
+                contact_info = answer.get('contact_info', {})
+                if isinstance(contact_info, dict):
+                    if contact_info.get('email'):
+                        result['email'] = contact_info['email']
+                    if contact_info.get('first_name'):
+                        result['voornaam'] = contact_info['first_name']
+                        result['contact'] = f"{contact_info.get('first_name', '')} {contact_info.get('last_name', '')}".strip()
+                    if contact_info.get('phone_number'):
+                        result['telefoon'] = contact_info['phone_number']
+                    if contact_info.get('company'):
+                        result['bedrijf'] = contact_info['company']
+                    logger.info(f"✅ Found contact_info block")
+
+        # Process collected texts (voornaam, achternaam, bedrijf order)
+        if texts:
+            if len(texts) >= 1 and (not result['voornaam'] or result['voornaam'] == 'daar'):
+                result['voornaam'] = texts[0]
+                result['contact'] = texts[0]
+            if len(texts) >= 2:
+                result['contact'] = f"{texts[0]} {texts[1]}".strip()
+            if len(texts) >= 3 and (not result['bedrijf'] or result['bedrijf'] == 'Onbekend'):
+                result['bedrijf'] = texts[2]  # 3rd text field is company
+
+        logger.info(f"📋 Final: email={result['email']}, contact={result['contact']}, bedrijf={result['bedrijf']}")
+
+    except Exception as e:
+        logger.error(f"❌ Parse error: {e}", exc_info=True)
 
     return result
 
 
-# ===============================================
-# EMAIL FUNCTIONS
-# ===============================================
-
-def generate_email_subject(result: Dict[str, Any]) -> str:
-    """Generate a compelling email subject based on analysis results."""
-    sector_display = result.get('sector_display', 'Technische')
-    score = result.get('score', 7.5)
-
-    # Calculate potential improvement percentage
-    improvement_pct = int((10 - score) * 20)
-
-    subjects = {
-        'oil_gas': f"Je Oil & Gas vacature: {improvement_pct}% meer gekwalificeerde sollicitaties mogelijk",
-        'manufacturing': f"Je Manufacturing vacature: {improvement_pct}% meer sollicitaties mogelijk",
-        'automation': f"Je Automation vacature: {improvement_pct}% meer technische kandidaten mogelijk",
-        'renewable': f"Je Renewable Energy vacature: {improvement_pct}% meer impact-gedreven sollicitaties",
-        'construction': f"Je Construction vacature: {improvement_pct}% meer projectprofessionals mogelijk",
-        'general': f"Je technische vacature: {improvement_pct}% meer sollicitaties mogelijk"
-    }
-
-    sector = result.get('sector', 'general')
-    return subjects.get(sector, subjects['general'])
-
-
-def generate_email_body(result: Dict[str, Any], bedrijf_naam: str = "") -> str:
-    """Generate the email body with analysis results."""
-    score = result.get('score', 7.5)
-    sector_display = result.get('sector_display', 'Technische')
-    analysis = result.get('analysis', {})
-
-    # Extract critical blockers
-    blockers = analysis.get('critical_blockers', [])
-    blockers_text = ""
-    for i, blocker in enumerate(blockers[:3], 1):
-        if isinstance(blocker, dict):
-            blockers_text += f"\n{i}. {blocker.get('issue', 'N/A')} - kost {blocker.get('impact_percentage', '?')}% sollicitaties"
-            blockers_text += f"\n   Fix: {blocker.get('fix', 'N/A')}"
-
-    # Extract quick wins
-    quick_wins = analysis.get('week1_quick_wins', [])
-    quick_wins_text = ""
-    for win in quick_wins[:2]:
-        if isinstance(win, dict):
-            quick_wins_text += f"\n- {win.get('action', 'N/A')} (+{win.get('expected_improvement', '?')}% verwacht)"
-
-    # ROI impact
-    roi = analysis.get('roi_impact', {})
-    roi_text = ""
-    if roi:
-        roi_text = f"""
-VERWACHTE ROI:
-- +{roi.get('expected_application_increase', '?')}% meer sollicitaties
-- -{roi.get('expected_time_to_hire_reduction_days', '?')} dagen snellere time-to-hire
-"""
-
-    email_body = f"""
-Beste {bedrijf_naam or 'Hiring Manager'},
-
-Bedankt voor het indienen van je {sector_display} vacature bij Kandidatentekort.nl!
-
-VACATURE SCORE: {score}/10
-
-Op basis van onze analyse van 50.000+ technische vacatures in Nederland hebben we de volgende verbeterpunten geidentificeerd:
-
-TOP 3 KRITIEKE BLOCKERS:
-{blockers_text or 'Geen kritieke blockers gevonden'}
-
-WEEK 1 QUICK WINS:
-{quick_wins_text or 'Zie volledige analyse'}
-
-{roi_text}
-
-SECTOR-SPECIFIEK ADVIES ({sector_display}):
-{analysis.get('sector_specific_advice', 'Neem contact op voor gepersonaliseerd advies.')}
-
----
-
-Wil je dat wij je vacaturetekst herschrijven voor maximale conversie?
-Reply op deze email of bel direct: 020-XXX XXXX
-
-Met vriendelijke groet,
-Het Kandidatentekort Team
-
-P.S. Vacatures met een score boven 8.0 krijgen gemiddeld 156% meer sollicitaties!
-"""
-
-    return email_body
-
-
-def send_analysis_email(
-    to_email: str,
-    result: Dict[str, Any],
-    bedrijf_naam: str = ""
-) -> bool:
-    """
-    Send analysis results via email.
-
-    Returns:
-        True if email was sent successfully
-    """
+def create_pipedrive_organization(name):
+    """Create organization in Pipedrive"""
+    if not PIPEDRIVE_API_TOKEN or not name or name == 'Onbekend':
+        return None
     try:
-        import smtplib
-        from email.mime.text import MIMEText
-        from email.mime.multipart import MIMEMultipart
-    except ImportError:
-        logger.error("Email libraries not available")
-        return False
-
-    if not all([SMTP_HOST, SMTP_USER, SMTP_PASSWORD]):
-        logger.warning("SMTP not configured, skipping email")
-        return False
-
-    try:
-        subject = generate_email_subject(result)
-        body = generate_email_body(result, bedrijf_naam)
-
-        msg = MIMEMultipart()
-        msg['From'] = SMTP_USER
-        msg['To'] = to_email
-        msg['Subject'] = subject
-
-        msg.attach(MIMEText(body, 'plain'))
-
-        with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
-            server.starttls()
-            server.login(SMTP_USER, SMTP_PASSWORD)
-            server.send_message(msg)
-
-        logger.info(f"Email sent to {to_email}")
-        return True
-
+        r = requests.post(
+            f"{PIPEDRIVE_BASE}/organizations",
+            params={"api_token": PIPEDRIVE_API_TOKEN},
+            json={"name": name},
+            timeout=30
+        )
+        if r.status_code == 201:
+            org_id = r.json().get('data', {}).get('id')
+            logger.info(f"✅ Created organization: {name} (ID: {org_id})")
+            return org_id
+        else:
+            logger.warning(f"Org creation failed: {r.status_code} - {r.text[:200]}")
     except Exception as e:
-        logger.error(f"Failed to send email: {str(e)}")
-        return False
+        logger.error(f"Pipedrive org error: {e}")
+    return None
 
 
-# ===============================================
-# ENHANCED EMAIL FUNCTIONS v2.0
-# ===============================================
-
-def get_sector_specific_email_subject(score: float, sector: str, improvement_percentage: int) -> str:
-    """
-    Generate sector-specific email subjects voor betere open rates.
-    Variatie op basis van score niveau.
-    """
-    sector_names = {
-        'oil_gas': 'Oil & Gas',
-        'manufacturing': 'Manufacturing',
-        'automation': 'Automation',
-        'renewable': 'Renewable Energy',
-        'construction': 'Construction'
-    }
-
-    sector_name = sector_names.get(sector, 'Technische')
-
-    if score >= 7.0:
-        return f"Je {sector_name} vacature scoort {score}/10 - Professioneel niveau!"
-    elif score >= 5.0:
-        return f"Je {sector_name} vacature: {improvement_percentage}% meer sollicitaties mogelijk"
-    else:
-        return f"Je {sector_name} vacature scoort {score}/10 - Directe verbetering nodig"
-
-
-def enhance_email_content(analysis_result: Dict[str, Any]) -> str:
-    """Add sector-specific insights to email content."""
-    sector = analysis_result.get('sector', 'manufacturing')
-    score = analysis_result.get('score', 0.0)
-
-    sector_insights = {
-        'oil_gas': "Oil & Gas professionals verwachten transparante salarisinformatie en duidelijke safety focus in vacatureteksten.",
-        'manufacturing': "Manufacturing engineers zoeken naar proces optimalisatie kansen en kwaliteitssysteem ownership.",
-        'automation': "Automation specialisten willen concrete technologie stacks en innovatie projecten zien.",
-        'renewable': "Renewable Energy professionals zijn gemotiveerd door sustainability impact en groei sector kansen.",
-        'construction': "Construction engineers zoeken project variëteit en tangible results in grote infrastructuur projecten."
-    }
-
-    insight = sector_insights.get(sector, "Technische professionals waarderen specifieke, concrete vacature informatie.")
-
-    return f"""
-Sector Insight: {insight}
-
-Recruitin B.V. specialiseert in technische recruitment voor de {sector.replace('_', ' & ')} sector
-in Gelderland, Overijssel en Noord-Brabant.
-
-Interesse in een gesprek over optimalisatie?
-Direct contact: wouter@recruitin.nl
-    """
-
-
-# ===============================================
-# TYPEFORM INTEGRATION
-# ===============================================
-
-def process_technical_vacature(typeform_data: Dict[str, Any]) -> bool:
-    """
-    Main function voor Typeform webhook integratie.
-    Enhanced voor technische sectoren.
-
-    Args:
-        typeform_data: Dictionary met Typeform submission data
-
-    Returns:
-        True als succesvol verwerkt
-    """
+def create_pipedrive_person(contact, email, telefoon, org_id=None):
+    if not PIPEDRIVE_API_TOKEN:
+        return None
     try:
-        # Extract data from Typeform
-        vacature_text = typeform_data.get('vacature_tekst', '')
-        bedrijf_naam = typeform_data.get('bedrijf_naam', '')
-        functie_titel = typeform_data.get('functie_titel', '')
-        email = typeform_data.get('email', '')
-        naam = typeform_data.get('naam', '')
+        data = {
+            "name": contact,
+            "email": [{"value": email, "primary": True}],
+            "phone": [{"value": telefoon, "primary": True}] if telefoon else []
+        }
+        if org_id:
+            data["org_id"] = org_id
 
-        logger.info(f"Processing {functie_titel} at {bedrijf_naam}")
+        r = requests.post(
+            f"{PIPEDRIVE_BASE}/persons",
+            params={"api_token": PIPEDRIVE_API_TOKEN},
+            json=data,
+            timeout=30
+        )
+        if r.status_code == 201:
+            person_id = r.json().get('data', {}).get('id')
+            logger.info(f"✅ Created person: {contact} (ID: {person_id})")
+            return person_id
+        else:
+            logger.warning(f"Person creation failed: {r.status_code} - {r.text[:200]}")
+    except Exception as e:
+        logger.error(f"Pipedrive person error: {e}")
+    return None
 
-        # Step 1: Technical Analysis met nieuwe prompt
-        analysis_result = analyze_vacature_technical(
-            vacature_text=vacature_text,
-            bedrijf_naam=bedrijf_naam,
-            functie_titel=functie_titel
+
+def create_pipedrive_deal(title, person_id, org_id=None, vacature="", file_url="", analysis=""):
+    if not PIPEDRIVE_API_TOKEN:
+        return None
+    try:
+        deal_data = {
+            "title": title,
+            "person_id": person_id,
+            "pipeline_id": PIPELINE_ID,
+            "stage_id": STAGE_ID
+        }
+        if org_id:
+            deal_data["org_id"] = org_id
+
+        r = requests.post(
+            f"{PIPEDRIVE_BASE}/deals",
+            params={"api_token": PIPEDRIVE_API_TOKEN},
+            json=deal_data,
+            timeout=30
+        )
+        if r.status_code == 201:
+            deal_id = r.json().get('data', {}).get('id')
+            logger.info(f"✅ Created deal: {title} (ID: {deal_id})")
+
+            # Build note content
+            note_parts = []
+            if vacature:
+                note_parts.append(f"📋 VACATURE:\n{vacature[:2000]}")
+            if file_url:
+                note_parts.append(f"📎 BESTAND:\n{file_url}")
+            if analysis:
+                note_parts.append(f"🤖 ANALYSE:\n{analysis}")
+
+            if note_parts:
+                requests.post(
+                    f"{PIPEDRIVE_BASE}/notes",
+                    params={"api_token": PIPEDRIVE_API_TOKEN},
+                    json={
+                        "deal_id": deal_id,
+                        "content": "\n\n".join(note_parts)
+                    },
+                    timeout=30
+                )
+            return deal_id
+        else:
+            logger.warning(f"Deal creation failed: {r.status_code} - {r.text[:200]}")
+    except Exception as e:
+        logger.error(f"Pipedrive deal error: {e}")
+    return None
+
+
+@app.route("/", methods=["GET"])
+def home():
+    return jsonify({
+        "status": "healthy",
+        "version": "5.0",
+        "features": ["typeform", "analysis", "nurture"],
+        "email": bool(GMAIL_APP_PASSWORD),
+        "pipedrive": bool(PIPEDRIVE_API_TOKEN),
+        "claude": bool(ANTHROPIC_API_KEY),
+        "typeform": bool(TYPEFORM_API_TOKEN)
+    }), 200
+
+
+@app.route("/webhook/typeform", methods=["POST"])
+def typeform_webhook():
+    logger.info("🎯 WEBHOOK RECEIVED")
+
+    try:
+        data = request.get_json(force=True, silent=True) or {}
+        logger.info(f"📥 Keys: {list(data.keys())}")
+
+        # Parse the data
+        p = parse_typeform_data(data)
+
+        # Validate email
+        if not p['email'] or '@' not in p['email']:
+            logger.error(f"❌ No email found in: {p}")
+            return jsonify({"error": "No email", "parsed": p}), 400
+
+        # Send confirmation email immediately
+        confirmation_sent = send_confirmation_email(
+            p['email'],
+            p['voornaam'],
+            p['bedrijf'],
+            p['functie']
         )
 
-        if not analysis_result.get('success'):
-            logger.error(f"Analysis failed: {analysis_result.get('error')}")
+        # Get vacancy text - prefer file upload over text field
+        vacancy_text = p['vacature']
+
+        # Try to extract text from uploaded file (PDF, DOCX, DOC)
+        if p['file_url']:
+            logger.info(f"📎 File uploaded, attempting extraction...")
+            extracted_text = extract_text_from_file(p['file_url'])
+            if extracted_text and len(extracted_text) > 50:
+                logger.info(f"✅ Using extracted file text ({len(extracted_text)} chars)")
+                vacancy_text = extracted_text
+            else:
+                logger.info(f"⚠️ File extraction failed or empty, using text field")
+
+        # Run Claude analysis if we have vacancy text
+        analysis = None
+        analysis_sent = False
+        if vacancy_text and len(vacancy_text) > 50:
+            analysis = analyze_vacancy_with_claude(vacancy_text, p['bedrijf'], p['sector'])
+            if analysis:
+                analysis_sent = send_analysis_email(p['email'], p['voornaam'], p['bedrijf'], analysis, vacancy_text)
+
+        # Build analysis summary for Pipedrive notes
+        analysis_summary = ""
+        if analysis:
+            analysis_summary = f"""SCORE: {analysis.get('overall_score', 'N/A')}/10
+{analysis.get('score_section', '')}
+
+TOP 3 VERBETERPUNTEN:
+{chr(10).join(['- ' + imp for imp in analysis.get('top_3_improvements', [])])}
+
+VERBETERDE TEKST:
+{analysis.get('improved_text', '')[:1500]}"""
+
+        # Create Pipedrive records (organization first, then person, then deal)
+        org_id = create_pipedrive_organization(p['bedrijf'])
+        person_id = create_pipedrive_person(p['contact'], p['email'], p['telefoon'], org_id)
+        deal_id = create_pipedrive_deal(
+            f"Vacature Analyse - {p['functie']} - {p['bedrijf']}",
+            person_id,
+            org_id,
+            vacancy_text,  # Use extracted text if available
+            p['file_url'],
+            analysis_summary
+        )
+
+        logger.info(f"✅ Done: confirmation={confirmation_sent}, analysis={analysis_sent}, org={org_id}, person={person_id}, deal={deal_id}")
+
+        return jsonify({
+            "success": True,
+            "confirmation_sent": confirmation_sent,
+            "analysis_sent": analysis_sent,
+            "org_id": org_id,
+            "person_id": person_id,
+            "deal_id": deal_id
+        }), 200
+
+    except Exception as e:
+        logger.error(f"❌ Error: {e}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/test-email", methods=["GET"])
+def test_email():
+    to = request.args.get('to', 'artsrecruitin@gmail.com')
+    ok = send_confirmation_email(to, "Test", "Test Bedrijf", "Test Vacature")
+    return jsonify({"success": ok, "to": to}), 200 if ok else 500
+
+
+@app.route("/debug", methods=["POST"])
+def debug_webhook():
+    """Debug endpoint - returns what was received"""
+    data = request.get_json(force=True, silent=True) or {}
+    parsed = parse_typeform_data(data)
+    return jsonify({
+        "received_keys": list(data.keys()),
+        "parsed": parsed,
+        "raw_answers": data.get('form_response', {}).get('answers', [])
+    }), 200
+
+
+# =============================================================================
+# TRUST-FIRST EMAIL NURTURE SYSTEM V5.0
+# =============================================================================
+
+def get_nurture_email_html(email_num, voornaam, functie_titel):
+    """Generate HTML content for nurture emails"""
+
+    templates = {
+        1: f"""<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #333333;">
+<p>Hoi {voornaam},</p>
+<p>Gisteren stuurde ik je de geoptimaliseerde versie van je vacature voor <strong>{functie_titel}</strong>.</p>
+<p>Even een snelle check: is alles goed aangekomen?</p>
+<p>Als je vragen hebt over de analyse of tips - reply gerust op deze mail. Ik help je graag verder.</p>
+<p>Groeten,<br><strong>Wouter</strong><br><span style="color: #666666;">kandidatentekort.nl</span></p>
+<p style="color: #999999; font-size: 12px; margin-top: 30px; padding-top: 15px; border-top: 1px solid #eeeeee;">
+PS: Geen verkooppraatje vandaag - gewoon even checken of alles werkt.</p>
+</div>""",
+
+        2: f"""<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #333333;">
+<p>Hoi {voornaam},</p>
+<p>Even nieuwsgierig: is het gelukt om de verbeterde vacaturetekst te plaatsen?</p>
+<p>Ik hoor het graag als je ergens tegenaan loopt, bijvoorbeeld:</p>
+<ul style="margin: 15px 0; padding-left: 20px;">
+<li>Intern akkoord nodig voor de nieuwe tekst?</li>
+<li>Technische problemen met het platform?</li>
+<li>Twijfels over bepaalde aanpassingen?</li>
+</ul>
+<p>Geen probleem - reply gewoon en ik denk met je mee.</p>
+<p>Groeten,<br><strong>Wouter</strong></p>
+<p style="color: #999999; font-size: 12px; margin-top: 30px; padding-top: 15px; border-top: 1px solid #eeeeee;">
+Tip: De meeste recruiters zien binnen 48 uur na plaatsing al verschil in response.</p>
+</div>""",
+
+        3: f"""<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #333333;">
+<p>Hoi {voornaam},</p>
+<p>Het is nu een paar dagen geleden sinds je de verbeterde vacature voor <strong>{functie_titel}</strong> hebt ontvangen.</p>
+<p>Ik ben oprecht benieuwd: merk je al verschil in de reacties?</p>
+<div style="background-color: #f8f9fa; border-left: 4px solid #EF7D00; padding: 15px 20px; margin: 20px 0;">
+<p style="margin: 0 0 10px 0;"><strong>Mag ik je iets vragen?</strong></p>
+<p style="margin: 0;">Als je 2 minuten hebt, zou je me kunnen vertellen:</p>
+<ol style="margin: 10px 0; padding-left: 20px;">
+<li>Heb je de nieuwe tekst al live gezet?</li>
+<li>Zo ja, zie je verschil in aantal/kwaliteit reacties?</li>
+<li>Wat vond je het meest nuttig aan de analyse?</li>
+</ol>
+<p style="margin: 0; font-size: 13px; color: #666;">Jouw feedback helpt me om de service te verbeteren.</p>
+</div>
+<p>Reply gewoon op deze mail - ik lees alles persoonlijk.</p>
+<p>Alvast bedankt,<br><strong>Wouter</strong></p>
+</div>""",
+
+        4: f"""<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #333333;">
+<p>Hoi {voornaam},</p>
+<p>Deze week deel ik een tip die veel recruiters over het hoofd zien:</p>
+<div style="background-color: #FEF3C7; border-left: 4px solid #F59E0B; padding: 15px 20px; margin: 20px 0;">
+<p style="margin: 0 0 10px 0; font-size: 16px;"><strong>De functietitel bepaalt 70% van je zichtbaarheid</strong></p>
+<p style="margin: 0 0 15px 0;">Kandidaten zoeken op specifieke termen. Een creatieve titel als "Teamspeler Extraordinaire" klinkt leuk, maar niemand zoekt daarop.</p>
+<p style="margin: 0 0 10px 0;"><strong>Wat werkt:</strong></p>
+<ul style="margin: 0 0 15px 0; padding-left: 20px;">
+<li>Gebruik de exacte term die kandidaten googlen</li>
+<li>Voeg niveau toe (Junior/Medior/Senior)</li>
+<li>Houd het onder 60 karakters</li>
+</ul>
+<p style="margin: 0;"><strong>Voorbeeld:</strong><br>"Commerciele Binnendienst Medewerker" krijgt 3x meer views dan "Sales Ninja"</p>
+</div>
+<p>Heb je al gedacht aan het A/B testen van je functietitels?</p>
+<p>Succes deze week,<br><strong>Wouter</strong></p>
+</div>""",
+
+        5: f"""<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #333333;">
+<p>Hoi {voornaam},</p>
+<p>"Salaris: marktconform" - de meest waardeloze zin in recruitment.</p>
+<p>Hier is wat de data zegt:</p>
+<div style="background-color: #D1FAE5; border-left: 4px solid #10B981; padding: 15px 20px; margin: 20px 0;">
+<p style="margin: 0 0 10px 0;"><strong>Vacatures met salarisindicatie krijgen:</strong></p>
+<ul style="margin: 0 0 10px 0; padding-left: 20px; list-style: none;">
+<li>✅ +35% meer sollicitaties</li>
+<li>✅ +27% hogere kwaliteit kandidaten</li>
+<li>✅ +40% snellere time-to-hire</li>
+</ul>
+<p style="margin: 0; font-size: 12px; color: #666; font-style: italic;">Bron: Indeed Hiring Lab 2024</p>
+</div>
+<p><strong>Maar wat als je het niet mag vermelden?</strong></p>
+<p>Alternatieven die ook werken:</p>
+<ul style="margin: 15px 0; padding-left: 20px;">
+<li>"Salarisindicatie: vanaf EUR 3.500 bruto/maand"</li>
+<li>"Indicatie: schaal 8-10 CAO [naam]"</li>
+<li>"Budget: EUR 45.000 - 55.000 op jaarbasis"</li>
+</ul>
+<p>Zelfs een range is beter dan niets.</p>
+<p>Groeten,<br><strong>Wouter</strong></p>
+</div>""",
+
+        6: f"""<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #333333;">
+<p>Hoi {voornaam},</p>
+<p>Wist je dat kandidaten gemiddeld <strong>6 seconden</strong> besteden aan de eerste scan van een vacature?</p>
+<p>In die 6 seconden beslissen ze of ze doorlezen of wegklikken.</p>
+<div style="background-color: #EDE9FE; border-left: 4px solid #7C3AED; padding: 15px 20px; margin: 20px 0;">
+<p style="margin: 0 0 10px 0;"><strong>Wat ze scannen:</strong></p>
+<ol style="margin: 0 0 15px 0; padding-left: 20px;">
+<li>Functietitel</li>
+<li>Salaris (als het er staat)</li>
+<li>De eerste 2-3 zinnen</li>
+<li>Locatie</li>
+<li>Logo/bedrijfsnaam</li>
+</ol>
+<p style="margin: 0 0 10px 0;"><strong>Het probleem:</strong> 90% begint met "Wij zoeken een enthousiaste..."</p>
+<p style="margin: 0;"><strong>De oplossing:</strong> Start met een vraag of bold statement.</p>
+</div>
+<p>Pak eens een van je huidige vacatures erbij. Hoe is de opening?</p>
+<p>Tot volgende week,<br><strong>Wouter</strong></p>
+<p style="color: #999999; font-size: 12px; margin-top: 30px; padding-top: 15px; border-top: 1px solid #eeeeee;">
+Dit was de laatste tip in deze serie. Vond je ze nuttig? Laat het me weten.</p>
+</div>""",
+
+        7: f"""<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #333333;">
+<p>Hoi {voornaam},</p>
+<p>Het is nu drie weken geleden dat je de vacature-analyse ontving.</p>
+<p>Ik ben benieuwd hoe het gaat met je werving. Heb je de kandidaat al gevonden? Of loop je nog ergens tegenaan?</p>
+<div style="background-color: #f8f9fa; border-left: 4px solid #EF7D00; padding: 15px 20px; margin: 20px 0;">
+<p style="margin: 0 0 10px 0; font-size: 16px;"><strong>Zullen we even bellen?</strong></p>
+<p style="margin: 0 0 15px 0;">Geen verkooppraatje, gewoon een kort gesprek (15 min) om te kijken of ik je ergens mee kan helpen.</p>
+<p style="margin: 0 0 10px 0;"><strong>We kunnen het hebben over:</strong></p>
+<ul style="margin: 0 0 15px 0; padding-left: 20px;">
+<li>De resultaten van je huidige vacature</li>
+<li>Andere openstaande posities</li>
+<li>Recruitment uitdagingen waar je tegenaan loopt</li>
+</ul>
+<p style="margin: 0;">
+<a href="https://calendly.com/wouter-arts-/vacature-analyse-advies" style="display: inline-block; background-color: #EF7D00; color: #ffffff; padding: 12px 25px; text-decoration: none; border-radius: 5px; font-weight: bold;">Plan een moment dat jou uitkomt</a>
+</p>
+</div>
+<p>Geen zin of geen tijd? Reply dan gewoon even met een update.</p>
+<p>Groeten,<br><strong>Wouter</strong></p>
+</div>""",
+
+        8: f"""<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #333333;">
+<p>Hoi {voornaam},</p>
+<p>Een maand geleden verstuurde ik de analyse voor je <strong>{functie_titel}</strong> vacature.</p>
+<p>Dit is mijn laatste mail in deze serie - daarna laat ik je met rust.</p>
+<p>Maar voor ik ga, ben ik nieuwsgierig:</p>
+<div style="background-color: #f8f9fa; border: 1px solid #e0e0e0; padding: 15px 20px; margin: 20px 0; border-radius: 5px;">
+<p style="margin: 0 0 10px 0;"><strong>Hoe is het gegaan?</strong></p>
+<table style="width: 100%; border-collapse: collapse;">
+<tr><td style="padding: 5px 0;"><strong>A.</strong> Kandidaat gevonden - top!</td></tr>
+<tr><td style="padding: 5px 0;"><strong>B.</strong> Nog bezig - maar gaat goed</td></tr>
+<tr><td style="padding: 5px 0;"><strong>C.</strong> Vacature on hold gezet</td></tr>
+<tr><td style="padding: 5px 0;"><strong>D.</strong> Hulp nodig - laten we bellen</td></tr>
+</table>
+<p style="margin: 10px 0 0 0; font-size: 13px; color: #666;">Reply met A, B, C of D (of vertel gewoon je verhaal)</p>
+</div>
+<p>Hoe dan ook - succes met je recruitment!</p>
+<p>Groeten,<br><strong>Wouter</strong><br><span style="color: #666666;">kandidatentekort.nl</span></p>
+<p style="color: #999999; font-size: 12px; margin-top: 30px; padding-top: 15px; border-top: 1px solid #eeeeee;">
+Contact: warts@recruitin.nl | Nieuwe vacature? <a href="https://kandidatentekort.nl" style="color: #EF7D00;">kandidatentekort.nl</a></p>
+</div>"""
+    }
+
+    return templates.get(email_num, "")
+
+
+def get_nurture_email_subject(email_num):
+    """Get subject line for nurture email"""
+    subjects = {
+        1: "Even checken - alles goed ontvangen?",
+        2: "Is het gelukt om de aanpassingen door te voeren?",
+        3: "Benieuwd - merk je al verschil?",
+        4: "Recruitment tip: De kracht van de juiste functietitel",
+        5: "Recruitment tip: Het salarisvraagstuk",
+        6: "Recruitment tip: De eerste 6 seconden",
+        7: "Zullen we eens bellen?",
+        8: "Laatste check - hoe staat het ervoor?"
+    }
+    return subjects.get(email_num, "Follow-up van kandidatentekort.nl")
+
+
+def send_nurture_email(to_email, email_num, voornaam, functie_titel):
+    """Send a nurture sequence email"""
+    if not GMAIL_APP_PASSWORD:
+        logger.warning("No Gmail password configured")
+        return False
+
+    try:
+        subject = get_nurture_email_subject(email_num)
+        html_content = get_nurture_email_html(email_num, voornaam, functie_titel)
+
+        if not html_content:
+            logger.error(f"No template for email {email_num}")
             return False
 
-        # Step 2: Enhanced Email Creation
-        score = analysis_result.get('score', 0.0)
-        sector = analysis_result.get('sector', 'manufacturing')
-        improvement_pct = min(int((10 - score) * 20), 200)
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = f"Wouter van kandidatentekort.nl <{GMAIL_USER}>"
+        msg['To'] = to_email
+        msg['Reply-To'] = "warts@recruitin.nl"
 
-        subject = get_sector_specific_email_subject(score, sector, improvement_pct)
-        enhanced_content = enhance_email_content(analysis_result)
+        msg.attach(MIMEText(html_content, 'html'))
 
-        # Step 3: Send Email
-        email_sent = False
-        if email:
-            email_sent = send_analysis_email(
-                to_email=email,
-                result=analysis_result,
-                bedrijf_naam=bedrijf_naam
-            )
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
+            server.login(GMAIL_USER, GMAIL_APP_PASSWORD)
+            server.send_message(msg)
 
-        # Step 4: Pipedrive Lead Creation met sector info
-        pipedrive_lead = None
-        if PIPEDRIVE_API_KEY:
-            pipedrive_lead = create_pipedrive_lead(
-                result=analysis_result,
-                bedrijf_naam=bedrijf_naam,
-                contact_email=email,
-                functie_titel=functie_titel
-            )
-
-        # Step 5: Track performance
-        track_performance_improvement(analysis_result)
-
-        logger.info(f"Success! Score: {score}/10 | Sector: {sector} | Email: {email_sent}")
+        logger.info(f"✅ Sent nurture email {email_num} to {to_email}")
         return True
 
     except Exception as e:
-        logger.error(f"Process Error: {str(e)}")
+        logger.error(f"❌ Failed to send nurture email: {e}")
         return False
 
 
-# ===============================================
-# PERFORMANCE TRACKING
-# ===============================================
-
-def track_performance_improvement(analysis_result: Dict[str, Any]) -> None:
-    """Track before/after performance voor ROI measurement."""
-    performance_log = {
-        'timestamp': datetime.now().isoformat(),
-        'version': 'technical_master_prompt_v2.0',
-        'score': analysis_result.get('score', 0),
-        'sector': analysis_result.get('sector', 'unknown'),
-        'sector_confidence': analysis_result.get('sector_confidence', 0),
-        'processing_time': analysis_result.get('processing_time', 0),
-        'avg_score_before': 4.2,  # Baseline
-        'expected_improvement': '+150% more qualified leads',
-        'sectors_active': ['oil_gas', 'manufacturing', 'automation', 'renewable', 'construction']
-    }
-
-    # Log naar file voor tracking
-    log_file = os.getenv('PERFORMANCE_LOG_FILE', 'performance_tracking.json')
-    try:
-        with open(log_file, 'a') as f:
-            f.write(json.dumps(performance_log) + '\n')
-    except Exception as e:
-        logger.warning(f"Could not write performance log: {str(e)}")
-
-
-# ===============================================
-# PIPEDRIVE INTEGRATION
-# ===============================================
-
-def create_pipedrive_lead(
-    result: Dict[str, Any],
-    bedrijf_naam: str,
-    contact_email: str,
-    functie_titel: str = ""
-) -> Optional[str]:
-    """
-    Create a lead in Pipedrive with sector tags.
-
-    Returns:
-        Lead ID if successful, None otherwise
-    """
-    if not PIPEDRIVE_API_KEY:
-        logger.warning("PIPEDRIVE_API_KEY not configured")
-        return None
-
-    if requests is None:
-        logger.error("requests package not installed")
-        return None
+def update_deal_nurture_status(deal_id, email_num):
+    """Update deal fields after sending nurture email"""
+    if not PIPEDRIVE_API_TOKEN:
+        return False
 
     try:
-        score = result.get('score', 0)
-        sector = result.get('sector_display', 'Technisch')
-
-        # Determine lead value based on score (lower score = higher potential value)
-        lead_value = int((10 - score) * 500)  # EUR 0 - 5000
-
-        lead_data = {
-            'title': f"{bedrijf_naam} - {functie_titel or 'Vacature Optimalisatie'}",
-            'value': lead_value,
-            'currency': 'EUR',
-            'person_id': None,  # Will be created if needed
-            'organization_id': None,
-            'expected_close_date': None,
-            'visible_to': 1,
-            'label_ids': []  # Add sector labels here
+        # Map email number to option ID (Pipedrive enum options)
+        email_options = {
+            1: "Email 1", 2: "Email 2", 3: "Email 3", 4: "Email 4",
+            5: "Email 5", 6: "Email 6", 7: "Email 7", 8: "Email 8"
         }
 
-        # Add note with analysis
-        note_content = f"""
-Sector: {sector}
-Score: {score}/10
-Potential Improvement: {int((10-score)*20)}%
+        update_data = {
+            FIELD_LAATSTE_EMAIL: email_options.get(email_num, "Email 1")
+        }
 
-Quick Wins:
-{json.dumps(result.get('analysis', {}).get('week1_quick_wins', []), indent=2, ensure_ascii=False)}
-"""
+        # If email 8, mark sequence as complete
+        if email_num == 8:
+            update_data[FIELD_EMAIL_SEQUENCE_STATUS] = "Completed"
 
-        # Create lead via API
-        api_url = f"https://api.pipedrive.com/v1/leads?api_token={PIPEDRIVE_API_KEY}"
+        response = requests.put(
+            f"{PIPEDRIVE_BASE}/deals/{deal_id}",
+            params={"api_token": PIPEDRIVE_API_TOKEN},
+            json=update_data,
+            timeout=30
+        )
 
-        response = requests.post(api_url, json=lead_data)
-
-        if response.status_code == 201:
-            lead_id = response.json().get('data', {}).get('id')
-            logger.info(f"Pipedrive lead created: {lead_id}")
-            return lead_id
+        if response.status_code == 200:
+            logger.info(f"✅ Updated deal {deal_id} nurture status to Email {email_num}")
+            return True
         else:
-            logger.error(f"Pipedrive API error: {response.status_code}")
-            return None
+            logger.warning(f"Failed to update deal: {response.status_code}")
+            return False
 
     except Exception as e:
-        logger.error(f"Pipedrive error: {str(e)}")
-        return None
+        logger.error(f"Error updating deal: {e}")
+        return False
 
 
-# ===============================================
-# FLASK WEBHOOK SERVER
-# ===============================================
+def get_deals_for_nurture():
+    """Get all deals that need nurture emails today"""
+    if not PIPEDRIVE_API_TOKEN:
+        return []
 
-def create_app() -> Optional[Any]:
-    """Create Flask application with webhook endpoints."""
-    if Flask is None:
-        logger.error("Flask not installed")
-        return None
-
-    app = Flask(__name__)
-
-    @app.route('/', methods=['GET'])
-    def index():
-        """Root endpoint - API info and status."""
-        return jsonify({
-            'service': 'Kandidatentekort API',
-            'version': '2.0',
-            'status': 'running',
-            'description': 'Nederlandse Technische Vacature Analyse API',
-            'endpoints': {
-                'health': 'GET /health - Service health check',
-                'analyze': 'POST /webhook/analyze - Analyze vacancy text',
-                'sector': 'POST /api/sector-detect - Detect sector from text',
-                'typeform': 'POST /webhook/typeform - Typeform webhook'
+    try:
+        # Get all deals from pipeline
+        response = requests.get(
+            f"{PIPEDRIVE_BASE}/deals",
+            params={
+                "api_token": PIPEDRIVE_API_TOKEN,
+                "pipeline_id": PIPELINE_ID,
+                "status": "open",
+                "limit": 500
             },
-            'frontend': 'https://kandidatentekortv2.netlify.app',
-            'timestamp': datetime.now().isoformat()
-        })
+            timeout=30
+        )
 
-    @app.route('/health', methods=['GET'])
-    def health_check():
-        return jsonify({
-            'status': 'healthy',
-            'service': 'kandidatentekort-auto',
-            'timestamp': datetime.now().isoformat(),
-            'has_api_key': bool(CLAUDE_API_KEY)
-        })
+        if response.status_code != 200:
+            logger.error(f"Failed to get deals: {response.status_code}")
+            return []
 
-    @app.route('/webhook/analyze', methods=['POST'])
-    def webhook_analyze():
-        """Main webhook endpoint for vacancy analysis."""
+        deals = response.json().get('data', []) or []
+        deals_to_email = []
+        today = datetime.now().date()
+
+        for deal in deals:
+            # Only process deals in Gekwalificeerd stage (21)
+            stage_id = deal.get('stage_id')
+            if stage_id != NURTURE_ACTIVE_STAGE:
+                continue
+
+            # Get custom field values
+            rapport_date_str = deal.get(FIELD_RAPPORT_VERZONDEN)
+            sequence_status = deal.get(FIELD_EMAIL_SEQUENCE_STATUS, '')
+            laatste_email = deal.get(FIELD_LAATSTE_EMAIL, '')
+
+            # Skip if no rapport date or sequence not active
+            if not rapport_date_str:
+                continue
+
+            # Skip if sequence is completed, paused, or responded
+            if sequence_status in ['Completed', 'Gepauzeerd', 'Voltooid', 'Responded', 'Unsubscribed']:
+                continue
+
+            # Parse rapport date
+            try:
+                rapport_date = datetime.strptime(rapport_date_str, '%Y-%m-%d').date()
+            except:
+                continue
+
+            days_since_rapport = (today - rapport_date).days
+
+            # Determine which email to send
+            current_email = 0
+            if laatste_email:
+                try:
+                    current_email = int(laatste_email.replace('Email ', ''))
+                except:
+                    pass
+
+            next_email = current_email + 1
+
+            # Check if it's time to send the next email
+            if next_email <= 8:
+                scheduled_day = EMAIL_SCHEDULE.get(next_email, {}).get('day', 999)
+                if days_since_rapport >= scheduled_day:
+                    # Get person info for email
+                    person_id = deal.get('person_id', {})
+                    if isinstance(person_id, dict):
+                        person_id = person_id.get('value')
+
+                    deals_to_email.append({
+                        'deal_id': deal.get('id'),
+                        'deal_title': deal.get('title', ''),
+                        'person_id': person_id,
+                        'next_email': next_email,
+                        'days_since': days_since_rapport
+                    })
+
+        logger.info(f"📧 Found {len(deals_to_email)} deals in stage {NURTURE_ACTIVE_STAGE} (Gekwalificeerd) ready for nurture emails")
+        return deals_to_email
+
+    except Exception as e:
+        logger.error(f"Error getting deals for nurture: {e}")
+        return []
+
+
+def get_person_email(person_id):
+    """Get person's email and name from Pipedrive"""
+    if not PIPEDRIVE_API_TOKEN or not person_id:
+        return None, None
+
+    try:
+        response = requests.get(
+            f"{PIPEDRIVE_BASE}/persons/{person_id}",
+            params={"api_token": PIPEDRIVE_API_TOKEN},
+            timeout=30
+        )
+
+        if response.status_code == 200:
+            person = response.json().get('data', {})
+            emails = person.get('email', [])
+            email = emails[0].get('value') if emails else None
+            name = person.get('first_name', 'daar')
+            return email, name
+    except Exception as e:
+        logger.error(f"Error getting person: {e}")
+
+    return None, None
+
+
+def process_nurture_emails():
+    """Process all pending nurture emails"""
+    logger.info("🔄 Starting nurture email processing...")
+
+    deals = get_deals_for_nurture()
+    sent_count = 0
+
+    for deal in deals:
         try:
-            data = request.get_json()
+            email, voornaam = get_person_email(deal['person_id'])
 
-            if not data:
-                return jsonify({'error': 'No data provided'}), 400
+            if not email:
+                logger.warning(f"No email for deal {deal['deal_id']}")
+                continue
 
-            vacature_text = data.get('vacature_text', '')
-            bedrijf_naam = data.get('bedrijf_naam', '')
-            functie_titel = data.get('functie_titel', '')
-            contact_email = data.get('email', '')
+            # Extract functie from deal title
+            functie_titel = deal['deal_title'].replace('Vacature Analyse - ', '').split(' - ')[0]
 
-            if not vacature_text:
-                return jsonify({'error': 'vacature_text is required'}), 400
-
-            # Perform analysis
-            result = analyze_vacature_technical(
-                vacature_text,
-                bedrijf_naam,
+            # Send the email
+            success = send_nurture_email(
+                email,
+                deal['next_email'],
+                voornaam or 'daar',
                 functie_titel
             )
 
-            # Send email if configured
-            email_sent = False
-            if contact_email and result.get('success'):
-                email_sent = send_analysis_email(
-                    contact_email,
-                    result,
-                    bedrijf_naam
-                )
+            if success:
+                # Update Pipedrive
+                update_deal_nurture_status(deal['deal_id'], deal['next_email'])
+                sent_count += 1
 
-            # Create Pipedrive lead if configured
-            pipedrive_lead = None
-            if result.get('success') and PIPEDRIVE_API_KEY:
-                pipedrive_lead = create_pipedrive_lead(
-                    result,
-                    bedrijf_naam,
-                    contact_email,
-                    functie_titel
-                )
-
-            result['email_sent'] = email_sent
-            result['pipedrive_lead_id'] = pipedrive_lead
-
-            return jsonify(result)
+            # Small delay between emails
+            time.sleep(2)
 
         except Exception as e:
-            logger.error(f"Webhook error: {str(e)}")
-            return jsonify({'error': str(e)}), 500
+            logger.error(f"Error processing deal {deal.get('deal_id')}: {e}")
 
-    @app.route('/api/sector-detect', methods=['POST'])
-    def api_sector_detect():
-        """Quick sector detection endpoint."""
-        try:
-            data = request.get_json()
-            text = data.get('text', '')
-
-            if not text:
-                return jsonify({'error': 'text is required'}), 400
-
-            sector, confidence = detect_technical_sector(text)
-            benchmark = SECTOR_BENCHMARKS.get(sector)
-
-            return jsonify({
-                'sector': sector.value,
-                'sector_display': benchmark.display_name if benchmark else 'Algemeen',
-                'confidence': confidence,
-                'benchmark_range': benchmark.avg_score_range if benchmark else None,
-                'key_focus': benchmark.key_focus if benchmark else None
-            })
-
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
-
-    @app.route('/webhook/typeform', methods=['POST'])
-    def webhook_typeform():
-        """
-        Typeform webhook endpoint voor automatische vacature verwerking.
-        Verwacht Typeform webhook payload format.
-        """
-        try:
-            data = request.get_json()
-
-            if not data:
-                return jsonify({'error': 'No data provided'}), 400
-
-            # Extract from Typeform format
-            form_response = data.get('form_response', {})
-            answers = form_response.get('answers', [])
-
-            # Map Typeform answers to our format
-            typeform_data = {}
-            for answer in answers:
-                field_type = answer.get('type', '')
-                field_ref = answer.get('field', {}).get('ref', '')
-
-                if field_type == 'text':
-                    value = answer.get('text', '')
-                elif field_type == 'email':
-                    value = answer.get('email', '')
-                elif field_type == 'long_text':
-                    value = answer.get('text', '')
-                else:
-                    value = str(answer.get('text', answer.get('email', '')))
-
-                # Map common field refs
-                if 'vacature' in field_ref.lower() or 'tekst' in field_ref.lower():
-                    typeform_data['vacature_tekst'] = value
-                elif 'bedrijf' in field_ref.lower() or 'company' in field_ref.lower():
-                    typeform_data['bedrijf_naam'] = value
-                elif 'functie' in field_ref.lower() or 'title' in field_ref.lower():
-                    typeform_data['functie_titel'] = value
-                elif 'email' in field_ref.lower():
-                    typeform_data['email'] = value
-                elif 'naam' in field_ref.lower() or 'name' in field_ref.lower():
-                    typeform_data['naam'] = value
-
-            # Process the vacancy
-            success = process_technical_vacature(typeform_data)
-
-            return jsonify({
-                'success': success,
-                'message': 'Vacature processed' if success else 'Processing failed'
-            })
-
-        except Exception as e:
-            logger.error(f"Typeform webhook error: {str(e)}")
-            return jsonify({'error': str(e)}), 500
-
-    return app
+    logger.info(f"✅ Nurture processing complete: {sent_count}/{len(deals)} emails sent")
+    return sent_count
 
 
-# ===============================================
-# CLI TESTING
-# ===============================================
+def start_nurture_deal(deal_id):
+    """Start nurture sequence for a specific deal"""
+    if not PIPEDRIVE_API_TOKEN:
+        return False
 
-def test_analysis():
-    """Run a quick test analysis."""
-    test_vacancy = """
-    Quality Manager - Manufacturing
+    try:
+        today = datetime.now().strftime('%Y-%m-%d')
 
-    Wij zoeken een ervaren Quality Manager voor ons productie bedrijf in Rotterdam.
-
-    Wat ga je doen:
-    - Aansturen van het QA team
-    - Implementeren van kwaliteitssystemen
-    - Rapporteren aan directie
-
-    Wat vragen wij:
-    - HBO opleiding
-    - 5+ jaar ervaring
-    - Kennis van ISO 9001
-
-    Wat bieden wij:
-    - Marktconform salaris
-    - Lease auto
-    - 25 vakantiedagen
-    """
-
-    print("\n" + "="*60)
-    print("KANDIDATENTEKORT TEST ANALYSIS")
-    print("="*60 + "\n")
-
-    # Test sector detection
-    sector, confidence = detect_technical_sector(test_vacancy)
-    print(f"Detected Sector: {sector.value} (confidence: {confidence:.0%})")
-
-    # Test full analysis (requires API key)
-    if CLAUDE_API_KEY:
-        result = analyze_vacature_technical(
-            test_vacancy,
-            "Test Company BV",
-            "Quality Manager"
+        response = requests.put(
+            f"{PIPEDRIVE_BASE}/deals/{deal_id}",
+            params={"api_token": PIPEDRIVE_API_TOKEN},
+            json={
+                FIELD_RAPPORT_VERZONDEN: today,
+                FIELD_EMAIL_SEQUENCE_STATUS: "Actief"
+            },
+            timeout=30
         )
 
-        print(f"\nTest Score: {result.get('score', 'N/A')}/10")
-        print(f"Sector: {result.get('sector_display', 'N/A')}")
-        print(f"Success: {result.get('success', False)}")
-        print(f"Processing Time: {result.get('processing_time', 'N/A')}s")
-
-        # Show email subject
-        print(f"\nEmail Subject: {generate_email_subject(result)}")
-    else:
-        print("\nNote: Set CLAUDE_API_KEY to test full analysis")
-
-    print("\n" + "="*60)
-    print("TEST COMPLETE")
-    print("="*60 + "\n")
-
-
-# ===============================================
-# MAIN ENTRY POINT
-# ===============================================
-
-if __name__ == '__main__':
-    import sys
-
-    if len(sys.argv) > 1:
-        if sys.argv[1] == 'test':
-            test_analysis()
-        elif sys.argv[1] == 'server':
-            app = create_app()
-            if app:
-                port = int(os.getenv('PORT', '5000'))
-                print("\n" + "="*60)
-                print("KANDIDATENTEKORT AUTO v2.0 - TECHNICAL MASTER PROMPT")
-                print("="*60)
-                print(f"\nStarting server on port {port}...")
-                print(f"\nEndpoints:")
-                print(f"  Health:    http://localhost:{port}/health")
-                print(f"  Analyze:   http://localhost:{port}/webhook/analyze")
-                print(f"  Typeform:  http://localhost:{port}/webhook/typeform")
-                print(f"  Sector:    http://localhost:{port}/api/sector-detect")
-                print("\nExpected: +150% better lead quality")
-                print("ROI: EUR 28k+ besparing per successful placement")
-                print("="*60 + "\n")
-                app.run(host='0.0.0.0', port=port, debug=False)
-            else:
-                print("Failed to create app. Install Flask: pip install flask")
+        if response.status_code == 200:
+            logger.info(f"✅ Started nurture sequence for deal {deal_id}")
+            return True
         else:
-            print("Usage: python kandidatentekort_auto.py [test|server]")
-    else:
-        print("""
-============================================================
-KANDIDATENTEKORT AUTO v2.0 - TECHNICAL MASTER PROMPT
-============================================================
+            logger.warning(f"Failed to start nurture: {response.status_code}")
+            return False
 
-Nederlandse Technische & Industriele Vacature Optimizer
-Met sector-specifieke analyse voor Oil & Gas, Manufacturing,
-Automation, Renewable Energy en Construction.
+    except Exception as e:
+        logger.error(f"Error starting nurture: {e}")
+        return False
 
-Usage:
-  python kandidatentekort_auto.py test     - Run test analysis
-  python kandidatentekort_auto.py server   - Start webhook server
 
-Endpoints (when running server):
-  /health              - Health check
-  /webhook/analyze     - Direct vacancy analysis
-  /webhook/typeform    - Typeform webhook integration
-  /api/sector-detect   - Quick sector detection
+# Background scheduler for nurture emails
+def nurture_scheduler():
+    """Background thread that checks for nurture emails every hour"""
+    while True:
+        try:
+            # Run at specific times (9 AM, 2 PM Dutch time)
+            now = datetime.now()
+            if now.hour in [9, 14]:
+                logger.info("⏰ Scheduled nurture check running...")
+                process_nurture_emails()
+        except Exception as e:
+            logger.error(f"Scheduler error: {e}")
 
-Environment Variables:
-  CLAUDE_API_KEY       - Required for analysis
-  PIPEDRIVE_API_KEY    - Optional for CRM integration
-  SMTP_HOST            - Email server host
-  SMTP_PORT            - Email server port (default: 587)
-  SMTP_USER            - Email username
-  SMTP_PASSWORD        - Email password
-  PERFORMANCE_LOG_FILE - Performance tracking log file
+        # Sleep for 1 hour
+        time.sleep(3600)
 
-Install Dependencies:
-  pip install anthropic flask requests
 
-Expected Results:
-  - Scores: 4.2/10 -> 7.8/10
-  - Lead Quality: +150% improvement
-  - ROI: EUR 28k+ per successful placement
-============================================================
-        """)
+@app.route("/health", methods=["GET"])
+def health_check():
+    return jsonify({
+        "status": "healthy",
+        "version": "5.0",
+        "features": ["typeform", "analysis", "nurture"],
+        "email": bool(GMAIL_APP_PASSWORD),
+        "pipedrive": bool(PIPEDRIVE_API_TOKEN),
+        "claude": bool(ANTHROPIC_API_KEY)
+    }), 200
+
+
+@app.route("/nurture/process", methods=["POST"])
+def trigger_nurture_processing():
+    """Manually trigger nurture email processing"""
+    count = process_nurture_emails()
+    return jsonify({
+        "success": True,
+        "emails_sent": count
+    }), 200
+
+
+@app.route("/nurture/start/<int:deal_id>", methods=["POST"])
+def start_nurture_for_deal(deal_id):
+    """Start nurture sequence for a specific deal"""
+    success = start_nurture_deal(deal_id)
+    return jsonify({"success": success, "deal_id": deal_id}), 200 if success else 500
+
+
+@app.route("/nurture/status", methods=["GET"])
+def nurture_status():
+    """Get status of nurture sequences"""
+    deals = get_deals_for_nurture()
+    return jsonify({
+        "pending_emails": len(deals),
+        "deals": deals[:20]  # Limit response
+    }), 200
+
+
+@app.route("/nurture/test/<int:email_num>", methods=["GET"])
+def test_nurture_email(email_num):
+    """Send a test nurture email"""
+    to = request.args.get('to', 'warts@recruitin.nl')
+    voornaam = request.args.get('name', 'Test')
+    functie = request.args.get('functie', 'Senior Developer')
+
+    success = send_nurture_email(to, email_num, voornaam, functie)
+    return jsonify({
+        "success": success,
+        "email_num": email_num,
+        "to": to
+    }), 200 if success else 500
+
+
+if __name__ == "__main__":
+    # Start background scheduler for nurture emails
+    scheduler_thread = threading.Thread(target=nurture_scheduler, daemon=True)
+    scheduler_thread.start()
+    logger.info("🚀 Nurture scheduler started")
+
+    app.run(host="0.0.0.0", port=int(os.getenv("PORT", 8080)))
