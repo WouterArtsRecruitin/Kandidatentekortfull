@@ -1350,7 +1350,7 @@ def health():
     """Health check endpoint."""
     return jsonify({
         "status": "healthy",
-        "version": "7.0",
+        "version": "7.1",
         "features": {
             "email": bool(GMAIL_APP_PASSWORD),
             "pipedrive": bool(PIPEDRIVE_API_TOKEN),
@@ -1485,7 +1485,7 @@ def home():
     """Home endpoint."""
     return jsonify({
         "service": "Kandidatentekort Webhook V7",
-        "version": "7.0",
+        "version": "7.1",
         "features": [
             "email",
             "pipedrive",
