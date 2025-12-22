@@ -22,11 +22,12 @@ exports.handler = async (event, context) => {
   }
 
   // Get environment variables
-  const FACEBOOK_API_TOKEN = process.env.FACEBOOK_API_TOKEN;
+  // FB_ACCESS_TOKEN is the correct Facebook token, FACEBOOK_API_TOKEN is legacy
+  const FACEBOOK_API_TOKEN = process.env.FB_ACCESS_TOKEN || process.env.FACEBOOK_API_TOKEN;
   const PIXEL_ID = process.env.FACEBOOK_PIXEL_ID || '238226887541404';
-  
+
   if (!FACEBOOK_API_TOKEN) {
-    console.error('Missing FACEBOOK_API_TOKEN environment variable');
+    console.error('Missing FB_ACCESS_TOKEN environment variable');
     return {
       statusCode: 500,
       body: JSON.stringify({ error: 'Server configuration error' })
