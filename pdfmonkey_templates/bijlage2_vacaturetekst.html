@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #1a1a2e;
+            line-height: 1.7;
+            background: #ffffff;
+        }
+
+        .page {
+            padding: 50px 60px;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 40px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #FF6B35;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 700;
+            color: #FF6B35;
+            letter-spacing: -0.5px;
+        }
+
+        .badge {
+            background: linear-gradient(135deg, #22c55e 0%, #16a34a 100%);
+            color: white;
+            padding: 8px 20px;
+            border-radius: 25px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Company Header */
+        .company-header {
+            background: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%);
+            color: white;
+            padding: 35px 40px;
+            border-radius: 16px;
+            margin-bottom: 35px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .company-header::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -10%;
+            width: 200px;
+            height: 200px;
+            background: rgba(255, 107, 53, 0.1);
+            border-radius: 50%;
+        }
+
+        .company-header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            position: relative;
+        }
+
+        .company-header .company {
+            font-size: 16px;
+            opacity: 0.9;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .company-header .company::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: #FF6B35;
+            border-radius: 50%;
+        }
+
+        /* Score Highlight */
+        .score-highlight {
+            position: absolute;
+            top: 30px;
+            right: 40px;
+            text-align: center;
+        }
+
+        .score-highlight .number {
+            font-size: 42px;
+            font-weight: 700;
+            color: #FF6B35;
+        }
+
+        .score-highlight .label {
+            font-size: 11px;
+            opacity: 0.7;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        /* Content Sections */
+        .section {
+            margin-bottom: 28px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+
+        .section-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #FF6B35 0%, #f97316 100%);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        .section-content {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 25px;
+            border-left: 4px solid #FF6B35;
+        }
+
+        .section-content p {
+            font-size: 14px;
+            color: #374151;
+            margin-bottom: 12px;
+        }
+
+        .section-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Lists */
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            padding: 10px 0;
+            font-size: 14px;
+            color: #374151;
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+        .feature-list li:last-child {
+            border-bottom: none;
+        }
+
+        .feature-list li::before {
+            content: '✓';
+            color: #22c55e;
+            font-weight: 700;
+            font-size: 16px;
+            flex-shrink: 0;
+        }
+
+        /* Salary Box */
+        .salary-box {
+            background: linear-gradient(135deg, #059669 0%, #047857 100%);
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin: 25px 0;
+        }
+
+        .salary-box .label {
+            font-size: 14px;
+            opacity: 0.9;
+        }
+
+        .salary-box .amount {
+            font-size: 26px;
+            font-weight: 700;
+        }
+
+        .salary-box .extra {
+            text-align: right;
+            font-size: 12px;
+            opacity: 0.85;
+        }
+
+        /* CTA Section */
+        .cta-section {
+            background: linear-gradient(135deg, #FF6B35 0%, #f97316 100%);
+            color: white;
+            padding: 30px 35px;
+            border-radius: 16px;
+            text-align: center;
+            margin-top: 30px;
+        }
+
+        .cta-section h3 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        .cta-section p {
+            font-size: 14px;
+            opacity: 0.95;
+            margin-bottom: 20px;
+        }
+
+        .cta-button {
+            display: inline-block;
+            background: white;
+            color: #FF6B35;
+            padding: 14px 40px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 15px;
+            text-decoration: none;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            color: #9ca3af;
+        }
+
+        .footer-logo {
+            font-weight: 600;
+            color: #FF6B35;
+        }
+
+        /* About Section */
+        .about-section {
+            background: #1a1a2e;
+            color: white;
+            padding: 25px 30px;
+            border-radius: 12px;
+            margin-top: 25px;
+        }
+
+        .about-section h4 {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #FF6B35;
+        }
+
+        .about-section p {
+            font-size: 13px;
+            line-height: 1.7;
+            opacity: 0.9;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <!-- Header -->
+        <div class="header">
+            <span class="logo">RECRUITIN</span>
+            <span class="badge">✨ Geoptimaliseerd</span>
+        </div>
+
+        <!-- Company Header -->
+        <div class="company-header">
+            <h1>{{vacancy_title}}</h1>
+            <div class="company">{{company_name}} • {{location}}</div>
+            <div class="score-highlight">
+                <div class="number">{{overall_score}}</div>
+                <div class="label">Nieuwe Score</div>
+            </div>
+        </div>
+
+        <!-- Opening -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-icon">🚀</div>
+                <h2 class="section-title">{{opening_hook}}</h2>
+            </div>
+            <div class="section-content">
+                <p>{{opening_text}}</p>
+            </div>
+        </div>
+
+        <!-- Taken & Verantwoordelijkheden -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-icon">💼</div>
+                <h2 class="section-title">Wat ga je doen?</h2>
+            </div>
+            <div class="section-content">
+                <ul class="feature-list">
+                    {{#each responsibilities}}
+                    <li>{{this}}</li>
+                    {{/each}}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Wat bieden wij -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-icon">🎁</div>
+                <h2 class="section-title">Wat bieden wij?</h2>
+            </div>
+
+            <!-- Salary Box -->
+            <div class="salary-box">
+                <div>
+                    <div class="label">Salarisindicatie</div>
+                    <div class="amount">€{{salary_min}} - €{{salary_max}}</div>
+                </div>
+                <div class="extra">
+                    <div>+ 8% vakantiegeld</div>
+                    <div>+ pensioenregeling</div>
+                </div>
+            </div>
+
+            <div class="section-content">
+                <ul class="feature-list">
+                    {{#each benefits}}
+                    <li>{{this}}</li>
+                    {{/each}}
+                </ul>
+            </div>
+        </div>
+
+        <!-- Profiel -->
+        <div class="section">
+            <div class="section-header">
+                <div class="section-icon">👤</div>
+                <h2 class="section-title">Wie zoeken wij?</h2>
+            </div>
+            <div class="section-content">
+                <ul class="feature-list">
+                    {{#each requirements}}
+                    <li>{{this}}</li>
+                    {{/each}}
+                </ul>
+            </div>
+        </div>
+
+        <!-- About Company -->
+        <div class="about-section">
+            <h4>Over {{company_name}}</h4>
+            <p>{{company_description}}</p>
+        </div>
+
+        <!-- CTA -->
+        <div class="cta-section">
+            <h3>{{cta_title}}</h3>
+            <p>{{cta_text}}</p>
+            <span class="cta-button">{{cta_button}}</span>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <span class="footer-logo">RECRUITIN</span>
+            <span>Gegenereerd op {{report_date}} | kandidatentekort.nl</span>
+            <span>Vacature ID: {{reference_id}}</span>
+        </div>
+    </div>
+</body>
+</html>

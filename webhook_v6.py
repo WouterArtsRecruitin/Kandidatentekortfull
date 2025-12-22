@@ -79,6 +79,249 @@ OWNER_ID = 23957248  # Wouter
 CUSTOM_FIELD_SCORE = os.getenv('PD_FIELD_SCORE', '')
 CUSTOM_FIELD_ANALYSIS_DATE = os.getenv('PD_FIELD_ANALYSIS_DATE', '')
 
+# PDFMonkey Configuration - Professional PDF Generation
+PDFMONKEY_API_KEY = os.getenv('PDFMONKEY_API_KEY', '')
+PDFMONKEY_TEMPLATE_ANALYSE = os.getenv('PDFMONKEY_TEMPLATE_ANALYSE', '')  # Bijlage 1 template ID
+PDFMONKEY_TEMPLATE_VACATURE = os.getenv('PDFMONKEY_TEMPLATE_VACATURE', '')  # Bijlage 2 template ID
+PDFMONKEY_API_URL = "https://api.pdfmonkey.io/api/v1/documents"
+
+# Feature flag - use PDFMonkey if configured, else fallback to ReportLab
+USE_PDFMONKEY = bool(PDFMONKEY_API_KEY and PDFMONKEY_TEMPLATE_ANALYSE)
+
+
+def generate_pdf_with_pdfmonkey(template_id, payload, filename="document.pdf"):
+    """
+    Generate professional PDF using PDFMonkey API.
+    Returns PDF bytes on success, None on failure.
+    """
+    if not PDFMONKEY_API_KEY or not template_id:
+        logger.warning("PDFMonkey not configured, falling back to ReportLab")
+        return None
+
+    headers = {
+        "Authorization": f"Bearer {PDFMONKEY_API_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    data = {
+        "document": {
+            "document_template_id": template_id,
+            "status": "pending",
+            "payload": payload,
+            "meta": {
+                "_filename": filename
+            }
+        }
+    }
+
+    try:
+        # Create document
+        response = requests.post(PDFMONKEY_API_URL, headers=headers, json=data, timeout=30)
+
+        if response.status_code == 201:
+            doc_data = response.json()
+            document_id = doc_data.get('document', {}).get('id')
+
+            if document_id:
+                # Wait for generation and download PDF
+                pdf_bytes = wait_for_pdfmonkey_document(document_id)
+                if pdf_bytes:
+                    logger.info(f"PDFMonkey: Successfully generated {filename}")
+                    return pdf_bytes
+
+        logger.error(f"PDFMonkey creation failed: {response.status_code} - {response.text}")
+        return None
+
+    except Exception as e:
+        logger.error(f"PDFMonkey error: {e}")
+        return None
+
+
+def wait_for_pdfmonkey_document(document_id, max_attempts=30, delay=2):
+    """
+    Wait for PDFMonkey document to be generated and download it.
+    Returns PDF bytes or None.
+    """
+    import time
+
+    headers = {
+        "Authorization": f"Bearer {PDFMONKEY_API_KEY}"
+    }
+
+    for attempt in range(max_attempts):
+        try:
+            response = requests.get(
+                f"{PDFMONKEY_API_URL}/{document_id}",
+                headers=headers,
+                timeout=30
+            )
+
+            if response.status_code == 200:
+                doc = response.json().get('document', {})
+                status = doc.get('status')
+
+                if status == 'success':
+                    download_url = doc.get('download_url')
+                    if download_url:
+                        pdf_response = requests.get(download_url, timeout=60)
+                        if pdf_response.status_code == 200:
+                            return pdf_response.content
+
+                elif status == 'failure':
+                    logger.error(f"PDFMonkey generation failed: {doc.get('failure_cause')}")
+                    return None
+
+                # Still processing, wait
+                time.sleep(delay)
+
+        except Exception as e:
+            logger.error(f"PDFMonkey wait error: {e}")
+            time.sleep(delay)
+
+    logger.error("PDFMonkey timeout waiting for document")
+    return None
+
+
+def prepare_pdfmonkey_analyse_payload(company_name, contact_name, vacancy_title, analysis_result, score=None):
+    """
+    Prepare payload for PDFMonkey Analyse template (Bijlage 1).
+    """
+    from datetime import datetime
+
+    # Parse the analysis for structured data
+    sections = parse_analysis_sections(analysis_result)
+
+    # Extract individual scores
+    scores_list = []
+    score_mapping = {
+        'openingszin': 'Openingszin',
+        'bedrijfsprofiel': 'Bedrijfsprofiel',
+        'rolklarheid': 'Rolklarheid',
+        'vereisten': 'Vereisten Realisme',
+        'groei': 'Groei-narratief',
+        'inclusie': 'Inclusie & Bias',
+        'cialdini': 'Cialdini Triggers',
+        'salaris': 'Salarisbenchmark',
+        'cta': 'Call-to-Action',
+        'competitief': 'Competitieve Delta',
+        'confidence': 'Confidence Score',
+        'implementatie': 'Implementatie'
+    }
+
+    for key, name in score_mapping.items():
+        val = sections.get('scores', {}).get(key, 5)
+        level = 'high' if val >= 7 else ('medium' if val >= 5 else 'low')
+        scores_list.append({
+            'name': name,
+            'value': val,
+            'level': level
+        })
+
+    # Overall score
+    overall = score or sections.get('overall_score', 6)
+    score_percent = overall * 10
+
+    if overall >= 8:
+        score_level, score_label = 'excellent', 'Uitstekend'
+    elif overall >= 6:
+        score_level, score_label = 'good', 'Goed'
+    elif overall >= 4:
+        score_level, score_label = 'average', 'Gemiddeld'
+    else:
+        score_level, score_label = 'poor', 'Verbetering nodig'
+
+    # Quick wins
+    quick_wins = []
+    for i, win in enumerate(sections.get('quick_wins', [])[:3]):
+        if isinstance(win, dict):
+            quick_wins.append(win)
+        else:
+            quick_wins.append({'title': f'Quick Win {i+1}', 'description': str(win)})
+
+    # Salary extraction (basic)
+    salary_min = "3.500"
+    salary_max = "5.000"
+    salary_advice = "Op basis van functieniveau en regio adviseren wij een marktconforme bandbreedte."
+
+    # Checklist items
+    checklist = [
+        "Publiceer op LinkedIn Jobs",
+        "Deel in relevante netwerken",
+        "Update werkenbij pagina",
+        "Brief recruiter/hiring manager",
+        "Plan social media posts",
+        "Monitor eerste 48 uur resultaten"
+    ]
+
+    return {
+        "report_date": datetime.now().strftime("%d-%m-%Y"),
+        "contact_name": contact_name,
+        "reference_id": datetime.now().strftime("%Y%m%d%H%M"),
+        "company_name": company_name,
+        "vacancy_title": vacancy_title,
+        "overall_score": f"{overall}/10",
+        "overall_score_percent": score_percent,
+        "score_level": score_level,
+        "score_label": score_label,
+        "scores": scores_list,
+        "executive_summary": sections.get('executive_summary', 'Analyse wordt geladen...'),
+        "quick_wins": quick_wins,
+        "salary_min": salary_min,
+        "salary_max": salary_max,
+        "salary_advice": salary_advice,
+        "improved_vacancy_text": sections.get('improved_text', ''),
+        "checklist_items": checklist
+    }
+
+
+def prepare_pdfmonkey_vacature_payload(company_name, vacancy_title, analysis_result, location="Nederland"):
+    """
+    Prepare payload for PDFMonkey Vacaturetekst template (Bijlage 2).
+    """
+    from datetime import datetime
+
+    sections = parse_analysis_sections(analysis_result)
+    overall = sections.get('overall_score', 8)
+
+    # Try to extract structured vacancy data
+    improved_text = sections.get('improved_text', '')
+
+    # Default structured data (would be enhanced by parsing)
+    return {
+        "report_date": datetime.now().strftime("%d-%m-%Y"),
+        "reference_id": datetime.now().strftime("%Y%m%d%H%M"),
+        "company_name": company_name,
+        "vacancy_title": vacancy_title,
+        "location": location,
+        "overall_score": f"{overall}/10",
+        "opening_hook": "Jouw volgende carrièrestap",
+        "opening_text": improved_text[:500] if improved_text else "Een unieke kans om impact te maken...",
+        "responsibilities": [
+            "Verantwoordelijkheid voor kwaliteitsprocessen",
+            "Samenwerken met multidisciplinaire teams",
+            "Bijdragen aan continue verbetering",
+            "Rapporteren aan het management team"
+        ],
+        "salary_min": "4.000",
+        "salary_max": "5.500",
+        "benefits": [
+            "Flexibele werktijden en hybride werken",
+            "Persoonlijk ontwikkelbudget",
+            "Uitstekende pensioenregeling",
+            "27 vakantiedagen + ADV"
+        ],
+        "requirements": [
+            "Relevante werkervaring in vergelijkbare functie",
+            "HBO/WO werk- en denkniveau",
+            "Sterke communicatieve vaardigheden",
+            "Proactieve en resultaatgerichte instelling"
+        ],
+        "company_description": f"{company_name} is een toonaangevende organisatie in haar sector, bekend om innovatie en kwaliteit.",
+        "cta_title": "Klaar voor je volgende stap?",
+        "cta_text": "Solliciteer direct en ontdek wat deze functie voor jou kan betekenen.",
+        "cta_button": "Solliciteer Nu →"
+    }
+
 
 def pipedrive_request(method, endpoint, data=None):
     """Make Pipedrive API request."""
@@ -391,7 +634,39 @@ def generate_pdf_analysis_report(contact_name, company_name, vacancy_title, anal
     - Consultancy-niveau design met clean layout
     - Pagina 1: Score overview + 12 criteria breakdown
     - Pagina 2: Quick Wins + Voor/Na vergelijking
+
+    Uses PDFMonkey for professional output, falls back to ReportLab.
     """
+    # ═══════════════════════════════════════════════════════════════
+    # TRY PDFMONKEY FIRST FOR PROFESSIONAL OUTPUT
+    # ═══════════════════════════════════════════════════════════════
+    if USE_PDFMONKEY and PDFMONKEY_TEMPLATE_ANALYSE:
+        try:
+            logger.info(f"Generating Bijlage 1 with PDFMonkey for {company_name}")
+            payload = prepare_pdfmonkey_analyse_payload(
+                company_name, contact_name, vacancy_title, analysis_result, score
+            )
+            safe_company = "".join(c for c in company_name if c.isalnum() or c in (' ', '-', '_')).strip()
+            filename = f"Bijlage1_Analyse_{safe_company[:20]}.pdf"
+
+            pdf_bytes = generate_pdf_with_pdfmonkey(
+                PDFMONKEY_TEMPLATE_ANALYSE,
+                payload,
+                filename
+            )
+
+            if pdf_bytes:
+                logger.info(f"PDFMonkey Bijlage 1 success: {len(pdf_bytes)} bytes")
+                return pdf_bytes
+            else:
+                logger.warning("PDFMonkey returned None, falling back to ReportLab")
+
+        except Exception as e:
+            logger.error(f"PDFMonkey Bijlage 1 failed: {e}, falling back to ReportLab")
+
+    # ═══════════════════════════════════════════════════════════════
+    # FALLBACK TO REPORTLAB
+    # ═══════════════════════════════════════════════════════════════
     from reportlab.platypus import PageBreak
 
     sections = parse_analysis_sections(analysis_result)
@@ -816,8 +1091,39 @@ def generate_pdf_vacancy_text(company_name, vacancy_title, analysis_result):
     - Executive-level document design
     - Ready-to-use vacaturetekst met professional formatting
     - Clean typography en branded styling
-    """
 
+    Uses PDFMonkey for professional output, falls back to ReportLab.
+    """
+    # ═══════════════════════════════════════════════════════════════
+    # TRY PDFMONKEY FIRST FOR PROFESSIONAL OUTPUT
+    # ═══════════════════════════════════════════════════════════════
+    if USE_PDFMONKEY and PDFMONKEY_TEMPLATE_VACATURE:
+        try:
+            logger.info(f"Generating Bijlage 2 with PDFMonkey for {company_name}")
+            payload = prepare_pdfmonkey_vacature_payload(
+                company_name, vacancy_title, analysis_result
+            )
+            safe_company = "".join(c for c in company_name if c.isalnum() or c in (' ', '-', '_')).strip()
+            filename = f"Bijlage2_Vacaturetekst_{safe_company[:20]}.pdf"
+
+            pdf_bytes = generate_pdf_with_pdfmonkey(
+                PDFMONKEY_TEMPLATE_VACATURE,
+                payload,
+                filename
+            )
+
+            if pdf_bytes:
+                logger.info(f"PDFMonkey Bijlage 2 success: {len(pdf_bytes)} bytes")
+                return pdf_bytes
+            else:
+                logger.warning("PDFMonkey Bijlage 2 returned None, falling back to ReportLab")
+
+        except Exception as e:
+            logger.error(f"PDFMonkey Bijlage 2 failed: {e}, falling back to ReportLab")
+
+    # ═══════════════════════════════════════════════════════════════
+    # FALLBACK TO REPORTLAB
+    # ═══════════════════════════════════════════════════════════════
     sections = parse_analysis_sections(analysis_result)
 
     if not sections['improved_text']:

@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: #1a1a2e;
+            line-height: 1.6;
+            background: #ffffff;
+        }
+
+        .page {
+            padding: 40px 50px;
+            min-height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 40px;
+            padding-bottom: 25px;
+            border-bottom: 3px solid #FF6B35;
+        }
+
+        .logo-section h1 {
+            font-size: 28px;
+            font-weight: 700;
+            color: #FF6B35;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-section p {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        .report-meta {
+            text-align: right;
+            font-size: 11px;
+            color: #6b7280;
+        }
+
+        .report-meta strong {
+            color: #1a1a2e;
+            font-weight: 600;
+        }
+
+        /* Title Section */
+        .title-section {
+            background: linear-gradient(135deg, #1a1a2e 0%, #2d2d44 100%);
+            color: white;
+            padding: 30px 35px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+        }
+
+        .title-section h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .title-section .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            font-weight: 400;
+        }
+
+        .title-section .company {
+            display: inline-block;
+            background: #FF6B35;
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+            margin-top: 15px;
+        }
+
+        /* Score Card */
+        .score-card {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 25px 30px;
+            margin-bottom: 30px;
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .score-circle {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: conic-gradient(
+                #FF6B35 0deg calc(var(--score) * 3.6deg),
+                #e2e8f0 calc(var(--score) * 3.6deg) 360deg
+            );
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .score-circle::before {
+            content: '';
+            width: 75px;
+            height: 75px;
+            background: white;
+            border-radius: 50%;
+            position: absolute;
+        }
+
+        .score-number {
+            position: relative;
+            z-index: 1;
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a1a2e;
+        }
+
+        .score-info h3 {
+            font-size: 18px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 5px;
+        }
+
+        .score-info p {
+            font-size: 13px;
+            color: #6b7280;
+        }
+
+        .score-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            margin-top: 8px;
+        }
+
+        .score-badge.excellent { background: #dcfce7; color: #166534; }
+        .score-badge.good { background: #dbeafe; color: #1e40af; }
+        .score-badge.average { background: #fef3c7; color: #92400e; }
+        .score-badge.poor { background: #fee2e2; color: #991b1b; }
+
+        /* Scores Table */
+        .scores-section {
+            margin-bottom: 30px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 600;
+            color: #1a1a2e;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .section-title::before {
+            content: '';
+            width: 4px;
+            height: 20px;
+            background: #FF6B35;
+            border-radius: 2px;
+        }
+
+        .scores-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .score-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: #f8fafc;
+            border-radius: 8px;
+            border-left: 3px solid transparent;
+        }
+
+        .score-item.high { border-left-color: #22c55e; }
+        .score-item.medium { border-left-color: #f59e0b; }
+        .score-item.low { border-left-color: #ef4444; }
+
+        .score-item-label {
+            font-size: 13px;
+            color: #4b5563;
+        }
+
+        .score-item-value {
+            font-size: 14px;
+            font-weight: 600;
+            color: #1a1a2e;
+        }
+
+        /* Executive Summary */
+        .summary-box {
+            background: linear-gradient(135deg, #fef3c7 0%, #fef9c3 100%);
+            border: 1px solid #fcd34d;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .summary-box h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #92400e;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .summary-box p {
+            font-size: 13px;
+            color: #78350f;
+            line-height: 1.7;
+        }
+
+        /* Quick Wins */
+        .quickwins-section {
+            margin-bottom: 30px;
+        }
+
+        .quickwin-item {
+            display: flex;
+            gap: 15px;
+            padding: 18px 20px;
+            background: #f0fdf4;
+            border: 1px solid #bbf7d0;
+            border-radius: 10px;
+            margin-bottom: 10px;
+        }
+
+        .quickwin-number {
+            width: 28px;
+            height: 28px;
+            background: #22c55e;
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 13px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .quickwin-content h4 {
+            font-size: 14px;
+            font-weight: 600;
+            color: #166534;
+            margin-bottom: 4px;
+        }
+
+        .quickwin-content p {
+            font-size: 12px;
+            color: #15803d;
+        }
+
+        /* Salary Benchmark */
+        .salary-section {
+            background: #eff6ff;
+            border: 1px solid #bfdbfe;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 30px;
+        }
+
+        .salary-section h3 {
+            font-size: 15px;
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 15px;
+        }
+
+        .salary-range {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            margin-bottom: 15px;
+        }
+
+        .salary-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #1e3a8a;
+        }
+
+        .salary-label {
+            font-size: 12px;
+            color: #3b82f6;
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #e2e8f0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            color: #9ca3af;
+        }
+
+        .footer-logo {
+            font-weight: 600;
+            color: #FF6B35;
+        }
+
+        /* Page Break */
+        .page-break {
+            page-break-before: always;
+        }
+    </style>
+</head>
+<body>
+    <div class="page">
+        <!-- Header -->
+        <div class="header">
+            <div class="logo-section">
+                <h1>RECRUITIN</h1>
+                <p>Vacature Analyse Rapport</p>
+            </div>
+            <div class="report-meta">
+                <p><strong>Rapport Datum:</strong> {{report_date}}</p>
+                <p><strong>Contact:</strong> {{contact_name}}</p>
+                <p><strong>Referentie:</strong> #{{reference_id}}</p>
+            </div>
+        </div>
+
+        <!-- Title Section -->
+        <div class="title-section">
+            <h2>{{vacancy_title}}</h2>
+            <p class="subtitle">Professionele Vacaturetekst Analyse</p>
+            <span class="company">{{company_name}}</span>
+        </div>
+
+        <!-- Overall Score -->
+        <div class="score-card">
+            <div class="score-circle" style="--score: {{overall_score_percent}}">
+                <span class="score-number">{{overall_score}}</span>
+            </div>
+            <div class="score-info">
+                <h3>Totaalscore</h3>
+                <p>Gebaseerd op 12 professionele criteria</p>
+                <span class="score-badge {{score_level}}">{{score_label}}</span>
+            </div>
+        </div>
+
+        <!-- Individual Scores -->
+        <div class="scores-section">
+            <h3 class="section-title">Gedetailleerde Scores</h3>
+            <div class="scores-grid">
+                {{#each scores}}
+                <div class="score-item {{level}}">
+                    <span class="score-item-label">{{name}}</span>
+                    <span class="score-item-value">{{value}}/10</span>
+                </div>
+                {{/each}}
+            </div>
+        </div>
+
+        <!-- Executive Summary -->
+        <div class="summary-box">
+            <h3>💡 Executive Summary</h3>
+            <p>{{executive_summary}}</p>
+        </div>
+
+        <!-- Quick Wins -->
+        <div class="quickwins-section">
+            <h3 class="section-title">Quick Wins - Direct Toepasbaar</h3>
+            {{#each quick_wins}}
+            <div class="quickwin-item">
+                <div class="quickwin-number">{{@index_plus_one}}</div>
+                <div class="quickwin-content">
+                    <h4>{{title}}</h4>
+                    <p>{{description}}</p>
+                </div>
+            </div>
+            {{/each}}
+        </div>
+
+        <!-- Salary Benchmark -->
+        <div class="salary-section">
+            <h3>📊 Salarisbenchmark Advies</h3>
+            <div class="salary-range">
+                <div>
+                    <div class="salary-value">€{{salary_min}} - €{{salary_max}}</div>
+                    <div class="salary-label">Aanbevolen bandbreedte per maand</div>
+                </div>
+            </div>
+            <p style="font-size: 12px; color: #3b82f6;">{{salary_advice}}</p>
+        </div>
+
+        <!-- Footer -->
+        <div class="footer">
+            <span class="footer-logo">RECRUITIN</span>
+            <span>© 2024 Recruitin B.V. | kandidatentekort.nl</span>
+            <span>Pagina 1 van 2</span>
+        </div>
+    </div>
+
+    <!-- Page 2: Verbeterde Vacaturetekst Preview -->
+    <div class="page page-break">
+        <div class="header">
+            <div class="logo-section">
+                <h1>RECRUITIN</h1>
+                <p>Verbeterde Vacaturetekst</p>
+            </div>
+            <div class="report-meta">
+                <p><strong>{{company_name}}</strong></p>
+                <p>{{vacancy_title}}</p>
+            </div>
+        </div>
+
+        <div class="title-section" style="background: linear-gradient(135deg, #059669 0%, #047857 100%);">
+            <h2>✨ Geoptimaliseerde Vacaturetekst</h2>
+            <p class="subtitle">Klaar voor publicatie - verwachte verbetering: +35-55% meer sollicitaties</p>
+        </div>
+
+        <div style="background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 12px; padding: 30px; margin-bottom: 30px;">
+            <div style="white-space: pre-wrap; font-size: 13px; line-height: 1.8; color: #374151;">
+{{improved_vacancy_text}}
+            </div>
+        </div>
+
+        <div class="summary-box" style="background: linear-gradient(135deg, #dbeafe 0%, #eff6ff 100%); border-color: #93c5fd;">
+            <h3 style="color: #1e40af;">🎯 Implementatie Checklist</h3>
+            <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 15px;">
+                {{#each checklist_items}}
+                <div style="display: flex; align-items: center; gap: 8px; font-size: 12px; color: #1e3a8a;">
+                    <span style="color: #3b82f6;">☐</span>
+                    <span>{{this}}</span>
+                </div>
+                {{/each}}
+            </div>
+        </div>
+
+        <div class="footer">
+            <span class="footer-logo">RECRUITIN</span>
+            <span>© 2024 Recruitin B.V. | kandidatentekort.nl</span>
+            <span>Pagina 2 van 2</span>
+        </div>
+    </div>
+</body>
+</html>
