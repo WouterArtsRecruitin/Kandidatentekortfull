@@ -1,7 +1,8 @@
-# Kandidatentekort Webhook V2
-# Email + Pipedrive integration
+# Kandidatentekort Webhook V6
+# Claude AI Vacature Analyse + Pipedrive + Email
 
 flask>=3.0.0            # Web framework
 requests>=2.31.0        # HTTP client for Pipedrive API
 gunicorn>=21.0.0        # Production WSGI server
 python-dotenv>=1.0.0    # Environment variable management
+anthropic>=0.7.8        # Claude AI API voor vacature analyse

@@ -1,5 +1,5 @@
 """WSGI entry point for Render deployment."""
-from webhook_simple import app
+from webhook_v6 import app
 
 # Export for Gunicorn
 application = app
