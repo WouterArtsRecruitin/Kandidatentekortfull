@@ -1,5 +1,5 @@
 """WSGI entry point for Render deployment."""
-from kandidatentekort_auto import app
+from webhook_simple import app
 
 # Export for Gunicorn
 application = app
