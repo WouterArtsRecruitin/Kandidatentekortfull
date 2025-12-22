@@ -31,24 +31,37 @@ from reportlab.lib import colors
 from reportlab.lib.pagesizes import A4
 from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
 from reportlab.lib.units import mm, cm
-from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image, KeepTogether
 from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY, TA_RIGHT
-from reportlab.graphics.shapes import Drawing, Rect, String
+from reportlab.graphics.shapes import Drawing, Rect, String, Circle, Line
 from reportlab.graphics.charts.barcharts import HorizontalBarChart
+from reportlab.pdfbase import pdfmetrics
+from reportlab.pdfbase.ttfonts import TTFont
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 
-# Recruitin Brand Colors
+# Recruitin Brand Colors - Professional Palette
 RECRUITIN_ORANGE = colors.HexColor("#FF6B35")
-RECRUITIN_DARK = colors.HexColor("#1F2937")
+RECRUITIN_DARK = colors.HexColor("#111827")
+RECRUITIN_NAVY = colors.HexColor("#1E3A5F")
+RECRUITIN_LIGHT = colors.HexColor("#F8FAFC")
 RECRUITIN_LIGHT_ORANGE = colors.HexColor("#FFF7ED")
-SCORE_GREEN = colors.HexColor("#10B981")
-SCORE_BLUE = colors.HexColor("#3B82F6")
-SCORE_YELLOW = colors.HexColor("#F59E0B")
-SCORE_RED = colors.HexColor("#EF4444")
+
+# Score Colors - Vibrant & Clear
+SCORE_GREEN = colors.HexColor("#059669")
+SCORE_BLUE = colors.HexColor("#2563EB")
+SCORE_YELLOW = colors.HexColor("#D97706")
+SCORE_RED = colors.HexColor("#DC2626")
+
+# UI Colors
+COLOR_TEXT_PRIMARY = colors.HexColor("#111827")
+COLOR_TEXT_SECONDARY = colors.HexColor("#4B5563")
+COLOR_TEXT_MUTED = colors.HexColor("#9CA3AF")
+COLOR_BORDER = colors.HexColor("#E5E7EB")
+COLOR_BG_SUBTLE = colors.HexColor("#F9FAFB")
 
 # Config
 GMAIL_USER = os.getenv('GMAIL_USER', 'artsrecruitin@gmail.com')
@@ -308,443 +321,83 @@ def parse_analysis_sections(analysis_result):
     return sections
 
 
-def create_score_bar_drawing(score, width=180, height=12):
-    """Create a visual score bar as a ReportLab Drawing."""
-    d = Drawing(width, height)
+# ═══════════════════════════════════════════════════════════════════════════
+# PROFESSIONAL PDF GENERATION - CONSULTANCY QUALITY
+# ═══════════════════════════════════════════════════════════════════════════
 
-    # Background bar (gray)
-    d.add(Rect(0, 0, width, height, fillColor=colors.HexColor("#E5E7EB"), strokeColor=None))
+def create_professional_score_badge(score, size=100):
+    """Create a professional circular score badge with gradient-like effect."""
+    d = Drawing(size, size)
+    center = size / 2
 
-    # Filled bar based on score
-    fill_width = (score / 10) * width
-    if score >= 8:
-        fill_color = colors.HexColor("#10B981")  # Green
-    elif score >= 6:
-        fill_color = colors.HexColor("#3B82F6")  # Blue
-    elif score >= 4:
-        fill_color = colors.HexColor("#F59E0B")  # Yellow/Orange
-    else:
-        fill_color = colors.HexColor("#EF4444")  # Red
-
-    d.add(Rect(0, 0, fill_width, height, fillColor=fill_color, strokeColor=None))
-
-    return d
-
-
-def create_score_circle_drawing(score):
-    """Create a large circular score display like MTEE APK template."""
-    d = Drawing(140, 140)
-
-    # Determine color based on score
+    # Determine color scheme based on score
     if score >= 70:
-        main_color = colors.HexColor("#10B981")
-        bg_color = colors.HexColor("#ECFDF5")
+        primary = colors.HexColor("#059669")
+        secondary = colors.HexColor("#D1FAE5")
+        label = "EXCELLENT"
     elif score >= 50:
-        main_color = colors.HexColor("#3B82F6")
-        bg_color = colors.HexColor("#EFF6FF")
+        primary = colors.HexColor("#2563EB")
+        secondary = colors.HexColor("#DBEAFE")
+        label = "GOED"
     elif score >= 30:
-        main_color = colors.HexColor("#F59E0B")
-        bg_color = colors.HexColor("#FFFBEB")
+        primary = colors.HexColor("#D97706")
+        secondary = colors.HexColor("#FEF3C7")
+        label = "MATIG"
     else:
-        main_color = colors.HexColor("#EF4444")
-        bg_color = colors.HexColor("#FEF2F2")
+        primary = colors.HexColor("#DC2626")
+        secondary = colors.HexColor("#FEE2E2")
+        label = "KRITIEK"
 
-    from reportlab.graphics.shapes import Circle
-
-    # Outer ring
-    d.add(Circle(70, 70, 68, fillColor=main_color, strokeColor=None))
+    # Outer ring (colored)
+    d.add(Circle(center, center, size/2 - 2, fillColor=primary, strokeColor=None))
     # Inner circle (white)
-    d.add(Circle(70, 70, 58, fillColor=colors.white, strokeColor=None))
+    d.add(Circle(center, center, size/2 - 8, fillColor=colors.white, strokeColor=None))
     # Score number
-    d.add(String(70, 60, str(score), fontSize=48, fontName='Helvetica-Bold',
-                 fillColor=main_color, textAnchor='middle'))
-    # /100 text
-    d.add(String(70, 40, '/100', fontSize=12, fontName='Helvetica',
-                 fillColor=colors.HexColor("#9CA3AF"), textAnchor='middle'))
+    d.add(String(center, center - 5, str(score), fontSize=32, fontName='Helvetica-Bold',
+                 fillColor=primary, textAnchor='middle'))
+
+    return d, primary, label
+
+
+def create_horizontal_bar(score, width=120, height=8):
+    """Create a clean horizontal progress bar."""
+    d = Drawing(width + 30, height + 4)
+
+    # Determine color
+    if score >= 8:
+        fill_color = colors.HexColor("#059669")
+    elif score >= 6:
+        fill_color = colors.HexColor("#2563EB")
+    elif score >= 4:
+        fill_color = colors.HexColor("#D97706")
+    else:
+        fill_color = colors.HexColor("#DC2626")
+
+    # Background bar with rounded look
+    d.add(Rect(0, 2, width, height, fillColor=colors.HexColor("#E5E7EB"),
+               strokeColor=None, rx=4, ry=4))
+
+    # Filled portion
+    fill_width = max(4, (score / 10) * width)
+    d.add(Rect(0, 2, fill_width, height, fillColor=fill_color,
+               strokeColor=None, rx=4, ry=4))
 
     return d
 
 
 def generate_pdf_analysis_report(contact_name, company_name, vacancy_title, analysis_result, score=None, original_vacancy_text=""):
     """
-    BIJLAGE 1: Analyse Rapport (2 pagina's)
-    - Pagina 1: Score overzicht + ALLE 12 criteria met individuele scores
-    - Pagina 2: TOP QUICK WINS + WAT WE VERBETERD HEBBEN (voor/na)
+    BIJLAGE 1: Professioneel Analyse Rapport (2 pagina's)
+    - Consultancy-niveau design met clean layout
+    - Pagina 1: Score overview + 12 criteria breakdown
+    - Pagina 2: Quick Wins + Voor/Na vergelijking
     """
     from reportlab.platypus import PageBreak
 
-    # Parse analysis sections
     sections = parse_analysis_sections(analysis_result)
-
-    # Create PDF buffer
     buffer = io.BytesIO()
 
-    # Create document
-    doc = SimpleDocTemplate(
-        buffer,
-        pagesize=A4,
-        rightMargin=1.8*cm,
-        leftMargin=1.8*cm,
-        topMargin=1.2*cm,
-        bottomMargin=1.2*cm
-    )
-
-    page_width = A4[0] - 3.6*cm  # Usable width
-
-    # Score level determination
-    score_value = score if score else 0
-    if score_value >= 70:
-        score_color = SCORE_GREEN
-        score_label = "EXCELLENT"
-        score_emoji = "🏆"
-    elif score_value >= 50:
-        score_color = SCORE_BLUE
-        score_label = "GOED"
-        score_emoji = "✓"
-    elif score_value >= 30:
-        score_color = SCORE_YELLOW
-        score_label = "MATIG"
-        score_emoji = "⚠"
-    else:
-        score_color = SCORE_RED
-        score_label = "KRITIEK"
-        score_emoji = "✗"
-
-    story = []
-
-    # ═══════════════════════════════════════════════════════════════
-    # PAGINA 1: SCORE OVERZICHT + 12 CRITERIA
-    # ═══════════════════════════════════════════════════════════════
-
-    # === COMPACT HEADER ===
-    header = Table(
-        [[
-            Paragraph(
-                f"<font color='#FFFFFF' size='16'><b>VACATURE ANALYSE</b></font>",
-                ParagraphStyle('Header', leading=18)
-            ),
-            Paragraph(
-                f"<font color='#FFFFFF' size='9'><b>{company_name}</b><br/>{vacancy_title or 'Vacature'}</font>",
-                ParagraphStyle('HeaderRight', alignment=TA_RIGHT, leading=12)
-            )
-        ]],
-        colWidths=[page_width*0.6, page_width*0.4]
-    )
-    header.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), RECRUITIN_DARK),
-        ('TOPPADDING', (0, 0), (-1, -1), 12),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
-        ('LEFTPADDING', (0, 0), (-1, -1), 15),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 15),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-    ]))
-    story.append(header)
-    story.append(Spacer(1, 15))
-
-    # === SCORE HERO (Compact) ===
-    score_circle = create_score_circle_drawing(score_value)
-
-    score_hero = Table(
-        [[
-            score_circle,
-            Paragraph(
-                f"<font size='24' color='{score_color.hexval()}'><b>{score_label}</b></font><br/>"
-                f"<font size='10' color='#6B7280'>Gebaseerd op 12 professionele criteria</font>",
-                ParagraphStyle('ScoreLabel', leading=28)
-            )
-        ]],
-        colWidths=[4*cm, page_width - 4*cm]
-    )
-    score_hero.setStyle(TableStyle([
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('LEFTPADDING', (1, 0), (1, 0), 20),
-    ]))
-    story.append(score_hero)
-    story.append(Spacer(1, 18))
-
-    # === ALLE 12 CRITERIA MET SCORES ===
-    story.append(Paragraph(
-        "<font size='12' color='#1F2937'><b>SCORE PER CRITERIUM</b></font>",
-        ParagraphStyle('SectionTitle', spaceAfter=10)
-    ))
-
-    # Define all 12 criteria with Dutch labels
-    criteria_list = [
-        ('openingszin', 'Openingszin', 'Vangt de eerste zin direct de aandacht?'),
-        ('bedrijf', 'Bedrijfsprofiel', 'Wat maakt dit bedrijf uniek als werkgever?'),
-        ('rolklarheid', 'Rolklarheid', 'Zijn de dagelijkse taken concreet beschreven?'),
-        ('vereisten', 'Vereisten Realisme', 'Zijn de eisen realistisch voor het niveau?'),
-        ('groei', 'Groei-narratief', 'Zijn doorgroeimogelijkheden beschreven?'),
-        ('inclusie', 'Inclusie & Bias', 'Is de tekst genderneutraal en inclusief?'),
-        ('cialdini', 'Cialdini Triggers', 'Worden overtuigingsprincipes toegepast?'),
-        ('salaris', 'Salarisbenchmark', 'Is salarisindicatie marktconform?'),
-        ('cta', 'Call-to-Action', 'Is er een duidelijke sollicitatie-oproep?'),
-        ('competitief', 'Competitieve Delta', 'Wat onderscheidt deze vacature?'),
-        ('confidence', 'Confidence Score', 'Algehele professionaliteit van de tekst'),
-        ('implementatie', 'Implementatie', 'Hoe snel zijn verbeteringen toe te passen?'),
-    ]
-
-    # Build criteria table rows
-    criteria_rows = []
-    for i, (key, label, description) in enumerate(criteria_list, 1):
-        score_val = sections['scores'].get(key, 5)
-
-        # Score color
-        if score_val >= 8:
-            s_color = "#10B981"
-        elif score_val >= 6:
-            s_color = "#3B82F6"
-        elif score_val >= 4:
-            s_color = "#F59E0B"
-        else:
-            s_color = "#EF4444"
-
-        # Visual bar (using unicode blocks)
-        filled = int(score_val)
-        empty = 10 - filled
-        bar = "█" * filled + "░" * empty
-
-        row = [
-            Paragraph(f"<font size='8' color='#6B7280'>{i}.</font>", ParagraphStyle('Num')),
-            Paragraph(f"<font size='9' color='#1F2937'><b>{label}</b></font>", ParagraphStyle('Label')),
-            Paragraph(f"<font size='8' color='{s_color}'>{bar}</font>", ParagraphStyle('Bar', fontName='Helvetica')),
-            Paragraph(f"<font size='10' color='{s_color}'><b>{score_val}/10</b></font>", ParagraphStyle('Score', alignment=TA_RIGHT)),
-        ]
-        criteria_rows.append(row)
-
-    criteria_table = Table(
-        criteria_rows,
-        colWidths=[0.6*cm, 3.8*cm, 7*cm, 1.5*cm]
-    )
-    criteria_table.setStyle(TableStyle([
-        ('TOPPADDING', (0, 0), (-1, -1), 5),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 5),
-        ('LEFTPADDING', (0, 0), (-1, -1), 3),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 3),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-        ('LINEBELOW', (0, 0), (-1, -2), 0.5, colors.HexColor("#E5E7EB")),
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#F9FAFB")),
-    ]))
-    story.append(criteria_table)
-
-    # === QUICK SUMMARY BOX ===
-    story.append(Spacer(1, 15))
-
-    # Find top 2 strengths and weaknesses
-    all_scores = [(k, v) for k, v in sections['scores'].items()]
-    sorted_scores = sorted(all_scores, key=lambda x: x[1], reverse=True)
-
-    strengths = [s for s in sorted_scores if s[1] >= 7][:2]
-    weaknesses = [s for s in sorted_scores if s[1] <= 5][:2]
-
-    # Label lookup
-    label_map = {k: v for k, v, _ in criteria_list}
-
-    summary_text = "<font size='10' color='#1F2937'><b>In één oogopslag:</b></font><br/>"
-    if strengths:
-        summary_text += "<font size='9' color='#10B981'>✓ Sterk: "
-        summary_text += ", ".join([label_map.get(s[0], s[0]) for s in strengths])
-        summary_text += "</font><br/>"
-    if weaknesses:
-        summary_text += "<font size='9' color='#EF4444'>✗ Aandacht nodig: "
-        summary_text += ", ".join([label_map.get(s[0], s[0]) for s in weaknesses])
-        summary_text += "</font>"
-
-    summary_box = Table(
-        [[Paragraph(summary_text, ParagraphStyle('Summary', leading=14))]],
-        colWidths=[page_width]
-    )
-    summary_box.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#F0F9FF")),
-        ('TOPPADDING', (0, 0), (-1, -1), 10),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-        ('LEFTPADDING', (0, 0), (-1, -1), 12),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 12),
-        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#3B82F6")),
-    ]))
-    story.append(summary_box)
-
-    # ═══════════════════════════════════════════════════════════════
-    # PAGINA 2: QUICK WINS + VOOR/NA VERGELIJKING
-    # ═══════════════════════════════════════════════════════════════
-    story.append(PageBreak())
-
-    # === PAGE 2 HEADER ===
-    header2 = Table(
-        [[
-            Paragraph(
-                f"<font color='#FFFFFF' size='14'><b>WAT WE VERBETERD HEBBEN</b></font>",
-                ParagraphStyle('Header2', leading=16)
-            ),
-            Paragraph(
-                f"<font color='#9CA3AF' size='9'>Pagina 2/2</font>",
-                ParagraphStyle('PageNum', alignment=TA_RIGHT)
-            )
-        ]],
-        colWidths=[page_width*0.8, page_width*0.2]
-    )
-    header2.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), RECRUITIN_DARK),
-        ('TOPPADDING', (0, 0), (-1, -1), 10),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
-        ('LEFTPADDING', (0, 0), (-1, -1), 15),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 15),
-        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-    ]))
-    story.append(header2)
-    story.append(Spacer(1, 15))
-
-    # === TOP 3 QUICK WINS ===
-    story.append(Paragraph(
-        "<font size='12' color='#FF6B35'><b>🚀 TOP 3 QUICK WINS</b></font>",
-        ParagraphStyle('QuickWinTitle', spaceAfter=10)
-    ))
-
-    if sections['quick_wins']:
-        for i, win in enumerate(sections['quick_wins'][:3], 1):
-            win_text = win[:180] + "..." if len(win) > 180 else win
-            win_row = Table(
-                [[
-                    Paragraph(f"<font size='12' color='#FF6B35'><b>{i}</b></font>", ParagraphStyle('WinNum', alignment=TA_CENTER)),
-                    Paragraph(f"<font size='9' color='#374151'>{win_text}</font>", ParagraphStyle('WinText', leading=13))
-                ]],
-                colWidths=[0.8*cm, page_width - 0.8*cm]
-            )
-            win_row.setStyle(TableStyle([
-                ('BACKGROUND', (0, 0), (0, -1), colors.HexColor("#FFF7ED")),
-                ('TOPPADDING', (0, 0), (-1, -1), 8),
-                ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-                ('LEFTPADDING', (0, 0), (-1, -1), 6),
-                ('RIGHTPADDING', (0, 0), (-1, -1), 8),
-                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
-                ('BOX', (0, 0), (-1, -1), 0.5, colors.HexColor("#FDBA74")),
-            ]))
-            story.append(win_row)
-            story.append(Spacer(1, 5))
-
-    story.append(Spacer(1, 15))
-
-    # === VOOR / NA VERGELIJKING ===
-    story.append(Paragraph(
-        "<font size='12' color='#1F2937'><b>📝 VOOR / NA VERGELIJKING</b></font>",
-        ParagraphStyle('CompareTitle', spaceAfter=10)
-    ))
-
-    # Extract first 150 chars of original for comparison
-    original_snippet = original_vacancy_text[:200] + "..." if len(original_vacancy_text) > 200 else original_vacancy_text
-    original_snippet = original_snippet.replace('\n', ' ').strip()
-
-    # Extract first part of improved text
-    improved_snippet = sections['improved_text'][:200] + "..." if len(sections['improved_text']) > 200 else sections['improved_text']
-    improved_snippet = improved_snippet.replace('\n', ' ').replace('**', '').replace('##', '').strip()
-
-    # VOOR box
-    voor_box = Table(
-        [[
-            Paragraph("<font size='9' color='#EF4444'><b>VOOR</b></font>", ParagraphStyle('VoorLabel')),
-        ],
-        [
-            Paragraph(f"<font size='8' color='#6B7280'><i>{original_snippet or 'Originele tekst niet beschikbaar'}</i></font>",
-                     ParagraphStyle('VoorText', leading=11))
-        ]],
-        colWidths=[page_width]
-    )
-    voor_box.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#FEE2E2")),
-        ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#FEF2F2")),
-        ('TOPPADDING', (0, 0), (-1, -1), 8),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-        ('LEFTPADDING', (0, 0), (-1, -1), 10),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 10),
-        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#FECACA")),
-    ]))
-    story.append(voor_box)
-    story.append(Spacer(1, 8))
-
-    # NA box
-    na_box = Table(
-        [[
-            Paragraph("<font size='9' color='#10B981'><b>NA</b></font>", ParagraphStyle('NaLabel')),
-        ],
-        [
-            Paragraph(f"<font size='8' color='#374151'>{improved_snippet or 'Verbeterde tekst wordt gegenereerd...'}</font>",
-                     ParagraphStyle('NaText', leading=11))
-        ]],
-        colWidths=[page_width]
-    )
-    na_box.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor("#D1FAE5")),
-        ('BACKGROUND', (0, 1), (-1, 1), colors.HexColor("#ECFDF5")),
-        ('TOPPADDING', (0, 0), (-1, -1), 8),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-        ('LEFTPADDING', (0, 0), (-1, -1), 10),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 10),
-        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#A7F3D0")),
-    ]))
-    story.append(na_box)
-
-    story.append(Spacer(1, 15))
-
-    # === CIALDINI TIPS (if available) ===
-    if sections['cialdini_tips']:
-        story.append(Paragraph(
-            "<font size='10' color='#6B7280'><b>💡 CIALDINI POWER-UPS</b></font>",
-            ParagraphStyle('CialdiniTitle', spaceAfter=6)
-        ))
-        for tip in sections['cialdini_tips'][:3]:
-            tip_text = tip[:140] + "..." if len(tip) > 140 else tip
-            story.append(Paragraph(
-                f"<font size='8' color='#6B7280'>• {tip_text}</font>",
-                ParagraphStyle('CialdiniTip', leading=11, leftIndent=8, spaceBefore=2, spaceAfter=2)
-            ))
-
-    # === FOOTER ===
-    story.append(Spacer(1, 20))
-    footer = Table(
-        [[
-            Paragraph(
-                "<font color='#9CA3AF' size='7'><b>Recruitin B.V.</b> | info@recruitin.nl | www.kandidatentekort.nl</font>",
-                ParagraphStyle('FooterLeft', alignment=TA_LEFT)
-            ),
-            Paragraph(
-                f"<font color='#9CA3AF' size='7'>{datetime.now().strftime('%d-%m-%Y')} | Vertrouwelijk</font>",
-                ParagraphStyle('FooterRight', alignment=TA_RIGHT)
-            )
-        ]],
-        colWidths=[page_width*0.6, page_width*0.4]
-    )
-    footer.setStyle(TableStyle([
-        ('LINEABOVE', (0, 0), (-1, -1), 0.5, colors.HexColor("#E5E7EB")),
-        ('TOPPADDING', (0, 0), (-1, -1), 8),
-    ]))
-    story.append(footer)
-
-    # Build PDF
-    doc.build(story)
-
-    pdf_content = buffer.getvalue()
-    buffer.close()
-
-    logger.info(f"PDF Bijlage 1 (Analyse Rapport) generated for {company_name}, size: {len(pdf_content)} bytes")
-    return pdf_content
-
-
-def generate_pdf_vacancy_text(company_name, vacancy_title, analysis_result):
-    """
-    BIJLAGE 2: Geoptimaliseerde Vacaturetekst (1 pagina)
-    - Clean, copy-paste ready versie van de verbeterde vacaturetekst
-    """
-
-    # Parse analysis sections
-    sections = parse_analysis_sections(analysis_result)
-
-    if not sections['improved_text']:
-        return None
-
-    # Create PDF buffer
-    buffer = io.BytesIO()
-
-    # Create document
+    # A4 document met professionele margins
     doc = SimpleDocTemplate(
         buffer,
         pagesize=A4,
@@ -755,110 +408,640 @@ def generate_pdf_vacancy_text(company_name, vacancy_title, analysis_result):
     )
 
     page_width = A4[0] - 4*cm
+    score_value = score if score else 0
+
+    # Score classification
+    if score_value >= 70:
+        score_color = SCORE_GREEN
+        score_label = "EXCELLENT"
+        score_desc = "Uw vacature scoort bovengemiddeld"
+    elif score_value >= 50:
+        score_color = SCORE_BLUE
+        score_label = "GOED"
+        score_desc = "Solide basis met verbeterpotentieel"
+    elif score_value >= 30:
+        score_color = SCORE_YELLOW
+        score_label = "MATIG"
+        score_desc = "Significante verbeteringen mogelijk"
+    else:
+        score_color = SCORE_RED
+        score_label = "KRITIEK"
+        score_desc = "Directe aandacht vereist"
 
     story = []
 
-    # === COMPACT HEADER ===
-    header = Table(
-        [[
-            Paragraph(
-                f"<font color='#FFFFFF' size='14'><b>GEOPTIMALISEERDE VACATURETEKST</b></font>",
-                ParagraphStyle('Header', leading=16)
-            ),
-            Paragraph(
-                f"<font color='#10B981' size='9'><b>✓ READY TO USE</b></font>",
-                ParagraphStyle('Badge', alignment=TA_RIGHT)
-            )
-        ]],
-        colWidths=[page_width*0.7, page_width*0.3]
-    )
+    # ═══════════════════════════════════════════════════════════════
+    # PAGINA 1: PROFESSIONAL HEADER + SCORE + CRITERIA
+    # ═══════════════════════════════════════════════════════════════
+
+    # === HEADER BAR ===
+    header_data = [[
+        Paragraph(
+            f"<font color='#FFFFFF' size='18'><b>VACATURE ANALYSE</b></font>",
+            ParagraphStyle('H1', fontName='Helvetica-Bold', leading=22)
+        ),
+        Paragraph(
+            f"<font color='#FF6B35' size='9'>kandidatentekort.nl</font>",
+            ParagraphStyle('Brand', alignment=TA_RIGHT)
+        )
+    ]]
+    header = Table(header_data, colWidths=[page_width*0.75, page_width*0.25])
     header.setStyle(TableStyle([
         ('BACKGROUND', (0, 0), (-1, -1), RECRUITIN_DARK),
-        ('TOPPADDING', (0, 0), (-1, -1), 12),
-        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
-        ('LEFTPADDING', (0, 0), (-1, -1), 15),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 15),
+        ('TOPPADDING', (0, 0), (-1, -1), 14),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 14),
+        ('LEFTPADDING', (0, 0), (-1, -1), 18),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 18),
         ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
     ]))
     story.append(header)
 
-    # === SUBTITLE ===
-    story.append(Spacer(1, 10))
-    story.append(Paragraph(
-        f"<font size='11' color='#1F2937'><b>{company_name}</b> | {vacancy_title or 'Vacature'}</font>",
-        ParagraphStyle('Subtitle', alignment=TA_CENTER, spaceAfter=15)
-    ))
-
-    # === VACATURETEKST ===
-    improved_text = sections['improved_text']
-
-    # Split into paragraphs
-    paragraphs = [p.strip() for p in improved_text.split('\n\n') if p.strip()]
-    if len(paragraphs) < 2:
-        paragraphs = [p.strip() for p in improved_text.split('\n') if p.strip()]
-
-    for para in paragraphs[:20]:  # Max 20 paragraphs
-        # Clean up markdown
-        para = para.replace('**', '')
-        para = para.replace('##', '')
-        para = para.strip('# ')
-
-        if not para:
-            continue
-
-        # Detect headers (short lines)
-        if len(para) < 50 and not para.endswith('.') and not para.endswith(':'):
-            story.append(Paragraph(
-                f"<font size='11' color='#1F2937'><b>{para}</b></font>",
-                ParagraphStyle('SubHead', spaceBefore=12, spaceAfter=4)
-            ))
-        else:
-            story.append(Paragraph(
-                f"<font size='10' color='#374151'>{para}</font>",
-                ParagraphStyle('BodyText', leading=14, spaceBefore=3, spaceAfter=6, alignment=TA_JUSTIFY)
-            ))
-
-    # === TIP FOOTER ===
-    story.append(Spacer(1, 20))
-    tip = Table(
-        [[Paragraph(
-            "<font size='8' color='#6B7280'><i>💡 Tip: Kopieer deze tekst direct naar je ATS of vacatureplatform. "
-            "Alle verbeteringen zijn al toegepast.</i></font>",
-            ParagraphStyle('Tip', alignment=TA_CENTER)
-        )]],
-        colWidths=[page_width]
-    )
-    tip.setStyle(TableStyle([
-        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#F0F9FF")),
+    # === SUB-HEADER INFO ===
+    story.append(Spacer(1, 2))
+    subheader_data = [[
+        Paragraph(
+            f"<font color='#4B5563' size='10'>{company_name}</font>",
+            ParagraphStyle('Company')
+        ),
+        Paragraph(
+            f"<font color='#6B7280' size='9'>{datetime.now().strftime('%d %B %Y')}</font>",
+            ParagraphStyle('Date', alignment=TA_RIGHT)
+        )
+    ]]
+    subheader = Table(subheader_data, colWidths=[page_width*0.6, page_width*0.4])
+    subheader.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), COLOR_BG_SUBTLE),
         ('TOPPADDING', (0, 0), (-1, -1), 8),
         ('BOTTOMPADDING', (0, 0), (-1, -1), 8),
-        ('LEFTPADDING', (0, 0), (-1, -1), 10),
-        ('RIGHTPADDING', (0, 0), (-1, -1), 10),
+        ('LEFTPADDING', (0, 0), (-1, -1), 18),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 18),
+        ('LINEBELOW', (0, 0), (-1, -1), 1, COLOR_BORDER),
     ]))
-    story.append(tip)
+    story.append(subheader)
+    story.append(Spacer(1, 20))
+
+    # === SCORE HERO SECTION ===
+    score_badge, badge_color, badge_label = create_professional_score_badge(score_value, 90)
+
+    score_hero_data = [[
+        score_badge,
+        Table([[
+            Paragraph(
+                f"<font size='28' color='{score_color.hexval()}'><b>{score_value}</b></font>"
+                f"<font size='14' color='#9CA3AF'>/100</font>",
+                ParagraphStyle('BigScore', leading=35)
+            )
+        ], [
+            Paragraph(
+                f"<font size='14' color='{score_color.hexval()}'><b>{score_label}</b></font>",
+                ParagraphStyle('ScoreLabel', spaceBefore=2)
+            )
+        ], [
+            Paragraph(
+                f"<font size='9' color='#6B7280'>{score_desc}</font>",
+                ParagraphStyle('ScoreDesc', spaceBefore=4)
+            )
+        ]], colWidths=[page_width*0.45])
+    ]]
+
+    score_hero = Table(score_hero_data, colWidths=[3.5*cm, page_width - 3.5*cm])
+    score_hero.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('LEFTPADDING', (1, 0), (1, 0), 20),
+        ('TOPPADDING', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+    ]))
+
+    # Wrap in a box
+    score_box = Table([[score_hero]], colWidths=[page_width])
+    score_box.setStyle(TableStyle([
+        ('BOX', (0, 0), (-1, -1), 1, COLOR_BORDER),
+        ('BACKGROUND', (0, 0), (-1, -1), colors.white),
+        ('TOPPADDING', (0, 0), (-1, -1), 15),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
+        ('LEFTPADDING', (0, 0), (-1, -1), 15),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 15),
+    ]))
+    story.append(score_box)
+    story.append(Spacer(1, 20))
+
+    # === SECTION: SCORE PER CRITERIUM ===
+    section_title = Paragraph(
+        "<font size='12' color='#111827'><b>SCORE PER CRITERIUM</b></font>",
+        ParagraphStyle('SectionTitle', spaceBefore=5, spaceAfter=12)
+    )
+    story.append(section_title)
+
+    # 12 criteria in 2 columns
+    criteria_list = [
+        ('openingszin', 'Openingszin', 'Eerste indruk'),
+        ('bedrijf', 'Bedrijfsprofiel', 'Werkgeversimago'),
+        ('rolklarheid', 'Rolklarheid', 'Takenbeschrijving'),
+        ('vereisten', 'Vereisten', 'Realistische eisen'),
+        ('groei', 'Groeiperspectief', 'Ontwikkeling'),
+        ('inclusie', 'Inclusiviteit', 'Bias-vrij'),
+        ('cialdini', 'Overtuigingskracht', 'Cialdini principes'),
+        ('salaris', 'Salarisindicatie', 'Marktconform'),
+        ('cta', 'Call-to-Action', 'Sollicitatie-oproep'),
+        ('competitief', 'Onderscheidend', 'Competitieve kracht'),
+        ('confidence', 'Professionaliteit', 'Algehele kwaliteit'),
+        ('implementatie', 'Implementatie', 'Uitvoerbaarheid'),
+    ]
+
+    # Build criteria rows - 2 columns layout
+    left_criteria = criteria_list[:6]
+    right_criteria = criteria_list[6:]
+
+    def make_criteria_cell(key, label, sublabel):
+        score_val = sections['scores'].get(key, 5)
+        if score_val >= 8:
+            s_color = "#059669"
+            s_bg = "#ECFDF5"
+        elif score_val >= 6:
+            s_color = "#2563EB"
+            s_bg = "#EFF6FF"
+        elif score_val >= 4:
+            s_color = "#D97706"
+            s_bg = "#FFFBEB"
+        else:
+            s_color = "#DC2626"
+            s_bg = "#FEF2F2"
+
+        bar = create_horizontal_bar(score_val, width=80, height=6)
+
+        cell_content = Table([
+            [
+                Paragraph(f"<font size='9' color='#111827'><b>{label}</b></font>",
+                         ParagraphStyle('CriteriaLabel')),
+                Paragraph(f"<font size='11' color='{s_color}'><b>{score_val}</b></font>",
+                         ParagraphStyle('CriteriaScore', alignment=TA_RIGHT))
+            ],
+            [bar, ''],
+        ], colWidths=[page_width*0.35, page_width*0.1])
+
+        cell_content.setStyle(TableStyle([
+            ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ('TOPPADDING', (0, 0), (-1, -1), 4),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+            ('LEFTPADDING', (0, 0), (-1, -1), 0),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+            ('SPAN', (0, 1), (1, 1)),
+        ]))
+
+        return cell_content
+
+    criteria_rows = []
+    for i in range(6):
+        left = left_criteria[i]
+        right = right_criteria[i]
+        row = [
+            make_criteria_cell(*left),
+            Spacer(10, 1),
+            make_criteria_cell(*right)
+        ]
+        criteria_rows.append(row)
+
+    criteria_table = Table(
+        criteria_rows,
+        colWidths=[page_width*0.45, page_width*0.1, page_width*0.45]
+    )
+    criteria_table.setStyle(TableStyle([
+        ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+        ('TOPPADDING', (0, 0), (-1, -1), 6),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 6),
+        ('LINEBELOW', (0, 0), (0, -2), 0.5, COLOR_BORDER),
+        ('LINEBELOW', (2, 0), (2, -2), 0.5, COLOR_BORDER),
+    ]))
+
+    # Wrap criteria in box
+    criteria_box = Table([[criteria_table]], colWidths=[page_width])
+    criteria_box.setStyle(TableStyle([
+        ('BOX', (0, 0), (-1, -1), 1, COLOR_BORDER),
+        ('BACKGROUND', (0, 0), (-1, -1), colors.white),
+        ('TOPPADDING', (0, 0), (-1, -1), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+        ('LEFTPADDING', (0, 0), (-1, -1), 15),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 15),
+    ]))
+    story.append(criteria_box)
+
+    # === INSIGHT BOX ===
+    story.append(Spacer(1, 15))
+
+    all_scores = [(k, v) for k, v in sections['scores'].items()]
+    sorted_scores = sorted(all_scores, key=lambda x: x[1], reverse=True)
+    strengths = [s for s in sorted_scores if s[1] >= 7][:2]
+    weaknesses = [s for s in sorted_scores if s[1] <= 4][:2]
+
+    label_map = {k: v for k, v, _ in criteria_list}
+
+    insight_parts = []
+    if strengths:
+        strength_names = ", ".join([label_map.get(s[0], s[0]) for s in strengths])
+        insight_parts.append(f"<font color='#059669'>✓ Sterktes: {strength_names}</font>")
+    if weaknesses:
+        weak_names = ", ".join([label_map.get(s[0], s[0]) for s in weaknesses])
+        insight_parts.append(f"<font color='#DC2626'>⚠ Focus: {weak_names}</font>")
+
+    insight_text = "<font size='10' color='#111827'><b>Kernpunten</b></font><br/><br/>"
+    insight_text += "<br/>".join([f"<font size='9'>{p}</font>" for p in insight_parts])
+
+    insight_box = Table([[
+        Paragraph(insight_text, ParagraphStyle('Insight', leading=16))
+    ]], colWidths=[page_width])
+    insight_box.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#F0F9FF")),
+        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#BAE6FD")),
+        ('TOPPADDING', (0, 0), (-1, -1), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+        ('LEFTPADDING', (0, 0), (-1, -1), 15),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 15),
+    ]))
+    story.append(insight_box)
+
+    # ═══════════════════════════════════════════════════════════════
+    # PAGINA 2: QUICK WINS + VOOR/NA
+    # ═══════════════════════════════════════════════════════════════
+    story.append(PageBreak())
+
+    # === PAGE 2 HEADER ===
+    header2_data = [[
+        Paragraph(
+            "<font color='#FFFFFF' size='16'><b>VERBETERADVIES</b></font>",
+            ParagraphStyle('H2', leading=20)
+        ),
+        Paragraph(
+            "<font color='#9CA3AF' size='9'>Pagina 2/2</font>",
+            ParagraphStyle('PageNum', alignment=TA_RIGHT)
+        )
+    ]]
+    header2 = Table(header2_data, colWidths=[page_width*0.75, page_width*0.25])
+    header2.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), RECRUITIN_DARK),
+        ('TOPPADDING', (0, 0), (-1, -1), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+        ('LEFTPADDING', (0, 0), (-1, -1), 18),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 18),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    ]))
+    story.append(header2)
+    story.append(Spacer(1, 20))
+
+    # === TOP 3 QUICK WINS ===
+    story.append(Paragraph(
+        "<font size='12' color='#111827'><b>TOP 3 VERBETERPUNTEN</b></font>",
+        ParagraphStyle('WinsTitle', spaceAfter=12)
+    ))
+
+    if sections['quick_wins']:
+        for i, win in enumerate(sections['quick_wins'][:3], 1):
+            win_text = win[:200] + "..." if len(win) > 200 else win
+
+            win_row = Table([[
+                Paragraph(
+                    f"<font size='16' color='#FF6B35'><b>{i}</b></font>",
+                    ParagraphStyle('WinNum', alignment=TA_CENTER)
+                ),
+                Paragraph(
+                    f"<font size='10' color='#374151'>{win_text}</font>",
+                    ParagraphStyle('WinText', leading=14)
+                )
+            ]], colWidths=[1.2*cm, page_width - 1.2*cm])
+
+            win_row.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (0, -1), colors.HexColor("#FFF7ED")),
+                ('BACKGROUND', (1, 0), (1, -1), colors.white),
+                ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#FDBA74")),
+                ('TOPPADDING', (0, 0), (-1, -1), 12),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+                ('LEFTPADDING', (0, 0), (-1, -1), 10),
+                ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+            ]))
+            story.append(win_row)
+            story.append(Spacer(1, 8))
+
+    story.append(Spacer(1, 15))
+
+    # === VOOR / NA VERGELIJKING ===
+    story.append(Paragraph(
+        "<font size='12' color='#111827'><b>VOOR &amp; NA VERGELIJKING</b></font>",
+        ParagraphStyle('CompareTitle', spaceAfter=12)
+    ))
+
+    # Original text snippet
+    original_snippet = original_vacancy_text[:250] + "..." if len(original_vacancy_text) > 250 else original_vacancy_text
+    original_snippet = original_snippet.replace('\n', ' ').replace('<', '&lt;').replace('>', '&gt;').strip()
+
+    # Improved text snippet
+    improved_snippet = sections['improved_text'][:250] + "..." if len(sections['improved_text']) > 250 else sections['improved_text']
+    improved_snippet = improved_snippet.replace('\n', ' ').replace('**', '').replace('##', '').replace('<', '&lt;').replace('>', '&gt;').strip()
+
+    # VOOR section
+    voor_content = Table([
+        [Paragraph("<font size='9' color='#DC2626'><b>VOOR</b></font> <font size='8' color='#9CA3AF'>Originele tekst</font>",
+                   ParagraphStyle('VoorLabel'))],
+        [Paragraph(f"<font size='9' color='#6B7280'><i>\"{original_snippet or 'Originele tekst niet beschikbaar'}\"</i></font>",
+                   ParagraphStyle('VoorText', leading=13, spaceBefore=6))]
+    ], colWidths=[page_width])
+    voor_content.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#FEF2F2")),
+        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#FECACA")),
+        ('TOPPADDING', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+        ('LEFTPADDING', (0, 0), (-1, -1), 12),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+    ]))
+    story.append(voor_content)
+    story.append(Spacer(1, 10))
+
+    # Arrow
+    story.append(Paragraph(
+        "<font size='14' color='#9CA3AF'>↓</font>",
+        ParagraphStyle('Arrow', alignment=TA_CENTER)
+    ))
+    story.append(Spacer(1, 10))
+
+    # NA section
+    na_content = Table([
+        [Paragraph("<font size='9' color='#059669'><b>NA</b></font> <font size='8' color='#9CA3AF'>Geoptimaliseerde tekst</font>",
+                   ParagraphStyle('NaLabel'))],
+        [Paragraph(f"<font size='9' color='#374151'>\"{improved_snippet or 'Verbeterde tekst wordt gegenereerd...'}\"</font>",
+                   ParagraphStyle('NaText', leading=13, spaceBefore=6))]
+    ], colWidths=[page_width])
+    na_content.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#ECFDF5")),
+        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#A7F3D0")),
+        ('TOPPADDING', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+        ('LEFTPADDING', (0, 0), (-1, -1), 12),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 12),
+    ]))
+    story.append(na_content)
 
     # === FOOTER ===
-    story.append(Spacer(1, 15))
-    footer = Table(
-        [[Paragraph(
-            f"<font color='#9CA3AF' size='7'>Recruitin B.V. | {datetime.now().strftime('%d-%m-%Y')}</font>",
-            ParagraphStyle('Footer', alignment=TA_CENTER)
-        )]],
-        colWidths=[page_width]
-    )
+    story.append(Spacer(1, 25))
+    footer = Table([[
+        Paragraph(
+            "<font color='#9CA3AF' size='8'><b>Recruitin B.V.</b> | info@recruitin.nl | kandidatentekort.nl</font>",
+            ParagraphStyle('FooterLeft')
+        ),
+        Paragraph(
+            f"<font color='#9CA3AF' size='8'>Rapport gegenereerd: {datetime.now().strftime('%d-%m-%Y %H:%M')}</font>",
+            ParagraphStyle('FooterRight', alignment=TA_RIGHT)
+        )
+    ]], colWidths=[page_width*0.55, page_width*0.45])
     footer.setStyle(TableStyle([
-        ('LINEABOVE', (0, 0), (-1, -1), 0.5, colors.HexColor("#E5E7EB")),
-        ('TOPPADDING', (0, 0), (-1, -1), 8),
+        ('LINEABOVE', (0, 0), (-1, -1), 1, COLOR_BORDER),
+        ('TOPPADDING', (0, 0), (-1, -1), 10),
     ]))
     story.append(footer)
 
     # Build PDF
     doc.build(story)
-
     pdf_content = buffer.getvalue()
     buffer.close()
 
-    logger.info(f"PDF Bijlage 2 (Vacaturetekst) generated for {company_name}, size: {len(pdf_content)} bytes")
+    logger.info(f"Professional PDF Bijlage 1 generated for {company_name}, size: {len(pdf_content)} bytes")
+    return pdf_content
+
+
+# ════════════════════════════════════════════════════════════════════════════
+# BIJLAGE 2: GEOPTIMALISEERDE VACATURETEKST
+# ════════════════════════════════════════════════════════════════════════════
+
+def generate_pdf_vacancy_text(company_name, vacancy_title, analysis_result):
+    """
+    BIJLAGE 2: Professionele Geoptimaliseerde Vacaturetekst
+    - Executive-level document design
+    - Ready-to-use vacaturetekst met professional formatting
+    - Clean typography en branded styling
+    """
+
+    sections = parse_analysis_sections(analysis_result)
+
+    if not sections['improved_text']:
+        return None
+
+    buffer = io.BytesIO()
+
+    # A4 document met ruime margins voor leesbaarheid
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=2.2*cm,
+        leftMargin=2.2*cm,
+        topMargin=1.5*cm,
+        bottomMargin=1.5*cm
+    )
+
+    page_width = A4[0] - 4.4*cm
+
+    story = []
+
+    # ═══════════════════════════════════════════════════════════════
+    # PROFESSIONAL HEADER BAR
+    # ═══════════════════════════════════════════════════════════════
+
+    header_data = [[
+        Paragraph(
+            "<font color='#FFFFFF' size='16'><b>VACATURETEKST</b></font>",
+            ParagraphStyle('H1', fontName='Helvetica-Bold', leading=20)
+        ),
+        Table([[
+            Paragraph(
+                "<font color='#10B981' size='8'><b>✓ GEOPTIMALISEERD</b></font>",
+                ParagraphStyle('Badge', alignment=TA_CENTER)
+            )
+        ]], colWidths=[2.8*cm])
+    ]]
+
+    header = Table(header_data, colWidths=[page_width - 3*cm, 3*cm])
+    header.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), RECRUITIN_DARK),
+        ('BACKGROUND', (1, 0), (1, 0), colors.HexColor("#064E3B")),
+        ('TOPPADDING', (0, 0), (-1, -1), 14),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 14),
+        ('LEFTPADDING', (0, 0), (0, 0), 20),
+        ('RIGHTPADDING', (1, 0), (1, 0), 10),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+    ]))
+    story.append(header)
+
+    # === SUB-HEADER MET BEDRIJFSINFO ===
+    story.append(Spacer(1, 2))
+
+    subheader_data = [[
+        Paragraph(
+            f"<font color='#374151' size='11'><b>{company_name}</b></font>",
+            ParagraphStyle('Company')
+        ),
+        Paragraph(
+            f"<font color='#6B7280' size='9'>{vacancy_title or 'Vacature'}</font>",
+            ParagraphStyle('Role', alignment=TA_RIGHT)
+        )
+    ]]
+    subheader = Table(subheader_data, colWidths=[page_width*0.55, page_width*0.45])
+    subheader.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), COLOR_BG_SUBTLE),
+        ('TOPPADDING', (0, 0), (-1, -1), 10),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+        ('LEFTPADDING', (0, 0), (-1, -1), 18),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 18),
+        ('LINEBELOW', (0, 0), (-1, -1), 1, COLOR_BORDER),
+    ]))
+    story.append(subheader)
+    story.append(Spacer(1, 20))
+
+    # ═══════════════════════════════════════════════════════════════
+    # DOCUMENT CONTENT - VACATURETEKST
+    # ═══════════════════════════════════════════════════════════════
+
+    improved_text = sections['improved_text']
+
+    # Clean en split de tekst in secties
+    paragraphs = [p.strip() for p in improved_text.split('\n\n') if p.strip()]
+    if len(paragraphs) < 2:
+        paragraphs = [p.strip() for p in improved_text.split('\n') if p.strip()]
+
+    # Content container met subtiele border
+    content_rows = []
+
+    for para in paragraphs[:25]:  # Max 25 paragraphs
+        # Clean markdown
+        para = para.replace('**', '').replace('##', '').strip('# ').strip()
+
+        if not para:
+            continue
+
+        # Escape HTML entities
+        para = para.replace('<', '&lt;').replace('>', '&gt;')
+
+        # Detect section headers (korte regels zonder leestekens aan eind)
+        is_header = (
+            len(para) < 60 and
+            not para.endswith('.') and
+            not para.endswith(',') and
+            not para.endswith(':') and
+            not para.startswith('-') and
+            not para.startswith('•')
+        )
+
+        if is_header:
+            # Section header styling
+            content_rows.append([
+                Paragraph(
+                    f"<font size='11' color='#111827'><b>{para}</b></font>",
+                    ParagraphStyle('SectionHead',
+                                  spaceBefore=14,
+                                  spaceAfter=6,
+                                  borderPadding=0)
+                )
+            ])
+        elif para.startswith('-') or para.startswith('•'):
+            # Bullet point
+            clean_para = para.lstrip('-•').strip()
+            content_rows.append([
+                Paragraph(
+                    f"<font size='10' color='#374151'>• {clean_para}</font>",
+                    ParagraphStyle('BulletPoint',
+                                  leading=15,
+                                  leftIndent=12,
+                                  spaceBefore=3,
+                                  spaceAfter=3)
+                )
+            ])
+        else:
+            # Normal paragraph
+            content_rows.append([
+                Paragraph(
+                    f"<font size='10' color='#374151'>{para}</font>",
+                    ParagraphStyle('BodyText',
+                                  leading=15,
+                                  spaceBefore=4,
+                                  spaceAfter=8,
+                                  alignment=TA_JUSTIFY)
+                )
+            ])
+
+    if content_rows:
+        content_table = Table(content_rows, colWidths=[page_width - 30])
+        content_table.setStyle(TableStyle([
+            ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ('TOPPADDING', (0, 0), (-1, -1), 2),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 2),
+            ('LEFTPADDING', (0, 0), (-1, -1), 0),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 0),
+        ]))
+
+        # Wrap content in styled box
+        content_box = Table([[content_table]], colWidths=[page_width])
+        content_box.setStyle(TableStyle([
+            ('BOX', (0, 0), (-1, -1), 1, COLOR_BORDER),
+            ('BACKGROUND', (0, 0), (-1, -1), colors.white),
+            ('TOPPADDING', (0, 0), (-1, -1), 18),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 18),
+            ('LEFTPADDING', (0, 0), (-1, -1), 20),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 20),
+        ]))
+        story.append(content_box)
+
+    # ═══════════════════════════════════════════════════════════════
+    # PROFESSIONAL TIP BOX
+    # ═══════════════════════════════════════════════════════════════
+    story.append(Spacer(1, 18))
+
+    tip_content = Table([[
+        Paragraph(
+            "<font size='10' color='#0369A1'><b>Klaar voor gebruik</b></font>",
+            ParagraphStyle('TipTitle')
+        )
+    ], [
+        Paragraph(
+            "<font size='9' color='#0C4A6E'>Deze vacaturetekst is geoptimaliseerd op basis van 12 professionele criteria. "
+            "Kopieer de tekst direct naar je ATS, LinkedIn of vacatureplatform.</font>",
+            ParagraphStyle('TipText', leading=13, spaceBefore=4)
+        )
+    ]], colWidths=[page_width])
+
+    tip_content.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#E0F2FE")),
+        ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#7DD3FC")),
+        ('TOPPADDING', (0, 0), (-1, -1), 12),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 12),
+        ('LEFTPADDING', (0, 0), (-1, -1), 15),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 15),
+    ]))
+    story.append(tip_content)
+
+    # ═══════════════════════════════════════════════════════════════
+    # PROFESSIONAL FOOTER
+    # ═══════════════════════════════════════════════════════════════
+    story.append(Spacer(1, 20))
+
+    footer = Table([[
+        Paragraph(
+            "<font color='#9CA3AF' size='8'><b>Recruitin B.V.</b> | kandidatentekort.nl</font>",
+            ParagraphStyle('FooterLeft')
+        ),
+        Paragraph(
+            f"<font color='#9CA3AF' size='8'>{datetime.now().strftime('%d %B %Y')}</font>",
+            ParagraphStyle('FooterRight', alignment=TA_RIGHT)
+        )
+    ]], colWidths=[page_width*0.5, page_width*0.5])
+
+    footer.setStyle(TableStyle([
+        ('LINEABOVE', (0, 0), (-1, -1), 1, COLOR_BORDER),
+        ('TOPPADDING', (0, 0), (-1, -1), 10),
+    ]))
+    story.append(footer)
+
+    # Build PDF
+    doc.build(story)
+    pdf_content = buffer.getvalue()
+    buffer.close()
+
+    logger.info(f"Professional PDF Bijlage 2 generated for {company_name}, size: {len(pdf_content)} bytes")
     return pdf_content
 
 
