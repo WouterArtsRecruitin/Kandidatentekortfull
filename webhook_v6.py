@@ -1407,9 +1407,12 @@ def analyze_vacancy_with_claude(vacancy_text, company_name, vacancy_title=""):
         import anthropic
         client = anthropic.Anthropic(api_key=CLAUDE_API_KEY)
 
-        # V7.0 MASTER PROMPT - Comprehensive 12-criteria vacancy analysis
-        prompt = f"""Je bent een expert recruitment consultant gespecialiseerd in vacaturetekst optimalisatie.
-Analyseer de volgende vacaturetekst grondig op basis van 12 criteria en geef concrete, actionable feedback.
+        # V7.0 MASTER PROMPT - Sollicitanten Magneet Framework
+        prompt = f"""# KANDIDATENTEKORT.NL V7.0 MASTER PROMPT
+## Sollicitanten Magneet - AI-Gestuurde Vacature-Analyse
+
+Je bent een EXPERT recruitment consultant gespecialiseerd in het transformeren van "generic postings" naar "sollicitanten magneten".
+Je analyseert technische vacatures (werkvoorbereider, monteur, elektrotechnicus, PLC, etc.) met het doel +55% meer sollicitaties te genereren.
 
 ═══════════════════════════════════════════════════════════════
 📋 VACATURE INFORMATIE
@@ -1417,110 +1420,192 @@ Analyseer de volgende vacaturetekst grondig op basis van 12 criteria en geef con
 🏢 Bedrijf: {company_name}
 💼 Functie: {vacancy_title or 'Niet opgegeven'}
 
-📝 VACATURETEKST:
+📝 ORIGINELE VACATURETEKST:
+---
 {vacancy_text}
+---
 
 ═══════════════════════════════════════════════════════════════
-🎯 V7.0 ANALYSE FRAMEWORK - 12 CRITERIA
+🎯 V7.0 ANALYSE FRAMEWORK - 12 SESSIES
 ═══════════════════════════════════════════════════════════════
 
-Analyseer de vacature op de volgende 12 criteria. Geef per criterium een score (1-10) en concrete feedback.
+Analyseer de vacature GRONDIG op basis van onderstaande 12 sessies.
+Geef per sessie een score (1-10) met CONCRETE, ACTIONABLE feedback.
 
-【SESSIE 1: OPENINGSZIN AUDIT】
-- Vangt de eerste zin direct de aandacht?
-- Is er een 'hook' die nieuwsgierigheid wekt?
-- Vermijdt het clichés zoals "Wij zijn op zoek naar..."?
-Score: /10 | Feedback + verbeterde openingszin
+【SESSIE 1: OPENINGSZIN IMPACT AUDIT】
+De eerste 15 woorden bepalen of iemand doorleest of scrollt.
 
-【SESSIE 2: BEDRIJF AANTREKKINGSKRACHT】
-- Wat maakt dit bedrijf uniek als werkgever?
-- Zijn de cultuur en waarden duidelijk?
-- Is er een compelling employer brand verhaal?
-Score: /10 | Feedback + concrete suggesties
+Check op deze factoren:
+- Concreet vs vaag? (❌ "Wij zoeken een gemotiveerde monteur" vs ✅ "Monteur voor VDL-lijnen €2.400-2.700/maand Arnhem")
+- Action-oriented werkwoord? (❌ "We're hiring..." vs ✅ "Bouw je expertise op bij...")
+- Geen Engels jargon? (❌ "Join our dynamic team" vs ✅ "Werkvoorbereider Arnhem – productie")
+- Regionale signaal aanwezig?
+- Urgentie of voordeel direct duidelijk?
 
-【SESSIE 3: ROLKLARHEID】
-- Zijn de dagelijkse taken concreet beschreven?
-- Weet de kandidaat precies wat de rol inhoudt?
-- Is de impact van de rol duidelijk?
-Score: /10 | Feedback + verbeterpunten
+Score: /10 | GEEF VERBETERDE OPENINGSZIN
 
-【SESSIE 4: VEREISTEN REALISME】
-- Zijn de eisen realistisch voor het salarisniveau?
-- Is er onderscheid tussen must-haves en nice-to-haves?
-- Worden er geen 'purple squirrel' kandidaten gevraagd?
-Score: /10 | Feedback + realistische aanpassingen
+【SESSIE 2: BEDRIJF AANTREKKINGSKRACHT AUDIT】
+Waarom zou iemand voor DIT bedrijf werken vs de concurrent 2km verderop?
 
-【SESSIE 5: GROEI-NARRATIEF】
-- Zijn doorgroeimogelijkheden beschreven?
-- Welke ontwikkelkansen biedt de rol?
-- Is er een carrièreperspectief geschetst?
-Score: /10 | Feedback + groei-elementen toevoegen
+Check deze 7 punten:
+1. Team foto of cultuur beschrijving aanwezig?
+2. Concrete benefits genoemd (niet buzzwords)?
+   ❌ "Groei, flexibiliteit, dynamisch team"
+   ✅ "Thuiswerken 2x/week, 27 vrije dagen, €200 studiebeurs/jaar"
+3. Company size context gegeven?
+4. Sector/industrie voordeel benadrukt?
+5. Growth path zichtbaar? (bijv: "50% van teamleiders zijn interne promoties")
+6. Social proof aanwezig? (Glassdoor reviews, referenties)
+7. Inclusiviteit signaal?
+
+Score: /10 | GEEF CONCRETE VERBETERINGEN
+
+【SESSIE 3: ROLKLARHEID AUDIT】
+Kan iemand exact zien wat hij/zij op DAG 1, DAG 30 en DAG 365 gaat doen?
+
+Check per timeframe:
+- DAG 1 (Onboarding): Beschreven? Concrete taken?
+- DAG 30 (First wins): Realistische resultaten genoemd?
+- DAG 365 (1-year vision): Career path duidelijk?
+
+Score: /10 | GEEF DAG 1/30/365 BESCHRIJVING
+
+【SESSIE 4: VEREISTEN REALISME AUDIT】
+KRITISCH: Unrealistic requirements scaren perfecte kandidaten weg.
+
+Herstructureer requirements in 3 kolommen:
+| VEREIST (wettelijk/veiligheid) | VOORDEEL (geld/carrière) | LEREND (trainen we) |
+
+Score: /10 | GEEF GEHERSTRUCTUREERDE REQUIREMENTS
+
+【SESSIE 5: GROEI-NARRATIEF AUDIT】
+Niet "salaris X" maar "hoe verdien je Y binnen Z maanden".
+
+Check deze elementen:
+1. Startsalaris expliciet? €[X]
+2. Increment pathway? "Jaar 1: +€150, Jaar 2: team lead +€300-400"
+3. Bonus/incentive? "Bonus €[X] per succesvolle project"
+4. Certificering voordeel? "VCA +€100/maand"
+5. Concrete skills = earnings? "PLC-programmering: +€400"
+
+Score: /10 | GEEF COMPLETE SALARY STORY met voorbeeld
 
 【SESSIE 6: INCLUSIE & BIAS CHECK】
-- Is de tekst genderneutraal?
-- Zijn er onbewuste barrières voor bepaalde groepen?
-- Nodigt de tekst een diverse groep kandidaten uit?
-Score: /10 | Feedback + inclusieve alternatieven
+Legal risk mitigation: Scan op discriminatoire taal.
 
-【SESSIE 7: CIALDINI TRIGGERS】
-- Social Proof: Worden team/bedrijf successen genoemd?
-- Scarcity: Is er urgentie zonder te pushy te zijn?
-- Authority: Wordt expertise/marktpositie benadrukt?
-- Reciprocity: Wat biedt het bedrijf eerst?
-- Liking: Is de toon sympathiek en benaderbaar?
-- Commitment: Zijn er kleine eerste stappen?
-Score: /10 | Feedback + 3 toe te voegen triggers
+RED FLAG SCANNER:
+❌ "Jonge, dynamische team" → Leeftijdsdiscriminatie
+❌ "Rockstar, ninja, guru" → Ageism
+❌ "Native English speaker" → Nationalistische bias
+❌ "Sterk team, fysiek zwaar" → Disability discrimination
+❌ "Moderne kantoor, young vibe" → Ageism
+❌ Alleen mannelijke voornamen → Gender bias
+
+Score: /10 | GEEF INCLUSIEVE ALTERNATIEVEN
+
+【SESSIE 7: CIALDINI PSYCHOLOGISCHE TRIGGERS】
+Waarom mensen solliciteren: Niet rationeel – emotioneel + psychologisch.
+
+Check Cialdini's 6 principles:
+1. RECIPROCITY: Bieden jullie training/certificering (gratis waarde)?
+2. SOCIAL PROOF: Reviews, "50+ mensen in vergelijkbare rollen"?
+3. AUTHORITY: Certificeringen, industrie-positie, awards?
+4. LIKING: Casual, authentic team beschrijving?
+5. SCARCITY: Deadline, limited spots? (❌ "We're always hiring" vs ✅ "Zoeken 2 monteurs tot eind Q2")
+6. CONSISTENCY: Career path aligned met ambities?
+
+Score: /10 | GEEF 3 SPECIFIEKE CIALDINI ZINNEN om toe te voegen
 
 【SESSIE 8: REGIONALE SALARISBENCHMARK】
-- Is salarisindicatie genoemd (of gemist)?
-- Komt het overeen met marktstandaarden?
-- Zijn secundaire arbeidsvoorwaarden aantrekkelijk?
-Score: /10 | Feedback + benchmark advies
+Dezelfde rol verdient in Utrecht meer dan in Drenthe.
 
-【SESSIE 9: CTA (CALL-TO-ACTION) TRIGGERS】
-- Is er een duidelijke sollicitatie-oproep?
-- Is het proces laagdrempelig beschreven?
-- Worden contactgegevens vermeld?
-Score: /10 | Feedback + krachtige CTA suggestie
+BENCHMARK MODIFIERS (vs nationale gemiddelde):
+- Randstad (Amsterdam/Utrecht): +12%
+- Gelderland (Arnhem): -8%
+- Overijssel (Enschede): -10%
+- Drenthe: -15%
+- Noord-Brabant (Eindhoven): -4%
 
-【SESSIE 10: COMPETITIEVE DELTA】
-- Wat onderscheidt deze vacature van concurrenten?
-- Zijn unique selling points duidelijk?
-- Waarom zou je HIER solliciteren vs. concurrent?
-Score: /10 | Feedback + differentiatie punten
+INDUSTRY MODIFIERS:
+- Large industrial (500+ mensen): +€300-500/maand
+- SME (50-200): -€100-200/maand
+
+SKILL PREMIUM:
+- PLC-programming: +€400-600
+- CNC-programming: +€300-500
+- Bilingual: +€150-250
+- Teamleader: +€500-800
+
+Score: /10 | GEEF GELOCALISEERD SALARISBEREIK voor deze rol
+
+【SESSIE 9: CALL-TO-ACTION TRIGGERS】
+De laatste 5 woorden bepalen of iemand klikt.
+
+Check 5 factoren:
+1. Action verb? (❌ "Apply now" vs ✅ "Stuur je CV + 1 vraag")
+2. Friction laag? (❌ "Account maken, 10 velden" vs ✅ "CV naar email – 30 sec")
+3. Incentive/reward? (bijv: "Eerste ronde: 15min telefoon")
+4. Urgency timestamp? (bijv: "Sluit 30 december")
+5. Permission = control? (bijv: "Jij bepaalt volgende stap")
+
+Score: /10 | GEEF VERBETERDE CTA
+
+【SESSIE 10: COMPETITIEVE DELTA ANALYSIS】
+Hoe ziet deze vacature eruit vs TOP 3 COMPETITORS in dezelfde regio?
+
+Vergelijk op:
+- Openingszin kracht
+- Salarisheldheid
+- Rolklarheid
+- Groei-narratief
+- Social proof
+- CTA clarity
+
+Score: /10 | GEEF UNIQUE SELLING POINTS die ontbreken
 
 【SESSIE 11: CONFIDENCE SCORING】
-- Algehele professionaliteit van de tekst
+Algehele professionaliteit en geloofwaardigheid.
+
+Check:
 - Grammatica en spelling
 - Structuur en leesbaarheid
-Score: /10 | Totaal vertrouwen in tekst
+- Consistentie in tone-of-voice
+- Professionaliteit niveau
+
+Score: /10 | VERWACHT RESULTAAT met confidence interval
 
 【SESSIE 12: IMPLEMENTATIE ROADMAP】
-- Top 3 quick wins (direct implementeerbaar)
-- Top 3 strategische verbeteringen (langere termijn)
-- Prioritering op basis van impact
+Wie doet wat, wanneer?
+
+Leveren:
+- QUICK WINS (<1 uur): Top 3 direct implementeerbaar
+- MEDIUM-TERM (deze week): Top 3 strategisch
+- SUCCESS METRICS: Baseline → Target voor applications, quality, time-to-hire
+
+Score: /10 | GEEF CONCRETE RACI + METRICS
 
 ═══════════════════════════════════════════════════════════════
-📊 OUTPUT FORMAT (STRIKT AANHOUDEN)
+📊 OUTPUT FORMAT (STRIKT AANHOUDEN!)
 ═══════════════════════════════════════════════════════════════
 
-Begin je analyse ALTIJD met:
+Begin ALTIJD met:
 
 SCORE: [TOTAAL]/100
-
-Bereken totaal: som van alle 12 criteria scores × 0.833 (afgerond)
-
-Geef daarna:
+(Bereken: som van 12 criteria × 0.833, afgerond)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🏆 EXECUTIVE SUMMARY
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[2-3 zinnen kernboodschap met belangrijkste bevinding]
+[3-4 zinnen: kernboodschap, belangrijkste bevinding, verwacht resultaat]
+
+Huidige sollicitaties: [schatting]/week
+Verwacht na V7.0: [schatting]/week
+Improvement: +[X]% (confidence [Y]%, range +[MIN]% tot +[MAX]%)
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 📈 SCORES PER CRITERIUM
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. Openingszin: /10
+1. Openingszin Impact: /10
 2. Bedrijf Aantrekkingskracht: /10
 3. Rolklarheid: /10
 4. Vereisten Realisme: /10
@@ -1534,49 +1619,107 @@ Geef daarna:
 12. Implementatie Klaar: /10
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🚀 TOP 3 QUICK WINS
+🚀 TOP 3 QUICK WINS (Direct implementeerbaar, <1 uur)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. [Direct implementeerbaar verbeterpunt]
-2. [Direct implementeerbaar verbeterpunt]
-3. [Direct implementeerbaar verbeterpunt]
+1. [Specifieke actie + expected impact]
+2. [Specifieke actie + expected impact]
+3. [Specifieke actie + expected impact]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 CIALDINI POWER-UPS (Direct toe te voegen zinnen)
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. [Social Proof zin]
+2. [Scarcity/Urgency zin]
+3. [Authority zin]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💰 SALARIS & GROEI ADVIES
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Aanbevolen salarisbereik: €[X] - €[Y] (gebaseerd op regio + rol)
+Groei-narratief voorbeeld:
+"Startsalaris: €[X]
++ [certificering]: €[Y]/maand
++ Jaarlijkse stijging: €[Z]
+Jaar 2: €[X+Y] - €[X+Z]
+Teamleider pad: €[A]+ (X% intern gegroeid)"
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ✍️ VERBETERDE VACATURETEKST
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 BELANGRIJK: Schrijf een VOLLEDIG NIEUWE, PROFESSIONELE vacaturetekst die:
-- Minimaal 400-600 woorden bevat
-- Een pakkende, emotionele openingszin heeft die nieuwsgierigheid wekt
-- Concrete taken en verantwoordelijkheden beschrijft (geen vage bullet points)
-- Duidelijke groei- en ontwikkelmogelijkheden noemt
-- Een aantrekkelijk werkgeversprofiel schetst met bedrijfscultuur
-- Salarisindicatie of "marktconform + uitstekende secundaire voorwaarden" bevat
-- Cialdini overtuigingsprincipes toepast (social proof, scarcity, authority)
-- Een krachtige call-to-action heeft
-- Professioneel en wervend is geschreven - GEEN droge opsomming
-- Direct copy-paste klaar is voor publicatie
+- Minimaal 500-700 woorden bevat (uitgebreider dan origineel)
+- Een PAKKENDE, EMOTIONELE openingszin heeft die direct nieuwsgierigheid wekt
+- CONCRETE taken en verantwoordelijkheden beschrijft met DAG 1/30/365 perspectief
+- DUIDELIJKE groei- en ontwikkelmogelijkheden noemt met salaris-increments
+- Een AANTREKKELIJK werkgeversprofiel schetst met bedrijfscultuur en social proof
+- SPECIFIEKE salarisrange bevat (niet "marktconform")
+- ALLE 6 Cialdini overtuigingsprincipes toepast
+- Een KRACHTIGE, laagdrempelige call-to-action heeft met deadline
+- PROFESSIONEEL en WERVEND is geschreven - GEEN droge opsomming
+- DIRECT copy-paste klaar is voor publicatie op jobboards
 
-Structuur de vacaturetekst als volgt:
-1. Pakkende kop/titel
-2. Wervende intro (2-3 zinnen die de rol en impact beschrijven)
-3. "Dit ga je doen" - concrete taken
-4. "Dit breng je mee" - realistische eisen (must-haves vs nice-to-haves)
-5. "Dit krijg je van ons" - arbeidsvoorwaarden en benefits
-6. "Over [bedrijfsnaam]" - employer branding
-7. Call-to-action met sollicitatieinstructie
+STRUCTUUR (gebruik deze exacte opzet):
 
-[Schrijf hier de complete, wervende vacaturetekst - minimaal 400 woorden]
+**[PAKKENDE FUNCTIETITEL] - [LOCATIE] | [SALARISRANGE]**
+
+[Wervende intro: 2-3 zinnen die de rol en IMPACT beschrijven. Begin met een vraag of statement die triggert.]
+
+**🎯 Dit ga je doen**
+[Concrete taken met DAG 1/30/365 perspectief. Bullet points maar wel beschrijvend.]
+
+**💪 Dit breng je mee**
+MUST-HAVES:
+[Alleen echt essentiële vereisten]
+
+NICE-TO-HAVES (wij trainen je!):
+[Leuke extra's, geen dealbreakers]
+
+**🎁 Dit krijg je van ons**
+[Concrete arbeidsvoorwaarden met getallen:
+- Salaris: €X - €Y
+- Vakantiedagen: X dagen
+- Pensioenregeling
+- Opleidingsbudget: €X
+- Reiskostenvergoeding
+- Extra's: laptop, telefoon, etc.]
+
+**📈 Groei & Ontwikkeling**
+[Carrièrepad met concrete salaris-increments en tijdlijn]
+
+**🏢 Over [bedrijfsnaam]**
+[Employer branding: wie zijn we, wat maakt ons uniek, team grootte, cultuur, social proof]
+
+**📞 Solliciteren**
+[Laagdrempelige CTA met deadline, contactpersoon, en "jij bepaalt volgende stap"]
+
+---
+
+[SCHRIJF NU DE COMPLETE VACATURETEKST - MINIMAAL 500 WOORDEN, DIRECT PUBLICEERBAAR]
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-💡 BONUS: CIALDINI POWER-UPS
+📋 IMPLEMENTATIE CHECKLIST
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[3 specifieke zinnen die overtuigingsprincipes toepassen]
+QUICK WINS (<1 uur):
+☐ [Actie 1]
+☐ [Actie 2]
+☐ [Actie 3]
 
-Wees concreet, actionable, en vermijd vage feedback. Elke suggestie moet direct implementeerbaar zijn."""
+DEZE WEEK:
+☐ [Actie 4]
+☐ [Actie 5]
+
+SUCCESS METRICS:
+- Applications Week 1: [Baseline] → [Target]
+- Application Quality: [Baseline]% → [Target]%
+- Time-to-hire: [Baseline] dagen → [Target] dagen
+
+Wees EXTREEM CONCREET en ACTIONABLE. Elke suggestie moet DIRECT implementeerbaar zijn.
+Schrijf in het Nederlands, professioneel maar toegankelijk, GEEN corporate jargon."""
 
         message = client.messages.create(
             model="claude-sonnet-4-20250514",
-            max_tokens=4000,  # Increased for comprehensive analysis
+            max_tokens=8000,  # Increased for V7.0 Master Prompt comprehensive analysis
             messages=[{"role": "user", "content": prompt}]
         )
 
