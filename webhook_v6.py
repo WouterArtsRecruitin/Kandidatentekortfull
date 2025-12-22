@@ -245,14 +245,26 @@ def parse_analysis_sections(analysis_result):
     if 'VERBETERDE VACATURETEKST' in analysis_result:
         try:
             imp_part = analysis_result.split('VERBETERDE VACATURETEKST')[1]
-            imp_end = imp_part.find('━━━')
-            if imp_end == -1:
-                imp_end = imp_part.find('BONUS')
-            if imp_end == -1:
-                imp_end = imp_part.find('CIALDINI')
-            sections['improved_text'] = imp_part[:imp_end].strip().strip('━').strip() if imp_end > 0 else imp_part[:2000].strip()
-        except:
-            pass
+            # Skip the first separator line (━━━) after header
+            lines = imp_part.split('\n')
+            content_lines = []
+            found_content = False
+            for line in lines:
+                # Skip separator lines
+                if '━━━' in line or line.strip() == '':
+                    if found_content:
+                        # If we already found content and hit a separator, we're done
+                        if '━━━' in line:
+                            break
+                    continue
+                # Skip if this is a new section header
+                if 'BONUS' in line or 'CIALDINI' in line or 'POWER-UP' in line:
+                    break
+                found_content = True
+                content_lines.append(line)
+            sections['improved_text'] = '\n'.join(content_lines).strip()
+        except Exception as e:
+            logger.warning(f"Failed to extract improved text: {e}")
 
     # Extract Cialdini Tips
     if 'CIALDINI' in analysis_result and 'POWER-UP' in analysis_result:
