@@ -13,6 +13,7 @@ Features:
 """
 
 import os
+import io
 import json
 import logging
 import smtplib
@@ -21,12 +22,33 @@ import threading
 from datetime import datetime
 from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
+from email.mime.base import MIMEBase
+from email import encoders
 from flask import Flask, request, jsonify
+
+# PDF Generation imports
+from reportlab.lib import colors
+from reportlab.lib.pagesizes import A4
+from reportlab.lib.styles import getSampleStyleSheet, ParagraphStyle
+from reportlab.lib.units import mm, cm
+from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, TableStyle, Image
+from reportlab.lib.enums import TA_CENTER, TA_LEFT, TA_JUSTIFY
+from reportlab.graphics.shapes import Drawing, Rect, String
+from reportlab.graphics.charts.barcharts import HorizontalBarChart
 
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
+
+# Recruitin Brand Colors
+RECRUITIN_ORANGE = colors.HexColor("#FF6B35")
+RECRUITIN_DARK = colors.HexColor("#1F2937")
+RECRUITIN_LIGHT_ORANGE = colors.HexColor("#FFF7ED")
+SCORE_GREEN = colors.HexColor("#10B981")
+SCORE_BLUE = colors.HexColor("#3B82F6")
+SCORE_YELLOW = colors.HexColor("#F59E0B")
+SCORE_RED = colors.HexColor("#EF4444")
 
 # Config
 GMAIL_USER = os.getenv('GMAIL_USER', 'artsrecruitin@gmail.com')
@@ -284,6 +306,295 @@ def parse_analysis_sections(analysis_result):
             pass
 
     return sections
+
+
+def generate_pdf_report(contact_name, company_name, vacancy_title, analysis_result, score=None):
+    """Generate a professional PDF report with Recruitin branding."""
+
+    # Parse analysis sections
+    sections = parse_analysis_sections(analysis_result)
+
+    # Create PDF buffer
+    buffer = io.BytesIO()
+
+    # Create document
+    doc = SimpleDocTemplate(
+        buffer,
+        pagesize=A4,
+        rightMargin=2*cm,
+        leftMargin=2*cm,
+        topMargin=2*cm,
+        bottomMargin=2*cm
+    )
+
+    # Styles
+    styles = getSampleStyleSheet()
+
+    # Custom styles
+    title_style = ParagraphStyle(
+        'CustomTitle',
+        parent=styles['Title'],
+        fontSize=24,
+        textColor=RECRUITIN_DARK,
+        spaceAfter=6,
+        alignment=TA_CENTER,
+        fontName='Helvetica-Bold'
+    )
+
+    subtitle_style = ParagraphStyle(
+        'CustomSubtitle',
+        parent=styles['Normal'],
+        fontSize=12,
+        textColor=colors.HexColor("#6B7280"),
+        spaceAfter=20,
+        alignment=TA_CENTER
+    )
+
+    header_style = ParagraphStyle(
+        'SectionHeader',
+        parent=styles['Heading2'],
+        fontSize=14,
+        textColor=RECRUITIN_ORANGE,
+        spaceBefore=20,
+        spaceAfter=10,
+        fontName='Helvetica-Bold'
+    )
+
+    body_style = ParagraphStyle(
+        'CustomBody',
+        parent=styles['Normal'],
+        fontSize=10,
+        textColor=RECRUITIN_DARK,
+        leading=14,
+        alignment=TA_JUSTIFY
+    )
+
+    small_style = ParagraphStyle(
+        'SmallText',
+        parent=styles['Normal'],
+        fontSize=9,
+        textColor=colors.HexColor("#6B7280"),
+        leading=12
+    )
+
+    # Story elements
+    story = []
+
+    # === HEADER ===
+    # Orange header bar
+    header_table = Table(
+        [[Paragraph("🎯 VACATURE ANALYSE RAPPORT", ParagraphStyle(
+            'HeaderTitle',
+            fontSize=20,
+            textColor=colors.white,
+            alignment=TA_CENTER,
+            fontName='Helvetica-Bold'
+        ))]],
+        colWidths=[17*cm]
+    )
+    header_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), RECRUITIN_ORANGE),
+        ('TOPPADDING', (0, 0), (-1, -1), 20),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 20),
+        ('LEFTPADDING', (0, 0), (-1, -1), 20),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 20),
+    ]))
+    story.append(header_table)
+    story.append(Spacer(1, 15))
+
+    # Company and date info
+    story.append(Paragraph(f"<b>{company_name}</b> • {vacancy_title or 'Vacature'}", subtitle_style))
+    story.append(Paragraph(f"Analyse datum: {datetime.now().strftime('%d %B %Y')}", small_style))
+    story.append(Spacer(1, 20))
+
+    # === SCORE CARD ===
+    score_value = score if score else 0
+    if score_value >= 70:
+        score_color = SCORE_GREEN
+        score_label = "Uitstekend"
+    elif score_value >= 50:
+        score_color = SCORE_BLUE
+        score_label = "Goed"
+    elif score_value >= 30:
+        score_color = SCORE_YELLOW
+        score_label = "Verbetering Nodig"
+    else:
+        score_color = SCORE_RED
+        score_label = "Kritiek"
+
+    score_box = Table(
+        [[
+            Paragraph(f"<font size='36'><b>{score_value}</b></font><font size='14'>/100</font>",
+                     ParagraphStyle('ScoreNumber', alignment=TA_CENTER, textColor=score_color, fontName='Helvetica-Bold')),
+            Paragraph(f"<b>{score_label}</b>",
+                     ParagraphStyle('ScoreLabel', fontSize=14, alignment=TA_CENTER, textColor=score_color))
+        ]],
+        colWidths=[8.5*cm, 8.5*cm]
+    )
+    score_box.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), RECRUITIN_LIGHT_ORANGE),
+        ('BOX', (0, 0), (-1, -1), 2, RECRUITIN_ORANGE),
+        ('TOPPADDING', (0, 0), (-1, -1), 20),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 20),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('ALIGN', (0, 0), (-1, -1), 'CENTER'),
+    ]))
+    story.append(score_box)
+    story.append(Spacer(1, 20))
+
+    # === EXECUTIVE SUMMARY ===
+    if sections['executive_summary']:
+        story.append(Paragraph("📋 EXECUTIVE SUMMARY", header_style))
+        story.append(Paragraph(sections['executive_summary'][:500], body_style))
+        story.append(Spacer(1, 15))
+
+    # === SCORES PER CRITERIUM ===
+    story.append(Paragraph("📊 SCORES PER CRITERIUM", header_style))
+
+    score_mapping = [
+        ('Openingszin', 'openingszin'),
+        ('Bedrijf Aantrekkingskracht', 'bedrijf'),
+        ('Rolklarheid', 'rolklarheid'),
+        ('Vereisten Realisme', 'vereisten'),
+        ('Groei-narratief', 'groei'),
+        ('Inclusie & Bias', 'inclusie'),
+        ('Cialdini Triggers', 'cialdini'),
+        ('Salarisbenchmark', 'salaris'),
+        ('CTA Triggers', 'cta'),
+        ('Competitieve Delta', 'competitief'),
+        ('Confidence Score', 'confidence'),
+        ('Implementatie', 'implementatie')
+    ]
+
+    score_data = []
+    for label, key in score_mapping:
+        s = sections['scores'].get(key, 5)
+        # Create visual bar representation
+        bar = "█" * s + "░" * (10 - s)
+        if s >= 8:
+            bar_color = "#10B981"
+        elif s >= 6:
+            bar_color = "#3B82F6"
+        elif s >= 4:
+            bar_color = "#F59E0B"
+        else:
+            bar_color = "#EF4444"
+        score_data.append([
+            label,
+            Paragraph(f"<font color='{bar_color}'>{bar}</font>", small_style),
+            f"{s}/10"
+        ])
+
+    score_table = Table(score_data, colWidths=[6*cm, 8*cm, 2*cm])
+    score_table.setStyle(TableStyle([
+        ('FONTSIZE', (0, 0), (-1, -1), 9),
+        ('TEXTCOLOR', (0, 0), (0, -1), RECRUITIN_DARK),
+        ('TEXTCOLOR', (2, 0), (2, -1), RECRUITIN_DARK),
+        ('TOPPADDING', (0, 0), (-1, -1), 4),
+        ('BOTTOMPADDING', (0, 0), (-1, -1), 4),
+        ('ALIGN', (2, 0), (2, -1), 'RIGHT'),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('LINEBELOW', (0, 0), (-1, -2), 0.5, colors.HexColor("#E5E7EB")),
+    ]))
+    story.append(score_table)
+    story.append(Spacer(1, 20))
+
+    # === QUICK WINS ===
+    if sections['quick_wins']:
+        story.append(Paragraph("🚀 TOP 3 QUICK WINS", header_style))
+        for i, win in enumerate(sections['quick_wins'][:3], 1):
+            win_text = win[:200] + "..." if len(win) > 200 else win
+            quick_win_table = Table(
+                [[Paragraph(f"<b>#{i}</b>", ParagraphStyle('QWNum', fontSize=11, textColor=SCORE_GREEN)),
+                  Paragraph(win_text, body_style)]],
+                colWidths=[1*cm, 16*cm]
+            )
+            quick_win_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#ECFDF5")),
+                ('TOPPADDING', (0, 0), (-1, -1), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+                ('LEFTPADDING', (0, 0), (-1, -1), 10),
+                ('VALIGN', (0, 0), (-1, -1), 'TOP'),
+            ]))
+            story.append(quick_win_table)
+            story.append(Spacer(1, 5))
+        story.append(Spacer(1, 15))
+
+    # === VERBETERDE VACATURETEKST ===
+    if sections['improved_text']:
+        story.append(Paragraph("✍️ VERBETERDE VACATURETEKST", header_style))
+
+        # Split improved text into paragraphs and add
+        improved_text = sections['improved_text'][:3000]  # Limit for PDF
+        improved_paragraphs = improved_text.split('\n\n')
+
+        improved_box = Table(
+            [[Paragraph(improved_text.replace('\n', '<br/>'),
+                       ParagraphStyle('ImprovedText', fontSize=10, textColor=RECRUITIN_DARK, leading=14))]],
+            colWidths=[17*cm]
+        )
+        improved_box.setStyle(TableStyle([
+            ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#F9FAFB")),
+            ('BOX', (0, 0), (-1, -1), 1, colors.HexColor("#E5E7EB")),
+            ('TOPPADDING', (0, 0), (-1, -1), 15),
+            ('BOTTOMPADDING', (0, 0), (-1, -1), 15),
+            ('LEFTPADDING', (0, 0), (-1, -1), 15),
+            ('RIGHTPADDING', (0, 0), (-1, -1), 15),
+        ]))
+        story.append(improved_box)
+        story.append(Spacer(1, 20))
+
+    # === CIALDINI TIPS ===
+    if sections['cialdini_tips']:
+        story.append(Paragraph("🧠 CIALDINI OVERTUIGINGSTIPS", header_style))
+        for tip in sections['cialdini_tips'][:3]:
+            tip_text = tip[:150] + "..." if len(tip) > 150 else tip
+            tip_table = Table(
+                [[Paragraph(f"💡 <i>\"{tip_text}\"</i>",
+                           ParagraphStyle('TipText', fontSize=10, textColor=colors.HexColor("#78350F")))]],
+                colWidths=[17*cm]
+            )
+            tip_table.setStyle(TableStyle([
+                ('BACKGROUND', (0, 0), (-1, -1), colors.HexColor("#FEF3C7")),
+                ('TOPPADDING', (0, 0), (-1, -1), 10),
+                ('BOTTOMPADDING', (0, 0), (-1, -1), 10),
+                ('LEFTPADDING', (0, 0), (-1, -1), 10),
+            ]))
+            story.append(tip_table)
+            story.append(Spacer(1, 5))
+        story.append(Spacer(1, 15))
+
+    # === FOOTER ===
+    story.append(Spacer(1, 30))
+    footer_table = Table(
+        [[
+            Paragraph("<b>Recruitin B.V.</b> • Kandidatentekort.nl",
+                     ParagraphStyle('Footer', fontSize=10, textColor=colors.white, alignment=TA_CENTER)),
+        ],
+        [
+            Paragraph("info@recruitin.nl • www.recruitin.nl",
+                     ParagraphStyle('FooterSmall', fontSize=9, textColor=colors.HexColor("#9CA3AF"), alignment=TA_CENTER)),
+        ]],
+        colWidths=[17*cm]
+    )
+    footer_table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, -1), RECRUITIN_DARK),
+        ('TOPPADDING', (0, 0), (-1, 0), 15),
+        ('BOTTOMPADDING', (0, -1), (-1, -1), 15),
+        ('LEFTPADDING', (0, 0), (-1, -1), 20),
+        ('RIGHTPADDING', (0, 0), (-1, -1), 20),
+    ]))
+    story.append(footer_table)
+
+    # Build PDF
+    doc.build(story)
+
+    # Get PDF content
+    pdf_content = buffer.getvalue()
+    buffer.close()
+
+    logger.info(f"PDF generated for {company_name}, size: {len(pdf_content)} bytes")
+    return pdf_content
 
 
 def generate_score_bar_html(label, score, emoji="📊"):
@@ -604,25 +915,55 @@ def send_confirmation_email(to_email, company_name, contact_name):
 
 
 def send_analysis_email(to_email, contact_name, company_name, vacancy_title, analysis_result, score=None):
-    """Send the analysis report email."""
+    """Send the analysis report email with PDF attachment."""
     if not GMAIL_APP_PASSWORD:
         logger.error("GMAIL_APP_PASSWORD not set")
         return False
 
     try:
-        msg = MIMEMultipart('alternative')
+        # Use 'mixed' for attachments instead of 'alternative'
+        msg = MIMEMultipart('mixed')
         msg['Subject'] = f"🎯 Vacature Analyse Rapport - {company_name}"
         msg['From'] = f"Recruitin <{GMAIL_USER}>"
         msg['To'] = to_email
 
+        # Create alternative part for HTML email
+        msg_alternative = MIMEMultipart('alternative')
+
+        # Generate HTML email
         html = generate_email_html(contact_name, company_name, vacancy_title, analysis_result, score)
-        msg.attach(MIMEText(html, 'html'))
+        msg_alternative.attach(MIMEText(html, 'html'))
+        msg.attach(msg_alternative)
+
+        # Generate and attach PDF
+        try:
+            pdf_content = generate_pdf_report(contact_name, company_name, vacancy_title, analysis_result, score)
+
+            # Create safe filename
+            safe_company = "".join(c for c in company_name if c.isalnum() or c in (' ', '-', '_')).strip()
+            safe_company = safe_company.replace(' ', '_')[:30]
+            pdf_filename = f"Vacature_Analyse_{safe_company}_{datetime.now().strftime('%Y%m%d')}.pdf"
+
+            # Attach PDF
+            pdf_attachment = MIMEBase('application', 'pdf')
+            pdf_attachment.set_payload(pdf_content)
+            encoders.encode_base64(pdf_attachment)
+            pdf_attachment.add_header(
+                'Content-Disposition',
+                f'attachment; filename="{pdf_filename}"'
+            )
+            msg.attach(pdf_attachment)
+            logger.info(f"PDF attachment added: {pdf_filename}")
+
+        except Exception as pdf_error:
+            logger.error(f"PDF generation failed, sending without attachment: {pdf_error}")
+            # Continue sending email without PDF if generation fails
 
         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as server:
             server.login(GMAIL_USER, GMAIL_APP_PASSWORD)
             server.send_message(msg)
 
-        logger.info(f"Analysis email sent to {to_email}")
+        logger.info(f"Analysis email with PDF sent to {to_email}")
         return True
 
     except Exception as e:
