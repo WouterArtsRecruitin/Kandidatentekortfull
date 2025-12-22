@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 """
-KANDIDATENTEKORT.NL - WEBHOOK V6
+KANDIDATENTEKORT.NL - WEBHOOK V7
 Deploy: Render.com
 
 Features:
-- Claude AI vacature analyse
+- Claude AI V7.0 vacature analyse met Cialdini triggers
+- Regionale salarisbenchmarks
+- Inclusie/bias scanning
 - Mooie HTML email rapporten
 - Pipedrive met custom fields + notes
 - Async processing voor snelle response
@@ -381,7 +383,7 @@ def send_analysis_email(to_email, contact_name, company_name, vacancy_title, ana
 
 
 def analyze_vacancy_with_claude(vacancy_text, company_name, vacancy_title=""):
-    """Analyze vacancy using Claude API."""
+    """Analyze vacancy using Claude API with V7.0 Master Prompt - 12 criteria analysis."""
     if not CLAUDE_API_KEY:
         logger.warning("CLAUDE_API_KEY not set, using placeholder")
         return None, None
@@ -390,25 +392,154 @@ def analyze_vacancy_with_claude(vacancy_text, company_name, vacancy_title=""):
         import anthropic
         client = anthropic.Anthropic(api_key=CLAUDE_API_KEY)
 
-        # Use the master prompt (this would be replaced with actual prompt)
-        prompt = f"""Analyseer deze vacaturetekst en geef een score (0-100) plus concrete verbeterpunten.
+        # V7.0 MASTER PROMPT - Comprehensive 12-criteria vacancy analysis
+        prompt = f"""Je bent een expert recruitment consultant gespecialiseerd in vacaturetekst optimalisatie.
+Analyseer de volgende vacaturetekst grondig op basis van 12 criteria en geef concrete, actionable feedback.
 
-VACATURE:
-Bedrijf: {company_name}
-Functie: {vacancy_title}
+═══════════════════════════════════════════════════════════════
+📋 VACATURE INFORMATIE
+═══════════════════════════════════════════════════════════════
+🏢 Bedrijf: {company_name}
+💼 Functie: {vacancy_title or 'Niet opgegeven'}
 
-TEKST:
+📝 VACATURETEKST:
 {vacancy_text}
 
-Geef je analyse in dit format:
-1. SCORE: [nummer]/100
-2. TOP 3 VERBETERPUNTEN
-3. VERBETERDE VACATURETEKST
-4. BONUS TIPS"""
+═══════════════════════════════════════════════════════════════
+🎯 V7.0 ANALYSE FRAMEWORK - 12 CRITERIA
+═══════════════════════════════════════════════════════════════
+
+Analyseer de vacature op de volgende 12 criteria. Geef per criterium een score (1-10) en concrete feedback.
+
+【SESSIE 1: OPENINGSZIN AUDIT】
+- Vangt de eerste zin direct de aandacht?
+- Is er een 'hook' die nieuwsgierigheid wekt?
+- Vermijdt het clichés zoals "Wij zijn op zoek naar..."?
+Score: /10 | Feedback + verbeterde openingszin
+
+【SESSIE 2: BEDRIJF AANTREKKINGSKRACHT】
+- Wat maakt dit bedrijf uniek als werkgever?
+- Zijn de cultuur en waarden duidelijk?
+- Is er een compelling employer brand verhaal?
+Score: /10 | Feedback + concrete suggesties
+
+【SESSIE 3: ROLKLARHEID】
+- Zijn de dagelijkse taken concreet beschreven?
+- Weet de kandidaat precies wat de rol inhoudt?
+- Is de impact van de rol duidelijk?
+Score: /10 | Feedback + verbeterpunten
+
+【SESSIE 4: VEREISTEN REALISME】
+- Zijn de eisen realistisch voor het salarisniveau?
+- Is er onderscheid tussen must-haves en nice-to-haves?
+- Worden er geen 'purple squirrel' kandidaten gevraagd?
+Score: /10 | Feedback + realistische aanpassingen
+
+【SESSIE 5: GROEI-NARRATIEF】
+- Zijn doorgroeimogelijkheden beschreven?
+- Welke ontwikkelkansen biedt de rol?
+- Is er een carrièreperspectief geschetst?
+Score: /10 | Feedback + groei-elementen toevoegen
+
+【SESSIE 6: INCLUSIE & BIAS CHECK】
+- Is de tekst genderneutraal?
+- Zijn er onbewuste barrières voor bepaalde groepen?
+- Nodigt de tekst een diverse groep kandidaten uit?
+Score: /10 | Feedback + inclusieve alternatieven
+
+【SESSIE 7: CIALDINI TRIGGERS】
+- Social Proof: Worden team/bedrijf successen genoemd?
+- Scarcity: Is er urgentie zonder te pushy te zijn?
+- Authority: Wordt expertise/marktpositie benadrukt?
+- Reciprocity: Wat biedt het bedrijf eerst?
+- Liking: Is de toon sympathiek en benaderbaar?
+- Commitment: Zijn er kleine eerste stappen?
+Score: /10 | Feedback + 3 toe te voegen triggers
+
+【SESSIE 8: REGIONALE SALARISBENCHMARK】
+- Is salarisindicatie genoemd (of gemist)?
+- Komt het overeen met marktstandaarden?
+- Zijn secundaire arbeidsvoorwaarden aantrekkelijk?
+Score: /10 | Feedback + benchmark advies
+
+【SESSIE 9: CTA (CALL-TO-ACTION) TRIGGERS】
+- Is er een duidelijke sollicitatie-oproep?
+- Is het proces laagdrempelig beschreven?
+- Worden contactgegevens vermeld?
+Score: /10 | Feedback + krachtige CTA suggestie
+
+【SESSIE 10: COMPETITIEVE DELTA】
+- Wat onderscheidt deze vacature van concurrenten?
+- Zijn unique selling points duidelijk?
+- Waarom zou je HIER solliciteren vs. concurrent?
+Score: /10 | Feedback + differentiatie punten
+
+【SESSIE 11: CONFIDENCE SCORING】
+- Algehele professionaliteit van de tekst
+- Grammatica en spelling
+- Structuur en leesbaarheid
+Score: /10 | Totaal vertrouwen in tekst
+
+【SESSIE 12: IMPLEMENTATIE ROADMAP】
+- Top 3 quick wins (direct implementeerbaar)
+- Top 3 strategische verbeteringen (langere termijn)
+- Prioritering op basis van impact
+
+═══════════════════════════════════════════════════════════════
+📊 OUTPUT FORMAT (STRIKT AANHOUDEN)
+═══════════════════════════════════════════════════════════════
+
+Begin je analyse ALTIJD met:
+
+SCORE: [TOTAAL]/100
+
+Bereken totaal: som van alle 12 criteria scores × 0.833 (afgerond)
+
+Geef daarna:
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🏆 EXECUTIVE SUMMARY
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[2-3 zinnen kernboodschap met belangrijkste bevinding]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📈 SCORES PER CRITERIUM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. Openingszin: /10
+2. Bedrijf Aantrekkingskracht: /10
+3. Rolklarheid: /10
+4. Vereisten Realisme: /10
+5. Groei-narratief: /10
+6. Inclusie & Bias: /10
+7. Cialdini Triggers: /10
+8. Salarisbenchmark: /10
+9. CTA Triggers: /10
+10. Competitieve Delta: /10
+11. Confidence Score: /10
+12. Implementatie Klaar: /10
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚀 TOP 3 QUICK WINS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+1. [Direct implementeerbaar verbeterpunt]
+2. [Direct implementeerbaar verbeterpunt]
+3. [Direct implementeerbaar verbeterpunt]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✍️ VERBETERDE VACATURETEKST
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[Volledig herschreven vacaturetekst met alle verbeteringen toegepast]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+💡 BONUS: CIALDINI POWER-UPS
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+[3 specifieke zinnen die overtuigingsprincipes toepassen]
+
+Wees concreet, actionable, en vermijd vage feedback. Elke suggestie moet direct implementeerbaar zijn."""
 
         message = client.messages.create(
             model="claude-sonnet-4-20250514",
-            max_tokens=2000,
+            max_tokens=4000,  # Increased for comprehensive analysis
             messages=[{"role": "user", "content": prompt}]
         )
 
@@ -423,6 +554,7 @@ Geef je analyse in dit format:
             except:
                 score = 50  # Default if parsing fails
 
+        logger.info(f"V7.0 Analysis completed for {company_name}, score: {score}")
         return analysis, score
 
     except Exception as e:
@@ -458,12 +590,14 @@ def health():
     """Health check endpoint."""
     return jsonify({
         "status": "healthy",
-        "version": "6.0",
+        "version": "7.0",
         "features": {
             "email": bool(GMAIL_APP_PASSWORD),
             "pipedrive": bool(PIPEDRIVE_API_TOKEN),
-            "claude": bool(CLAUDE_API_KEY)
+            "claude": bool(CLAUDE_API_KEY),
+            "v7_analysis": True
         },
+        "analysis_criteria": 12,
         "timestamp": datetime.now().isoformat()
     })
 
@@ -590,9 +724,18 @@ def api_analyze():
 def home():
     """Home endpoint."""
     return jsonify({
-        "service": "Kandidatentekort Webhook",
-        "version": "6.0",
-        "features": ["email", "pipedrive", "claude-ai", "async-processing"],
+        "service": "Kandidatentekort Webhook V7",
+        "version": "7.0",
+        "features": [
+            "email",
+            "pipedrive",
+            "claude-ai-v7",
+            "async-processing",
+            "12-criteria-analysis",
+            "cialdini-triggers",
+            "inclusie-bias-check",
+            "salary-benchmark"
+        ],
         "endpoints": ["/health", "/webhook/typeform", "/api/analyze"]
     })
 
