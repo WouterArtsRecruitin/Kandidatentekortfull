@@ -1,7 +1,8 @@
 """WSGI entry point for Render deployment."""
-from kandidatentekort_auto import create_app
+from kandidatentekort_auto import app
 
-app = create_app()
+# Export for Gunicorn
+application = app
 
 if __name__ == "__main__":
     app.run()
