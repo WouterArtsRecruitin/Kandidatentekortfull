@@ -170,27 +170,233 @@ Score: {score}/100 punten
     logger.info(f"Analysis added to deal {deal_id}")
 
 
+def parse_analysis_sections(analysis_result):
+    """Parse the V7.0 analysis into structured sections."""
+    sections = {
+        'executive_summary': '',
+        'scores': {},
+        'quick_wins': [],
+        'improved_text': '',
+        'cialdini_tips': []
+    }
+
+    if not analysis_result:
+        return sections
+
+    # Extract Executive Summary
+    if 'EXECUTIVE SUMMARY' in analysis_result:
+        try:
+            summary_part = analysis_result.split('EXECUTIVE SUMMARY')[1]
+            summary_end = summary_part.find('━━━')
+            if summary_end == -1:
+                summary_end = summary_part.find('SCORES PER CRITERIUM')
+            sections['executive_summary'] = summary_part[:summary_end].strip().strip('━').strip()
+        except:
+            pass
+
+    # Extract individual scores
+    score_names = [
+        ('Openingszin', 'openingszin'),
+        ('Bedrijf Aantrekkingskracht', 'bedrijf'),
+        ('Rolklarheid', 'rolklarheid'),
+        ('Vereisten Realisme', 'vereisten'),
+        ('Groei-narratief', 'groei'),
+        ('Inclusie', 'inclusie'),
+        ('Cialdini', 'cialdini'),
+        ('Salarisbenchmark', 'salaris'),
+        ('CTA', 'cta'),
+        ('Competitieve Delta', 'competitief'),
+        ('Confidence', 'confidence'),
+        ('Implementatie', 'implementatie')
+    ]
+
+    for search_term, key in score_names:
+        try:
+            for line in analysis_result.split('\n'):
+                if search_term in line and '/10' in line:
+                    score_part = line.split('/10')[0]
+                    digits = ''.join(filter(str.isdigit, score_part[-3:]))
+                    if digits:
+                        sections['scores'][key] = int(digits)
+                    break
+        except:
+            continue
+
+    # Extract Quick Wins
+    if 'QUICK WINS' in analysis_result:
+        try:
+            qw_part = analysis_result.split('QUICK WINS')[1]
+            qw_end = qw_part.find('━━━')
+            if qw_end == -1:
+                qw_end = qw_part.find('VERBETERDE')
+            qw_text = qw_part[:qw_end] if qw_end > 0 else qw_part[:500]
+            for line in qw_text.split('\n'):
+                line = line.strip()
+                if line and (line[0].isdigit() or line.startswith('-') or line.startswith('•')):
+                    clean_line = line.lstrip('0123456789.-•) ').strip()
+                    if clean_line and len(clean_line) > 10:
+                        sections['quick_wins'].append(clean_line)
+                        if len(sections['quick_wins']) >= 3:
+                            break
+        except:
+            pass
+
+    # Extract Improved Text
+    if 'VERBETERDE VACATURETEKST' in analysis_result:
+        try:
+            imp_part = analysis_result.split('VERBETERDE VACATURETEKST')[1]
+            imp_end = imp_part.find('━━━')
+            if imp_end == -1:
+                imp_end = imp_part.find('BONUS')
+            if imp_end == -1:
+                imp_end = imp_part.find('CIALDINI')
+            sections['improved_text'] = imp_part[:imp_end].strip().strip('━').strip() if imp_end > 0 else imp_part[:2000].strip()
+        except:
+            pass
+
+    # Extract Cialdini Tips
+    if 'CIALDINI' in analysis_result and 'POWER-UP' in analysis_result:
+        try:
+            ci_part = analysis_result.split('CIALDINI')[1]
+            if 'POWER-UP' in ci_part:
+                ci_part = ci_part.split('POWER-UP')[1]
+            for line in ci_part.split('\n'):
+                line = line.strip()
+                if line and (line[0].isdigit() or line.startswith('-') or line.startswith('•') or line.startswith('"')):
+                    clean_line = line.lstrip('0123456789.-•) ').strip().strip('"')
+                    if clean_line and len(clean_line) > 15:
+                        sections['cialdini_tips'].append(clean_line)
+                        if len(sections['cialdini_tips']) >= 3:
+                            break
+        except:
+            pass
+
+    return sections
+
+
+def generate_score_bar_html(label, score, emoji="📊"):
+    """Generate HTML for a visual score bar."""
+    if score is None:
+        score = 5
+
+    # Color based on score
+    if score >= 8:
+        color = "#10B981"  # Green
+    elif score >= 6:
+        color = "#3B82F6"  # Blue
+    elif score >= 4:
+        color = "#F59E0B"  # Orange
+    else:
+        color = "#EF4444"  # Red
+
+    width_pct = score * 10
+
+    return f'''
+    <tr>
+        <td style="padding: 8px 0;">
+            <div style="display: flex; align-items: center; margin-bottom: 4px;">
+                <span style="font-size: 12px; color: #6B7280; width: 140px;">{emoji} {label}</span>
+                <span style="font-size: 14px; font-weight: 600; color: {color}; margin-left: auto;">{score}/10</span>
+            </div>
+            <div style="background: #E5E7EB; border-radius: 4px; height: 8px; overflow: hidden;">
+                <div style="background: {color}; height: 100%; width: {width_pct}%; border-radius: 4px;"></div>
+            </div>
+        </td>
+    </tr>'''
+
+
 def generate_email_html(contact_name, company_name, vacancy_title, analysis_result, score=None):
-    """Generate beautiful HTML email with analysis results."""
+    """Generate beautiful HTML email with visual analysis results."""
+
+    # Parse the analysis into sections
+    sections = parse_analysis_sections(analysis_result)
 
     # Score color based on value
     if score:
         if score >= 70:
-            score_color = "#10B981"  # Green
+            score_color = "#10B981"
             score_label = "Uitstekend"
+            score_emoji = "🏆"
         elif score >= 50:
-            score_color = "#F59E0B"  # Orange
+            score_color = "#3B82F6"
             score_label = "Goed"
+            score_emoji = "👍"
         elif score >= 30:
-            score_color = "#EF4444"  # Red
+            score_color = "#F59E0B"
             score_label = "Verbetering nodig"
+            score_emoji = "⚠️"
         else:
-            score_color = "#DC2626"  # Dark red
+            score_color = "#EF4444"
             score_label = "Kritiek"
+            score_emoji = "🔴"
     else:
         score_color = "#6B7280"
         score_label = "Analyse"
+        score_emoji = "📊"
         score = "?"
+
+    # Build score bars HTML
+    score_bars = ""
+    score_mapping = [
+        ('Openingszin', 'openingszin', '✍️'),
+        ('Bedrijf', 'bedrijf', '🏢'),
+        ('Rolklarheid', 'rolklarheid', '🎯'),
+        ('Vereisten', 'vereisten', '📋'),
+        ('Groei', 'groei', '📈'),
+        ('Inclusie', 'inclusie', '🌍'),
+        ('Cialdini', 'cialdini', '🧠'),
+        ('Salaris', 'salaris', '💰'),
+        ('CTA', 'cta', '🚀'),
+        ('Competitief', 'competitief', '⚡'),
+        ('Vertrouwen', 'confidence', '✅'),
+        ('Implementatie', 'implementatie', '🔧')
+    ]
+
+    for label, key, emoji in score_mapping:
+        s = sections['scores'].get(key, 5)
+        score_bars += generate_score_bar_html(label, s, emoji)
+
+    # Build quick wins HTML
+    quick_wins_html = ""
+    for i, win in enumerate(sections['quick_wins'][:3], 1):
+        quick_wins_html += f'''
+        <div style="background: #ECFDF5; border-radius: 8px; padding: 12px 15px; margin-bottom: 10px; border-left: 4px solid #10B981;">
+            <span style="color: #059669; font-weight: 600;">Quick Win {i}:</span>
+            <span style="color: #065F46;"> {win[:150]}{'...' if len(win) > 150 else ''}</span>
+        </div>'''
+
+    if not quick_wins_html:
+        quick_wins_html = '<p style="color: #6B7280;">Zie de volledige analyse hieronder voor verbeterpunten.</p>'
+
+    # Build Cialdini tips HTML
+    cialdini_html = ""
+    for tip in sections['cialdini_tips'][:3]:
+        cialdini_html += f'''
+        <div style="background: #FEF3C7; border-radius: 8px; padding: 12px 15px; margin-bottom: 10px; border-left: 4px solid #F59E0B;">
+            <span style="color: #92400E;">💡 </span>
+            <span style="color: #78350F; font-style: italic;">"{tip[:120]}{'...' if len(tip) > 120 else ''}"</span>
+        </div>'''
+
+    # Executive summary
+    exec_summary = sections['executive_summary'][:300] if sections['executive_summary'] else "Je vacaturetekst is geanalyseerd op 12 criteria. Bekijk hieronder de scores en concrete verbeterpunten."
+
+    # Improved text (truncated for email)
+    improved_text = sections['improved_text'][:1500] if sections['improved_text'] else ""
+    if improved_text:
+        improved_text_html = f'''
+        <div style="background: white; border-radius: 16px; padding: 25px; margin: 20px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+            <h2 style="color: #1F2937; margin: 0 0 15px 0; font-size: 18px;">
+                ✍️ Verbeterde Vacaturetekst
+            </h2>
+            <div style="background: #F9FAFB; border-radius: 8px; padding: 20px; border: 1px solid #E5E7EB;">
+                <p style="color: #374151; line-height: 1.7; margin: 0; font-size: 14px; white-space: pre-wrap;">{improved_text}{'...' if len(sections['improved_text']) > 1500 else ''}</p>
+            </div>
+            <p style="color: #9CA3AF; font-size: 12px; margin: 15px 0 0 0; text-align: center;">
+                📋 Volledige tekst beschikbaar in je Pipedrive notities
+            </p>
+        </div>'''
+    else:
+        improved_text_html = ""
 
     html = f"""
 <!DOCTYPE html>
@@ -199,16 +405,19 @@ def generate_email_html(contact_name, company_name, vacancy_title, analysis_resu
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-<body style="margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f4f5;">
+<body style="margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; background-color: #F3F4F6;">
 
-    <!-- Header -->
-    <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #FF6B35 0%, #FF8F5C 100%); padding: 40px 20px;">
+    <!-- Header with Logo -->
+    <table width="100%" cellpadding="0" cellspacing="0" style="background: linear-gradient(135deg, #FF6B35 0%, #FF8F5C 100%); padding: 30px 20px;">
         <tr>
             <td align="center">
-                <h1 style="color: white; margin: 0; font-size: 28px; font-weight: 600;">
-                    🎯 Jouw Vacature Analyse is Klaar!
+                <div style="background: white; width: 60px; height: 60px; border-radius: 12px; display: inline-block; text-align: center; line-height: 60px; font-size: 28px; margin-bottom: 15px;">
+                    🎯
+                </div>
+                <h1 style="color: white; margin: 0; font-size: 24px; font-weight: 700;">
+                    Vacature Analyse Rapport
                 </h1>
-                <p style="color: rgba(255,255,255,0.9); margin: 10px 0 0 0; font-size: 16px;">
+                <p style="color: rgba(255,255,255,0.9); margin: 8px 0 0 0; font-size: 15px;">
                     {company_name} • {vacancy_title or 'Vacature'}
                 </p>
             </td>
@@ -216,63 +425,87 @@ def generate_email_html(contact_name, company_name, vacancy_title, analysis_resu
     </table>
 
     <!-- Main Content -->
-    <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto; padding: 20px;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="max-width: 600px; margin: 0 auto;">
         <tr>
-            <td>
-                <!-- Score Card -->
-                <div style="background: white; border-radius: 16px; padding: 30px; margin: 20px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.05); text-align: center;">
-                    <div style="display: inline-block; background: {score_color}; color: white; font-size: 48px; font-weight: 700; width: 100px; height: 100px; line-height: 100px; border-radius: 50%; margin-bottom: 15px;">
-                        {score}
+            <td style="padding: 20px;">
+
+                <!-- Score Hero Card -->
+                <div style="background: white; border-radius: 20px; padding: 30px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.07); text-align: center;">
+                    <div style="position: relative; display: inline-block;">
+                        <div style="width: 120px; height: 120px; border-radius: 50%; background: linear-gradient(135deg, {score_color}22 0%, {score_color}11 100%); border: 4px solid {score_color}; display: flex; align-items: center; justify-content: center;">
+                            <span style="font-size: 42px; font-weight: 800; color: {score_color};">{score}</span>
+                        </div>
                     </div>
-                    <p style="color: {score_color}; font-size: 18px; font-weight: 600; margin: 0;">
-                        {score_label}
-                    </p>
-                    <p style="color: #6B7280; font-size: 14px; margin: 5px 0 0 0;">
-                        van de 100 punten
+                    <div style="margin-top: 15px;">
+                        <span style="font-size: 24px;">{score_emoji}</span>
+                        <p style="color: {score_color}; font-size: 18px; font-weight: 700; margin: 5px 0 0 0;">
+                            {score_label}
+                        </p>
+                        <p style="color: #9CA3AF; font-size: 13px; margin: 5px 0 0 0;">
+                            van de 100 punten
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Executive Summary -->
+                <div style="background: white; border-radius: 16px; padding: 25px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    <h2 style="color: #1F2937; margin: 0 0 12px 0; font-size: 18px;">
+                        👋 Beste {contact_name},
+                    </h2>
+                    <p style="color: #4B5563; line-height: 1.6; margin: 0; font-size: 15px;">
+                        {exec_summary}
                     </p>
                 </div>
 
-                <!-- Greeting -->
-                <div style="background: white; border-radius: 16px; padding: 30px; margin: 20px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                    <h2 style="color: #1F2937; margin: 0 0 15px 0; font-size: 20px;">
-                        Beste {contact_name},
+                <!-- Score Breakdown -->
+                <div style="background: white; border-radius: 16px; padding: 25px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    <h2 style="color: #1F2937; margin: 0 0 20px 0; font-size: 18px; display: flex; align-items: center;">
+                        📊 Score per Criterium
                     </h2>
-                    <p style="color: #4B5563; line-height: 1.6; margin: 0;">
-                        Bedankt voor het indienen van je vacaturetekst! Onze AI heeft een uitgebreide analyse
-                        gemaakt met concrete verbeterpunten om meer gekwalificeerde kandidaten aan te trekken.
-                    </p>
+                    <table width="100%" cellpadding="0" cellspacing="0">
+                        {score_bars}
+                    </table>
                 </div>
 
-                <!-- Analysis Content -->
-                <div style="background: white; border-radius: 16px; padding: 30px; margin: 20px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
-                    <h2 style="color: #1F2937; margin: 0 0 20px 0; font-size: 20px; border-bottom: 2px solid #FF6B35; padding-bottom: 10px;">
-                        📊 Analyse Resultaten
+                <!-- Quick Wins -->
+                <div style="background: white; border-radius: 16px; padding: 25px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    <h2 style="color: #1F2937; margin: 0 0 15px 0; font-size: 18px;">
+                        🚀 Top 3 Quick Wins
                     </h2>
-                    <div style="color: #374151; line-height: 1.8; white-space: pre-wrap; font-size: 15px;">
-{analysis_result}
-                    </div>
+                    {quick_wins_html}
                 </div>
+
+                <!-- Cialdini Tips (if available) -->
+                {f'''<div style="background: white; border-radius: 16px; padding: 25px; margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.05);">
+                    <h2 style="color: #1F2937; margin: 0 0 15px 0; font-size: 18px;">
+                        🧠 Overtuigingstips
+                    </h2>
+                    {cialdini_html}
+                </div>''' if cialdini_html else ''}
+
+                <!-- Improved Text -->
+                {improved_text_html}
 
                 <!-- CTA Button -->
-                <div style="text-align: center; margin: 30px 0;">
+                <div style="text-align: center; margin: 25px 0;">
                     <a href="https://recruitin.nl/contact"
-                       style="display: inline-block; background: #FF6B35; color: white; text-decoration: none;
-                              padding: 16px 40px; border-radius: 8px; font-weight: 600; font-size: 16px;
-                              box-shadow: 0 4px 14px rgba(255,107,53,0.4);">
-                        📞 Bespreek de resultaten met een expert
+                       style="display: inline-block; background: linear-gradient(135deg, #FF6B35 0%, #FF8F5C 100%); color: white; text-decoration: none;
+                              padding: 16px 32px; border-radius: 10px; font-weight: 600; font-size: 15px;
+                              box-shadow: 0 4px 14px rgba(255,107,53,0.35);">
+                        📞 Gratis adviesgesprek inplannen
                     </a>
                 </div>
 
-                <!-- What's Next -->
-                <div style="background: #FFF7ED; border-radius: 16px; padding: 25px; margin: 20px 0; border-left: 4px solid #FF6B35;">
-                    <h3 style="color: #9A3412; margin: 0 0 10px 0; font-size: 16px;">
-                        💡 Wat nu?
+                <!-- What's Next Card -->
+                <div style="background: linear-gradient(135deg, #FFF7ED 0%, #FFEDD5 100%); border-radius: 16px; padding: 25px; margin-bottom: 20px; border: 1px solid #FDBA74;">
+                    <h3 style="color: #9A3412; margin: 0 0 12px 0; font-size: 16px;">
+                        💡 Volgende stappen
                     </h3>
-                    <ul style="color: #78350F; margin: 0; padding-left: 20px; line-height: 1.8;">
-                        <li>Pas de verbeterpunten toe in je vacaturetekst</li>
-                        <li>Test de nieuwe tekst op je doelgroep</li>
-                        <li>Meet de resultaten (sollicitaties, views)</li>
-                    </ul>
+                    <ol style="color: #78350F; margin: 0; padding-left: 20px; line-height: 1.9; font-size: 14px;">
+                        <li>Implementeer de Quick Wins in je vacaturetekst</li>
+                        <li>Gebruik de verbeterde tekst als inspiratie</li>
+                        <li>Meet het resultaat (meer sollicitaties!)</li>
+                    </ol>
                 </div>
 
             </td>
@@ -280,15 +513,18 @@ def generate_email_html(contact_name, company_name, vacancy_title, analysis_resu
     </table>
 
     <!-- Footer -->
-    <table width="100%" cellpadding="0" cellspacing="0" style="background: #1F2937; padding: 30px 20px; margin-top: 20px;">
+    <table width="100%" cellpadding="0" cellspacing="0" style="background: #1F2937; padding: 30px 20px;">
         <tr>
             <td align="center">
-                <p style="color: #9CA3AF; font-size: 14px; margin: 0 0 10px 0;">
-                    <strong style="color: white;">Recruitin B.V.</strong> | Kandidatentekort.nl
+                <p style="color: white; font-size: 15px; font-weight: 600; margin: 0 0 5px 0;">
+                    Recruitin B.V.
                 </p>
-                <p style="color: #6B7280; font-size: 12px; margin: 0;">
-                    Dit is een automatisch gegenereerd rapport op basis van AI-analyse.<br>
-                    Voor vragen: info@recruitin.nl
+                <p style="color: #9CA3AF; font-size: 13px; margin: 0 0 15px 0;">
+                    Kandidatentekort.nl
+                </p>
+                <p style="color: #6B7280; font-size: 11px; margin: 0;">
+                    Dit rapport is automatisch gegenereerd door AI.<br>
+                    Vragen? Mail naar <a href="mailto:info@recruitin.nl" style="color: #FF6B35;">info@recruitin.nl</a>
                 </p>
             </td>
         </tr>
