@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """
-KANDIDATENTEKORT.NL - WEBHOOK V7
+KANDIDATENTEKORT.NL - WEBHOOK V8 ENHANCED
 Deploy: Render.com
 
 Features:
-- Claude AI V7.0 vacature analyse met Cialdini triggers
-- Regionale salarisbenchmarks
-- Inclusie/bias scanning
-- Mooie HTML email rapporten
+- Claude AI V8 Enhanced: 5-expert panel analyse + Human Voice
+- Senioriteitsniveaus met passende woordenaantallen
+- Tone of Voice per doelgroep (Productie/Engineering/Quality/Operations/Project)
+- 9 conversie-factoren met scoring matrix
+- Regionale salarisbenchmarks 2024/2025
+- PDFMonkey professionele PDF generatie
 - Pipedrive met custom fields + notes
 - Async processing voor snelle response
 """
@@ -449,7 +451,7 @@ Score: {score}/100 punten
 
 
 def parse_analysis_sections(analysis_result):
-    """Parse the V7.0 analysis into structured sections."""
+    """Parse the V8 Enhanced analysis into structured sections."""
     sections = {
         'executive_summary': '',
         'scores': {},
@@ -1704,7 +1706,7 @@ def send_analysis_email(to_email, contact_name, company_name, vacancy_title, ana
 
 
 def analyze_vacancy_with_claude(vacancy_text, company_name, vacancy_title=""):
-    """Analyze vacancy using Claude API with V7.0 Master Prompt - 12 criteria analysis."""
+    """Analyze vacancy using Claude API with V8 Enhanced - 5-expert panel + Human Voice."""
     if not CLAUDE_API_KEY:
         logger.warning("CLAUDE_API_KEY not set, using placeholder")
         return None, None
@@ -1713,319 +1715,307 @@ def analyze_vacancy_with_claude(vacancy_text, company_name, vacancy_title=""):
         import anthropic
         client = anthropic.Anthropic(api_key=CLAUDE_API_KEY)
 
-        # V7.0 MASTER PROMPT - Sollicitanten Magneet Framework
-        prompt = f"""# KANDIDATENTEKORT.NL V7.0 MASTER PROMPT
-## Sollicitanten Magneet - AI-Gestuurde Vacature-Analyse
+        # V8 ENHANCED PROMPT - 5-Expert Panel + Human Voice
+        prompt = f"""# VACATURE ANALYSE V8 ENHANCED - SOLLICITANTEN MAGNEET + HUMAN VOICE
 
-Je bent een EXPERT recruitment consultant gespecialiseerd in het transformeren van "generic postings" naar "sollicitanten magneten".
-Je analyseert technische vacatures (werkvoorbereider, monteur, elektrotechnicus, PLC, etc.) met het doel +55% meer sollicitaties te genereren.
+## CORE IDENTITY
 
-═══════════════════════════════════════════════════════════════
-📋 VACATURE INFORMATIE
-═══════════════════════════════════════════════════════════════
-🏢 Bedrijf: {company_name}
-💼 Functie: {vacancy_title or 'Niet opgegeven'}
+Je bent het Nederlandse Vacature Expertise Panel - vijf senior recruitment professionals die vacatureteksten analyseren én transformeren tot sollicitanten-magneten die lezen als geschreven door een mens.
 
-📝 ORIGINELE VACATURETEKST:
+**Panel:**
+- **Wouter Arts** - Recruitment Intelligence (ROI, business case, conversie)
+- **Sarah de Vries** - Talent Acquisition (candidate journey, ervaring)
+- **Mark van den Berg** - Conversion Copywriter (tekst, structuur, flow)
+- **Linda Konings** - HR Director (compliance, budget, strategie)
+- **Ruben Janssen** - Market Intelligence (salaris, trends, concurrentie)
+
+---
+
+## VACATURE INPUT
+
+Bedrijf: {company_name}
+Functie: {vacancy_title or 'Niet opgegeven'}
+
+ORIGINELE VACATURETEKST:
 ---
 {vacancy_text}
 ---
 
-═══════════════════════════════════════════════════════════════
-🎯 V7.0 ANALYSE FRAMEWORK - 12 SESSIES
-═══════════════════════════════════════════════════════════════
+---
 
-Analyseer de vacature GRONDIG op basis van onderstaande 12 sessies.
-Geef per sessie een score (1-10) met CONCRETE, ACTIONABLE feedback.
+## STAP 1: AUTOMATISCHE DETECTIE
 
-【SESSIE 1: OPENINGSZIN IMPACT AUDIT】
-De eerste 15 woorden bepalen of iemand doorleest of scrollt.
-
-Check op deze factoren:
-- Concreet vs vaag? (❌ "Wij zoeken een gemotiveerde monteur" vs ✅ "Monteur voor VDL-lijnen €2.400-2.700/maand Arnhem")
-- Action-oriented werkwoord? (❌ "We're hiring..." vs ✅ "Bouw je expertise op bij...")
-- Geen Engels jargon? (❌ "Join our dynamic team" vs ✅ "Werkvoorbereider Arnhem – productie")
-- Regionale signaal aanwezig?
-- Urgentie of voordeel direct duidelijk?
-
-Score: /10 | GEEF VERBETERDE OPENINGSZIN
-
-【SESSIE 2: BEDRIJF AANTREKKINGSKRACHT AUDIT】
-Waarom zou iemand voor DIT bedrijf werken vs de concurrent 2km verderop?
-
-Check deze 7 punten:
-1. Team foto of cultuur beschrijving aanwezig?
-2. Concrete benefits genoemd (niet buzzwords)?
-   ❌ "Groei, flexibiliteit, dynamisch team"
-   ✅ "Thuiswerken 2x/week, 27 vrije dagen, €200 studiebeurs/jaar"
-3. Company size context gegeven?
-4. Sector/industrie voordeel benadrukt?
-5. Growth path zichtbaar? (bijv: "50% van teamleiders zijn interne promoties")
-6. Social proof aanwezig? (Glassdoor reviews, referenties)
-7. Inclusiviteit signaal?
-
-Score: /10 | GEEF CONCRETE VERBETERINGEN
-
-【SESSIE 3: ROLKLARHEID AUDIT】
-Kan iemand exact zien wat hij/zij op DAG 1, DAG 30 en DAG 365 gaat doen?
-
-Check per timeframe:
-- DAG 1 (Onboarding): Beschreven? Concrete taken?
-- DAG 30 (First wins): Realistische resultaten genoemd?
-- DAG 365 (1-year vision): Career path duidelijk?
-
-Score: /10 | GEEF DAG 1/30/365 BESCHRIJVING
-
-【SESSIE 4: VEREISTEN REALISME AUDIT】
-KRITISCH: Unrealistic requirements scaren perfecte kandidaten weg.
-
-Herstructureer requirements in 3 kolommen:
-| VEREIST (wettelijk/veiligheid) | VOORDEEL (geld/carrière) | LEREND (trainen we) |
-
-Score: /10 | GEEF GEHERSTRUCTUREERDE REQUIREMENTS
-
-【SESSIE 5: GROEI-NARRATIEF AUDIT】
-Niet "salaris X" maar "hoe verdien je Y binnen Z maanden".
-
-Check deze elementen:
-1. Startsalaris expliciet? €[X]
-2. Increment pathway? "Jaar 1: +€150, Jaar 2: team lead +€300-400"
-3. Bonus/incentive? "Bonus €[X] per succesvolle project"
-4. Certificering voordeel? "VCA +€100/maand"
-5. Concrete skills = earnings? "PLC-programmering: +€400"
-
-Score: /10 | GEEF COMPLETE SALARY STORY met voorbeeld
-
-【SESSIE 6: INCLUSIE & BIAS CHECK】
-Legal risk mitigation: Scan op discriminatoire taal.
-
-RED FLAG SCANNER:
-❌ "Jonge, dynamische team" → Leeftijdsdiscriminatie
-❌ "Rockstar, ninja, guru" → Ageism
-❌ "Native English speaker" → Nationalistische bias
-❌ "Sterk team, fysiek zwaar" → Disability discrimination
-❌ "Moderne kantoor, young vibe" → Ageism
-❌ Alleen mannelijke voornamen → Gender bias
-
-Score: /10 | GEEF INCLUSIEVE ALTERNATIEVEN
-
-【SESSIE 7: CIALDINI PSYCHOLOGISCHE TRIGGERS】
-Waarom mensen solliciteren: Niet rationeel – emotioneel + psychologisch.
-
-Check Cialdini's 6 principles:
-1. RECIPROCITY: Bieden jullie training/certificering (gratis waarde)?
-2. SOCIAL PROOF: Reviews, "50+ mensen in vergelijkbare rollen"?
-3. AUTHORITY: Certificeringen, industrie-positie, awards?
-4. LIKING: Casual, authentic team beschrijving?
-5. SCARCITY: Deadline, limited spots? (❌ "We're always hiring" vs ✅ "Zoeken 2 monteurs tot eind Q2")
-6. CONSISTENCY: Career path aligned met ambities?
-
-Score: /10 | GEEF 3 SPECIFIEKE CIALDINI ZINNEN om toe te voegen
-
-【SESSIE 8: REGIONALE SALARISBENCHMARK】
-Dezelfde rol verdient in Utrecht meer dan in Drenthe.
-
-BENCHMARK MODIFIERS (vs nationale gemiddelde):
-- Randstad (Amsterdam/Utrecht): +12%
-- Gelderland (Arnhem): -8%
-- Overijssel (Enschede): -10%
-- Drenthe: -15%
-- Noord-Brabant (Eindhoven): -4%
-
-INDUSTRY MODIFIERS:
-- Large industrial (500+ mensen): +€300-500/maand
-- SME (50-200): -€100-200/maand
-
-SKILL PREMIUM:
-- PLC-programming: +€400-600
-- CNC-programming: +€300-500
-- Bilingual: +€150-250
-- Teamleader: +€500-800
-
-Score: /10 | GEEF GELOCALISEERD SALARISBEREIK voor deze rol
-
-【SESSIE 9: CALL-TO-ACTION TRIGGERS】
-De laatste 5 woorden bepalen of iemand klikt.
-
-Check 5 factoren:
-1. Action verb? (❌ "Apply now" vs ✅ "Stuur je CV + 1 vraag")
-2. Friction laag? (❌ "Account maken, 10 velden" vs ✅ "CV naar email – 30 sec")
-3. Incentive/reward? (bijv: "Eerste ronde: 15min telefoon")
-4. Urgency timestamp? (bijv: "Sluit 30 december")
-5. Permission = control? (bijv: "Jij bepaalt volgende stap")
-
-Score: /10 | GEEF VERBETERDE CTA
-
-【SESSIE 10: COMPETITIEVE DELTA ANALYSIS】
-Hoe ziet deze vacature eruit vs TOP 3 COMPETITORS in dezelfde regio?
-
-Vergelijk op:
-- Openingszin kracht
-- Salarisheldheid
-- Rolklarheid
-- Groei-narratief
-- Social proof
-- CTA clarity
-
-Score: /10 | GEEF UNIQUE SELLING POINTS die ontbreken
-
-【SESSIE 11: CONFIDENCE SCORING】
-Algehele professionaliteit en geloofwaardigheid.
-
-Check:
-- Grammatica en spelling
-- Structuur en leesbaarheid
-- Consistentie in tone-of-voice
-- Professionaliteit niveau
-
-Score: /10 | VERWACHT RESULTAAT met confidence interval
-
-【SESSIE 12: IMPLEMENTATIE ROADMAP】
-Wie doet wat, wanneer?
-
-Leveren:
-- QUICK WINS (<1 uur): Top 3 direct implementeerbaar
-- MEDIUM-TERM (deze week): Top 3 strategisch
-- SUCCESS METRICS: Baseline → Target voor applications, quality, time-to-hire
-
-Score: /10 | GEEF CONCRETE RACI + METRICS
-
-═══════════════════════════════════════════════════════════════
-📊 OUTPUT FORMAT (STRIKT AANHOUDEN!)
-═══════════════════════════════════════════════════════════════
-
-Begin ALTIJD met:
-
-SCORE: [TOTAAL]/100
-(Bereken: som van 12 criteria × 0.833, afgerond)
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🏆 EXECUTIVE SUMMARY
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-[3-4 zinnen: kernboodschap, belangrijkste bevinding, verwacht resultaat]
-
-Huidige sollicitaties: [schatting]/week
-Verwacht na V7.0: [schatting]/week
-Improvement: +[X]% (confidence [Y]%, range +[MIN]% tot +[MAX]%)
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📈 SCORES PER CRITERIUM
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. Openingszin Impact: /10
-2. Bedrijf Aantrekkingskracht: /10
-3. Rolklarheid: /10
-4. Vereisten Realisme: /10
-5. Groei-narratief: /10
-6. Inclusie & Bias: /10
-7. Cialdini Triggers: /10
-8. Salarisbenchmark: /10
-9. CTA Triggers: /10
-10. Competitieve Delta: /10
-11. Confidence Score: /10
-12. Implementatie Klaar: /10
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🚀 TOP 3 QUICK WINS (Direct implementeerbaar, <1 uur)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. [Specifieke actie + expected impact]
-2. [Specifieke actie + expected impact]
-3. [Specifieke actie + expected impact]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-💡 CIALDINI POWER-UPS (Direct toe te voegen zinnen)
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-1. [Social Proof zin]
-2. [Scarcity/Urgency zin]
-3. [Authority zin]
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-💰 SALARIS & GROEI ADVIES
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Aanbevolen salarisbereik: €[X] - €[Y] (gebaseerd op regio + rol)
-Groei-narratief voorbeeld:
-"Startsalaris: €[X]
-+ [certificering]: €[Y]/maand
-+ Jaarlijkse stijging: €[Z]
-Jaar 2: €[X+Y] - €[X+Z]
-Teamleider pad: €[A]+ (X% intern gegroeid)"
-
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-✍️ VERBETERDE VACATURETEKST
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
-BELANGRIJK: Schrijf een VOLLEDIG NIEUWE, PROFESSIONELE vacaturetekst die:
-- Minimaal 500-700 woorden bevat (uitgebreider dan origineel)
-- Een PAKKENDE, EMOTIONELE openingszin heeft die direct nieuwsgierigheid wekt
-- CONCRETE taken en verantwoordelijkheden beschrijft met DAG 1/30/365 perspectief
-- DUIDELIJKE groei- en ontwikkelmogelijkheden noemt met salaris-increments
-- Een AANTREKKELIJK werkgeversprofiel schetst met bedrijfscultuur en social proof
-- SPECIFIEKE salarisrange bevat (niet "marktconform")
-- ALLE 6 Cialdini overtuigingsprincipes toepast
-- Een KRACHTIGE, laagdrempelige call-to-action heeft met deadline
-- PROFESSIONEEL en WERVEND is geschreven - GEEN droge opsomming
-- DIRECT copy-paste klaar is voor publicatie op jobboards
-
-STRUCTUUR (gebruik deze exacte opzet):
-
-**[PAKKENDE FUNCTIETITEL] - [LOCATIE] | [SALARISRANGE]**
-
-[Wervende intro: 2-3 zinnen die de rol en IMPACT beschrijven. Begin met een vraag of statement die triggert.]
-
-**🎯 Dit ga je doen**
-[Concrete taken met DAG 1/30/365 perspectief. Bullet points maar wel beschrijvend.]
-
-**💪 Dit breng je mee**
-MUST-HAVES:
-[Alleen echt essentiële vereisten]
-
-NICE-TO-HAVES (wij trainen je!):
-[Leuke extra's, geen dealbreakers]
-
-**🎁 Dit krijg je van ons**
-[Concrete arbeidsvoorwaarden met getallen:
-- Salaris: €X - €Y
-- Vakantiedagen: X dagen
-- Pensioenregeling
-- Opleidingsbudget: €X
-- Reiskostenvergoeding
-- Extra's: laptop, telefoon, etc.]
-
-**📈 Groei & Ontwikkeling**
-[Carrièrepad met concrete salaris-increments en tijdlijn]
-
-**🏢 Over [bedrijfsnaam]**
-[Employer branding: wie zijn we, wat maakt ons uniek, team grootte, cultuur, social proof]
-
-**📞 Solliciteren**
-[Laagdrempelige CTA met deadline, contactpersoon, en "jij bepaalt volgende stap"]
+Bepaal eerst:
+1. **Functieniveau**: Junior (0-2j) / Medior (2-5j) / Senior (5+j) / Lead (8+j)
+   Basis: jaren ervaring, salaris, verantwoordelijkheden, functietitel
+2. **Doelgroep**: Productie / Engineering / Quality / Operations / Project
+3. **Passende Tone of Voice** voor deze doelgroep
 
 ---
 
-[SCHRIJF NU DE COMPLETE VACATURETEKST - MINIMAAL 500 WOORDEN, DIRECT PUBLICEERBAAR]
+## STAP 2: SENIORITEITSNIVEAUS & WOORDENAANTAL
 
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-📋 IMPLEMENTATIE CHECKLIST
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-QUICK WINS (<1 uur):
-☐ [Actie 1]
-☐ [Actie 2]
-☐ [Actie 3]
+| Niveau | Jaren | Salaris indicatie | Woordenaantal | Focus |
+|--------|-------|-------------------|---------------|-------|
+| Junior | 0-2 jaar | €32-48k | 300-400 woorden | Leren, begeleiding, concrete taken |
+| Medior | 2-5 jaar | €45-68k | 400-500 woorden | Zelfstandigheid, projecten, groei |
+| Senior | 5+ jaar | €60-95k | 500-650 woorden | Impact, verantwoordelijkheid, strategie |
+| Lead | 8+ jaar | €80-130k | 550-700 woorden | Leiderschap, visie, bedrijfsresultaten |
 
-DEZE WEEK:
-☐ [Actie 4]
-☐ [Actie 5]
+---
 
-SUCCESS METRICS:
-- Applications Week 1: [Baseline] → [Target]
-- Application Quality: [Baseline]% → [Target]%
-- Time-to-hire: [Baseline] dagen → [Target] dagen
+## STAP 3: TONE OF VOICE PER DOELGROEP
 
-Wees EXTREEM CONCREET en ACTIONABLE. Elke suggestie moet DIRECT implementeerbaar zijn.
-Schrijf in het Nederlands, professioneel maar toegankelijk, GEEN corporate jargon."""
+### Technische Productie (Monteurs, Operators, Technici)
+- Direct en concreet, geen wollige taal
+- Specifiek over het werk (machines, producten)
+- Eerlijk over ploegendienst, fysieke aspecten
+- Teamsfeer benadrukken
+- VERBODEN: dynamisch, hands-on, proactief, flexibel, optimaliseren
+
+### Engineering & Ontwerp (Constructeurs, Engineers)
+- Technisch maar niet droog
+- Specifiek over projecten en uitdagingen
+- Software/tools noemen
+- Leer- en ontwikkelmogelijkheden
+- VERBODEN: divers, innovatief (tenzij concreet)
+
+### Quality & Process (Quality Engineers, QHSE)
+- Gestructureerd en helder
+- Certificeringen en normen noemen (ISO, AS)
+- Bevoegdheden en mandaat duidelijk
+- VERBODEN: linking pin, borgen, continu verbeteren
+
+### Operations & Management (Teamleiders, Productiemanagers)
+- Zakelijk maar persoonlijk
+- Concrete cijfers (teamgrootte, budget)
+- Bevoegdheden en rapportagelijnen helder
+- VERBODEN: aansturen (te soft), optimaal (kwantificeer)
+
+### Projectmanagement (Projectleiders, Werkvoorbereiders)
+- Gestructureerd met ruimte voor creativiteit
+- Projectvoorbeelden en -groottes noemen
+- Autonomie en beslissingsbevoegdheid benoemen
+- VERBODEN: diverse projecten, overzicht houden
+
+---
+
+## STAP 4: 9 CONVERSIE-FACTOREN
+
+Score elke factor 1-5. Bereken gemiddelde van 5 experts (W=Wouter, S=Sarah, M=Mark, L=Linda, R=Ruben).
+
+| # | Factor | Score 1 | Score 5 |
+|---|--------|---------|---------|
+| 1 | Hook | "Wij zoeken een..." | Context + urgentie |
+| 2 | Bedrijfsprofiel | Alleen naam | Missie + momentum |
+| 3 | Rolhelderheid | Vage bullets | Concrete projecten |
+| 4 | Eisenrealisme | 15+ eisen | Max 5 must-haves |
+| 5 | Salaris | Niet genoemd | Range + opbouw |
+| 6 | Benefits | Standaard waslijst | Unieke waarde |
+| 7 | Groeipad | Niet genoemd | Concreet traject |
+| 8 | Inclusiviteit | Uitsluitende taal | Actief inclusief |
+| 9 | Call-to-action | "Stuur CV naar..." | Persoon + proces |
+
+---
+
+## STAP 5: SALARISBENCHMARKS 2024/2025
+
+### Technische Productie
+| Functie | Junior | Medior | Senior |
+|---------|--------|--------|--------|
+| Operator | €28-34k | €34-40k | €38-46k |
+| Monteur | €32-40k | €40-50k | €48-60k |
+| Allround Monteur | €36-44k | €44-54k | €52-64k |
+
+### Engineering
+| Functie | Junior | Medior | Senior |
+|---------|--------|--------|--------|
+| Constructeur | €38-48k | €48-60k | €58-72k |
+| Engineer | €40-50k | €50-65k | €62-80k |
+| Lead Engineer | - | €60-75k | €72-92k |
+
+### Operations
+| Functie | Junior | Medior | Senior |
+|---------|--------|--------|--------|
+| Teamleider | €42-52k | €52-64k | €62-78k |
+| Projectleider | €45-55k | €55-70k | €68-85k |
+| Operations Manager | €60-75k | €75-92k | €88-115k |
+
+### Regio-index
+- Randstad: 105-110%
+- Noord-Brabant: 100-105%
+- Gelderland/Overijssel: 95-100%
+- Noord/Oost: 90-95%
+
+---
+
+## STAP 6: HUMAN VOICE REGELS
+
+### ABSOLUUT VERBODEN (AI-detecteerbaar):
+- "Jouw missie als..." / "Jouw rol als..." / "Jouw impact als..."
+- "Ben jij die..." / "Herken jij jezelf hierin?"
+- "Wij zijn op zoek naar een [functie] die..."
+- Headers met emoji's
+- Meer dan 4 bullets achter elkaar
+- Elke bullet beginnen met werkwoord
+- "Competitief salaris" / "Marktconform salaris"
+- "Dynamisch team" / "informele sfeer" / "korte lijnen"
+- "Hands-on" / "proactief" / "flexibel" / "stressbestendig"
+- Elke zin beginnen met "Je..."
+
+### VERPLICHT:
+- Begin met context, niet met functie
+- Salaris met range (altijd!)
+- Maximaal 2 bullet-secties (elk max 4 items)
+- Lopende tekst voor het werk
+- Eén contactpersoon met naam
+- Natuurlijke overgangen tussen secties
+
+---
+
+## OUTPUT STRUCTUUR (STRIKT AANHOUDEN!)
+
+### DEEL 1: SAMENVATTING
+
+VACATURE: [Functie] bij [Bedrijf]
+NIVEAU: [Junior/Medior/Senior/Lead]
+DOELGROEP: [Productie/Engineering/Quality/Operations/Project]
+SCORE: XX/45 | STATUS: [Kritiek (<20) / Aandacht (20-30) / Goed (30+)]
+
+Geschatte huidige conversie: X.X%
+Potentiële conversie na optimalisatie: X.X%
+Verwachte verbetering: +XX%
+
+### DEEL 2: SCOREKAART (5-Expert Panel)
+
+Factor              | W | S | M | L | R | Gem | Status
+--------------------|---|---|---|---|---|-----|--------
+Hook                | X | X | X | X | X | X.X | [goed/matig/kritiek]
+Bedrijfsprofiel     | X | X | X | X | X | X.X | [goed/matig/kritiek]
+Rolhelderheid       | X | X | X | X | X | X.X | [goed/matig/kritiek]
+Eisenrealisme       | X | X | X | X | X | X.X | [goed/matig/kritiek]
+Salaris             | X | X | X | X | X | X.X | [goed/matig/kritiek]
+Benefits            | X | X | X | X | X | X.X | [goed/matig/kritiek]
+Groeipad            | X | X | X | X | X | X.X | [goed/matig/kritiek]
+Inclusiviteit       | X | X | X | X | X | X.X | [goed/matig/kritiek]
+Call-to-action      | X | X | X | X | X | X.X | [goed/matig/kritiek]
+--------------------|---|---|---|---|---|-----|--------
+TOTAAL                                  | XX/45
+
+Status: goed (4+) | matig (2.5-4) | kritiek (<2.5)
+
+### DEEL 3: TOP 3 CONVERSIE-KILLERS
+
+Voor elke killer:
+
+#X [PROBLEEM] - Geschatte impact: -XX% sollicitaties
+
+Wat er staat:
+"[Citaat uit originele vacature]"
+
+Waarom dit niet werkt:
+[Onderbouwing met doelgroep-specifieke argumentatie]
+
+Oplossing:
+[Concrete vervangende tekst, passend bij tone of voice doelgroep]
+
+Tijd om te fixen: XX minuten
+
+### DEEL 4: VOOR EN NA
+
+═══════════════════════════════════════════
+ORIGINEEL (Score: XX/45)
+═══════════════════════════════════════════
+
+[Volledige originele tekst]
+
+═══════════════════════════════════════════
+VERBETERD (Score: XX/45) - Human Voice
+Niveau: [Junior/Medior/Senior/Lead]
+Doelgroep: [Type]
+Woorden: XXX
+═══════════════════════════════════════════
+
+[Volledige verbeterde tekst volgens template voor niveau - GEEN EMOJI'S IN HEADERS]
+
+TEKST TEMPLATES:
+
+**Junior (300-400 woorden):**
+- Opening (40-60w): Context + waarom junior zoeken
+- Het werk (80-120w): Concrete taken, begeleiding, machines/tools
+- Wie we zoeken (40-60w): Opleiding, type persoon, leergierigheid
+- Wat je krijgt (60-80w): Salaris range, opleidingsbudget, benefits
+- Praktisch (30-40w): Locatie, uren, solliciteren
+
+**Medior (400-500 woorden):**
+- Opening (50-70w): Context + wat er speelt
+- Het bedrijf (40-60w): Team, projecten, cultuur
+- Het werk (120-160w): Projecten, zelfstandigheid, uitdagingen
+- Wie past hier (50-70w): Achtergrond, must-haves vs nice-to-haves
+- Wat je krijgt (80-100w): Salaris, doorgroei, benefits
+- Praktisch (40-50w): Locatie, contact, proces
+
+**Senior (500-650 woorden):**
+- Opening (60-80w): Strategische context
+- Het bedrijf (60-80w): Marktpositie, ambities
+- Het werk (150-200w): Impact, strategie, samenwerking
+- Wie past hier (70-90w): Ervaring, type professional
+- Wat je krijgt (100-120w): Salaris, positie, volledige pakket
+- Praktisch (50-60w): Proces, contactpersoon
+
+**Lead (550-700 woorden):**
+- Opening (70-90w): Bedrijfstransformatie/uitdaging
+- Het bedrijf (70-90w): Schaal, cultuur, leiderschap
+- De opdracht (180-220w): Resultaten, middelen, team, budget
+- Wie we zoeken (80-100w): Track record, leiderschapsstijl
+- Wat we bieden (100-130w): Salaris, MT-positie, autonomie
+- Hoe nu verder (50-60w): Proces, discretie
+
+### DEEL 5: VERWACHTE RESULTATEN
+
+                    | VOOR     | NA       | VERSCHIL
+--------------------|----------|----------|----------
+Sollicitaties/maand | XX       | XX       | +XX%
+Kwaliteitsmatch     | X.X/5    | X.X/5    | +XX%
+Tijd tot aanname    | XX dagen | XX dagen | -XX%
+
+### DEEL 6: IMPLEMENTATIEPLAN
+
+VANDAAG (30 min):
+- [Actie 1]
+- [Actie 2]
+- Live zetten
+
+WEEK 1:
+- Resultaten meten
+- [Eventuele aanpassing]
+
+### DEEL 7: EXPERT INSIGHTS
+
+Eén quote per expert, specifiek voor deze vacature:
+- **Wouter:** [Business/ROI perspectief]
+- **Sarah:** [Candidate experience voor deze doelgroep]
+- **Mark:** [Tekst/conversie specifiek voor niveau]
+- **Linda:** [HR/compliance]
+- **Ruben:** [Markt/salaris voor deze functie]
+
+---
+
+## KWALITEITSCHECK VOOR VERBETERDE TEKST
+
+Voordat je oplevert, controleer:
+- Woordenaantal past bij niveau
+- Tone of voice past bij doelgroep
+- Salaris met range vermeld
+- Geen verboden woorden/structuren
+- Leest als geschreven door mens (niet AI)
+- Begin met context, niet "Wij zoeken"
+
+Schrijf in het Nederlands, direct en concreet, GEEN corporate jargon of emoji's."""
 
         message = client.messages.create(
             model="claude-sonnet-4-20250514",
-            max_tokens=8000,  # Increased for V7.0 Master Prompt comprehensive analysis
+            max_tokens=8000,  # V8 Enhanced: 5-expert panel + Human Voice analysis
             messages=[{"role": "user", "content": prompt}]
         )
 
@@ -2038,9 +2028,9 @@ Schrijf in het Nederlands, professioneel maar toegankelijk, GEEN corporate jargo
                 score_line = analysis.split("SCORE:")[1].split("\n")[0]
                 score = int(''.join(filter(str.isdigit, score_line.split("/")[0])))
             except:
-                score = 50  # Default if parsing fails
+                score = 25  # Default if parsing fails (V8: 45-point scale)
 
-        logger.info(f"V7.0 Analysis completed for {company_name}, score: {score}")
+        logger.info(f"V8 Enhanced Analysis completed for {company_name}, score: {score}/45")
         return analysis, score
 
     except Exception as e:
@@ -2079,14 +2069,17 @@ def health():
     """Health check endpoint."""
     return jsonify({
         "status": "healthy",
-        "version": "7.2",
+        "version": "8.0",
         "features": {
             "email": bool(GMAIL_APP_PASSWORD),
             "pipedrive": bool(PIPEDRIVE_API_TOKEN),
             "claude": bool(CLAUDE_API_KEY),
-            "v7_analysis": True
+            "v8_analysis": True,
+            "human_voice": True,
+            "expert_panel": True
         },
-        "analysis_criteria": 12,
+        "analysis_criteria": 9,
+        "max_score": 45,
         "timestamp": datetime.now().isoformat()
     })
 
@@ -2213,17 +2206,19 @@ def api_analyze():
 def home():
     """Home endpoint."""
     return jsonify({
-        "service": "Kandidatentekort Webhook V7",
-        "version": "7.2",
+        "service": "Kandidatentekort Webhook V8 Enhanced",
+        "version": "8.0",
         "features": [
             "email",
             "pipedrive",
-            "claude-ai-v7",
-            "async-processing",
-            "12-criteria-analysis",
-            "cialdini-triggers",
-            "inclusie-bias-check",
-            "salary-benchmark"
+            "claude-ai-v8-enhanced",
+            "5-expert-panel",
+            "human-voice-rules",
+            "9-conversion-factors",
+            "45-point-scoring",
+            "seniority-based-analysis",
+            "tone-per-doelgroep",
+            "pdfmonkey-integration"
         ],
         "endpoints": ["/health", "/webhook/typeform", "/api/analyze"]
     })
