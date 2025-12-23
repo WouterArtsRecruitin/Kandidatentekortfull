@@ -2,7 +2,18 @@
   command = "npm run build"
   publish = "dist"
 
-# SPA fallback - serve index.html for all routes
+# Static pages - must come BEFORE SPA fallback
+[[redirects]]
+  from = "/vacature-insturen"
+  to = "/vacature-insturen.html"
+  status = 200
+
+[[redirects]]
+  from = "/cookiebeleid"
+  to = "/cookiebeleid.html"
+  status = 200
+
+# SPA fallback - serve index.html for all other routes
 [[redirects]]
   from = "/*"
   to = "/index.html"
