@@ -1049,7 +1049,8 @@ def test_email():
 @app.route("/update-pdf-urls", methods=["POST"])
 def update_pdf_urls():
     """
-    Update Pipedrive deal with PDF URLs for Trust-First Email 9.
+    Update Pipedrive deal with PDF URLs + maak reminder taak voor handmatige verzending.
+    GEEN automatische email - eerst handmatige controle, dan binnen 24u versturen.
 
     POST JSON:
     {
@@ -1074,8 +1075,8 @@ def update_pdf_urls():
         if not PIPEDRIVE_API_TOKEN:
             return jsonify({"error": "Pipedrive not configured"}), 500
 
-        # Create note with PDF URLs
-        note_content = f"""✅ PDF DOCUMENTEN GEREED VOOR VERZENDING
+        # 1. Create note with PDF URLs
+        note_content = f"""✅ PDF DOCUMENTEN GEREED - HANDMATIGE CONTROLE NODIG
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 📄 Verbeterde Vacaturetekst:
@@ -1085,36 +1086,204 @@ def update_pdf_urls():
 {rapport_url if rapport_url else '(niet beschikbaar)'}
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🚀 Klaar voor Trust-First Email 9!
+⏰ Actie: Check PDFs en verstuur binnen 24 uur!
+   Gebruik: POST /send-pdf-email met deal_id={deal_id}
 """
 
-        r = requests.post(
+        note_result = requests.post(
             f"{PIPEDRIVE_BASE}/notes",
             params={"api_token": PIPEDRIVE_API_TOKEN},
             json={
                 "deal_id": int(deal_id),
                 "content": note_content,
-                "pinned_to_deal_flag": True  # Pin zodat het bovenaan staat
+                "pinned_to_deal_flag": True
+            },
+            timeout=30
+        )
+        note_id = note_result.json().get('data', {}).get('id') if note_result.status_code == 201 else None
+
+        # 2. Create reminder activity (deadline: 24 hours)
+        due_date = (datetime.now() + timedelta(hours=24)).strftime('%Y-%m-%d')
+        due_time = (datetime.now() + timedelta(hours=24)).strftime('%H:%M')
+
+        activity_result = requests.post(
+            f"{PIPEDRIVE_BASE}/activities",
+            params={"api_token": PIPEDRIVE_API_TOKEN},
+            json={
+                "deal_id": int(deal_id),
+                "subject": "📧 PDF Check & Verstuur naar kandidaat",
+                "type": "task",
+                "due_date": due_date,
+                "due_time": due_time,
+                "note": f"Check de PDFs en verstuur naar de kandidaat:\n\n1. Open de PDF links in de notitie\n2. Controleer of alles correct is\n3. Verstuur via /send-pdf-email of handmatig\n\nPDF Links staan in de gepinde notitie."
+            },
+            timeout=30
+        )
+        activity_id = activity_result.json().get('data', {}).get('id') if activity_result.status_code == 201 else None
+
+        logger.info(f"✅ PDF URLs + reminder added to deal {deal_id} (note: {note_id}, activity: {activity_id})")
+
+        return jsonify({
+            "success": True,
+            "deal_id": deal_id,
+            "note_id": note_id,
+            "activity_id": activity_id,
+            "reminder_due": f"{due_date} {due_time}",
+            "vacature_url": vacature_url,
+            "rapport_url": rapport_url,
+            "next_step": f"Check PDFs, then POST /send-pdf-email with deal_id={deal_id}"
+        }), 200
+
+    except Exception as e:
+        logger.error(f"❌ Update PDF URLs error: {e}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/send-pdf-email", methods=["POST"])
+def send_pdf_email():
+    """
+    Handmatig versturen van PDF email na controle.
+    Haalt contact info op uit Pipedrive deal en verstuurt Email 0 met PDF links.
+
+    POST JSON:
+    {
+        "deal_id": 12345,
+        "vacature_pdf_url": "https://..." (optional - haalt uit notitie indien niet gegeven),
+        "rapport_pdf_url": "https://..." (optional)
+    }
+    """
+    try:
+        data = request.get_json(force=True, silent=True) or {}
+        deal_id = data.get('deal_id')
+
+        if not deal_id:
+            return jsonify({"error": "deal_id is required"}), 400
+
+        if not PIPEDRIVE_API_TOKEN or not GMAIL_APP_PASSWORD:
+            return jsonify({"error": "Pipedrive or Gmail not configured"}), 500
+
+        # 1. Get deal info from Pipedrive
+        deal_resp = requests.get(
+            f"{PIPEDRIVE_BASE}/deals/{deal_id}",
+            params={"api_token": PIPEDRIVE_API_TOKEN},
+            timeout=30
+        )
+        if deal_resp.status_code != 200:
+            return jsonify({"error": f"Deal {deal_id} not found"}), 404
+
+        deal_data = deal_resp.json().get('data', {})
+        person_id = deal_data.get('person_id', {}).get('value') if isinstance(deal_data.get('person_id'), dict) else deal_data.get('person_id')
+        org_name = deal_data.get('org_name', 'uw bedrijf')
+        title = deal_data.get('title', 'uw vacature')
+
+        # 2. Get person/contact info
+        if not person_id:
+            return jsonify({"error": "No contact linked to deal"}), 400
+
+        person_resp = requests.get(
+            f"{PIPEDRIVE_BASE}/persons/{person_id}",
+            params={"api_token": PIPEDRIVE_API_TOKEN},
+            timeout=30
+        )
+        if person_resp.status_code != 200:
+            return jsonify({"error": "Contact not found"}), 404
+
+        person_data = person_resp.json().get('data', {})
+        voornaam = person_data.get('first_name', person_data.get('name', 'daar').split()[0])
+        email_list = person_data.get('email', [])
+        recipient_email = email_list[0].get('value') if isinstance(email_list, list) and email_list else None
+
+        if not recipient_email:
+            return jsonify({"error": "No email address for contact"}), 400
+
+        # 3. Get PDF URLs from request or search in notes
+        vacature_url = data.get('vacature_pdf_url', '')
+        rapport_url = data.get('rapport_pdf_url', '')
+
+        if not vacature_url or not rapport_url:
+            # Try to find URLs in deal notes
+            notes_resp = requests.get(
+                f"{PIPEDRIVE_BASE}/deals/{deal_id}/notes",
+                params={"api_token": PIPEDRIVE_API_TOKEN, "limit": 10},
+                timeout=30
+            )
+            if notes_resp.status_code == 200:
+                for note in notes_resp.json().get('data', []) or []:
+                    content = note.get('content', '')
+                    if 'PDF DOCUMENTEN' in content:
+                        # Extract URLs from note
+                        import re
+                        urls = re.findall(r'https?://[^\s<>"]+', content)
+                        for url in urls:
+                            if 'vacature' in url.lower() or 'verbeterde' in url.lower():
+                                vacature_url = vacature_url or url
+                            elif 'rapport' in url.lower() or 'analyse' in url.lower():
+                                rapport_url = rapport_url or url
+                        break
+
+        if not vacature_url and not rapport_url:
+            return jsonify({"error": "No PDF URLs found. Provide them in request or add to deal notes first."}), 400
+
+        # 4. Generate email HTML
+        functie_titel = title.split(' - ')[0] if ' - ' in title else title
+        html_content = get_pdf_email_html(voornaam, functie_titel, org_name, vacature_url, rapport_url)
+
+        # 5. Send email via Gmail
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = f"Jouw vacature-analyse is klaar: {functie_titel}"
+        msg['From'] = f"Kandidatentekort.nl <{GMAIL_USER}>"
+        msg['To'] = recipient_email
+        msg['Reply-To'] = GMAIL_USER
+
+        msg.attach(MIMEText(f"Hoi {voornaam}, je PDF documenten zijn klaar. Download ze via: {vacature_url} en {rapport_url}", 'plain'))
+        msg.attach(MIMEText(html_content, 'html'))
+
+        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
+            smtp.login(GMAIL_USER, GMAIL_APP_PASSWORD)
+            smtp.send_message(msg)
+
+        # 6. Mark activity as done (if exists)
+        activities_resp = requests.get(
+            f"{PIPEDRIVE_BASE}/deals/{deal_id}/activities",
+            params={"api_token": PIPEDRIVE_API_TOKEN, "done": 0},
+            timeout=30
+        )
+        if activities_resp.status_code == 200:
+            for activity in activities_resp.json().get('data', []) or []:
+                if 'PDF Check' in activity.get('subject', ''):
+                    requests.put(
+                        f"{PIPEDRIVE_BASE}/activities/{activity['id']}",
+                        params={"api_token": PIPEDRIVE_API_TOKEN},
+                        json={"done": True},
+                        timeout=30
+                    )
+                    break
+
+        # 7. Add confirmation note
+        requests.post(
+            f"{PIPEDRIVE_BASE}/notes",
+            params={"api_token": PIPEDRIVE_API_TOKEN},
+            json={
+                "deal_id": int(deal_id),
+                "content": f"✅ PDF Email verzonden naar {recipient_email}\n\nVerzonden: {datetime.now().strftime('%d-%m-%Y %H:%M')}\n\nNu start de Trust-First nurture sequence (Email 1 morgen)."
             },
             timeout=30
         )
 
-        if r.status_code == 201:
-            note_id = r.json().get('data', {}).get('id')
-            logger.info(f"✅ PDF URLs added to deal {deal_id} (note ID: {note_id})")
-            return jsonify({
-                "success": True,
-                "deal_id": deal_id,
-                "note_id": note_id,
-                "vacature_url": vacature_url,
-                "rapport_url": rapport_url
-            }), 200
-        else:
-            logger.warning(f"Note creation failed: {r.status_code} - {r.text[:200]}")
-            return jsonify({"error": f"Pipedrive error: {r.status_code}"}), 500
+        logger.info(f"✅ PDF email sent to {recipient_email} for deal {deal_id}")
+
+        return jsonify({
+            "success": True,
+            "deal_id": deal_id,
+            "email_sent_to": recipient_email,
+            "voornaam": voornaam,
+            "functie": functie_titel,
+            "vacature_url": vacature_url,
+            "rapport_url": rapport_url
+        }), 200
 
     except Exception as e:
-        logger.error(f"❌ Update PDF URLs error: {e}", exc_info=True)
+        logger.error(f"❌ Send PDF email error: {e}", exc_info=True)
         return jsonify({"error": str(e)}), 500
 
 
@@ -1133,6 +1302,59 @@ def debug_webhook():
 # =============================================================================
 # TRUST-FIRST EMAIL NURTURE SYSTEM V5.0
 # =============================================================================
+
+def get_pdf_email_html(voornaam, functie_titel, bedrijf, vacature_url, rapport_url):
+    """Generate HTML content for Email 0 - PDF delivery"""
+    return f"""<div style="font-family: Arial, sans-serif; font-size: 14px; line-height: 1.6; color: #333333; max-width: 600px;">
+
+<p>Hoi {voornaam},</p>
+
+<p>Goed nieuws! De analyse van je vacature <strong>{functie_titel}</strong> bij {bedrijf} is klaar.</p>
+
+<div style="background-color: #f8f9fa; border-radius: 8px; padding: 25px; margin: 25px 0;">
+<p style="margin: 0 0 15px 0; font-size: 16px; font-weight: bold; color: #1E3A8A;">📄 Jouw documenten:</p>
+
+<table style="width: 100%; border-collapse: collapse;">
+<tr>
+<td style="padding: 12px 0; border-bottom: 1px solid #e0e0e0;">
+<strong style="color: #10B981;">✅ Verbeterde Vacaturetekst</strong><br>
+<span style="font-size: 13px; color: #666;">Direct te gebruiken, geoptimaliseerd voor meer sollicitaties</span><br>
+<a href="{vacature_url}" style="color: #EF7D00; font-weight: bold;">📥 Download PDF</a>
+</td>
+</tr>
+<tr>
+<td style="padding: 12px 0;">
+<strong style="color: #10B981;">✅ Analyse Rapport</strong><br>
+<span style="font-size: 13px; color: #666;">Gedetailleerde feedback + concrete verbeterpunten</span><br>
+<a href="{rapport_url}" style="color: #EF7D00; font-weight: bold;">📥 Download PDF</a>
+</td>
+</tr>
+</table>
+</div>
+
+<div style="background-color: #FEF3C7; border-left: 4px solid #F59E0B; padding: 15px 20px; margin: 20px 0;">
+<p style="margin: 0 0 10px 0;"><strong>💡 Tip van de expert:</strong></p>
+<p style="margin: 0;">De meeste vacatures krijgen met 2-3 simpele aanpassingen <strong>40%+ meer sollicitaties</strong>. Bekijk vooral de "Conversion Killers" in het rapport - daar zit vaak de snelste winst.</p>
+</div>
+
+<p><strong>Wat nu?</strong></p>
+<ol style="margin: 15px 0; padding-left: 20px;">
+<li>Download beide documenten</li>
+<li>Pas de verbeterde tekst toe op je vacatureplatform</li>
+<li>Meet het resultaat na 1-2 weken</li>
+</ol>
+
+<p>Vragen over de analyse? Reply gewoon op deze mail - ik help je graag verder.</p>
+
+<p>Succes!<br>
+<strong>Wouter</strong><br>
+<span style="color: #666666;">kandidatentekort.nl</span></p>
+
+<p style="color: #999999; font-size: 12px; margin-top: 30px; padding-top: 15px; border-top: 1px solid #eeeeee;">
+PS: Morgen stuur ik je een korte check-in om te zien of alles goed is aangekomen.</p>
+
+</div>"""
+
 
 def get_nurture_email_html(email_num, voornaam, functie_titel):
     """Generate HTML content for nurture emails"""
