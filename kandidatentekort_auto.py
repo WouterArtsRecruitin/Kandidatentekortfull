@@ -1039,6 +1039,206 @@ def typeform_webhook():
         return jsonify({"error": str(e)}), 500
 
 
+# =============================================================================
+# META/FACEBOOK LEAD ADS INTEGRATION
+# =============================================================================
+
+def get_meta_lead_email_html(voornaam, bedrijf):
+    """Email template voor Meta Lead Ads - social media leads"""
+    return f'''<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;font-family:Inter,-apple-system,sans-serif;background:#f9fafb;">
+<table width="100%" style="padding:40px 20px;"><tr><td align="center">
+<table width="600" style="background:#fff;border-radius:12px;box-shadow:0 8px 32px rgba(44,62,80,0.12);">
+<tr><td style="background:linear-gradient(135deg,#ff6b35,#e55a2b);color:#fff;padding:40px 30px;text-align:center;">
+<div style="font-size:28px;font-weight:800;">👋 Welkom!</div>
+<div style="font-size:16px;opacity:0.95;">Goed dat je interesse hebt in betere vacatures</div></td></tr>
+<tr><td style="padding:35px 30px;">
+<p style="font-size:19px;font-weight:700;">Hoi {voornaam},</p>
+<p style="color:#374151;">Bedankt voor je aanmelding via Facebook! Fijn dat je{' namens <strong style="color:#ff6b35;">' + bedrijf + '</strong>' if bedrijf else ''} geïnteresseerd bent in onze vacature-analyse.</p>
+<table width="100%" style="background:#f0f4f8;border-left:5px solid #ff6b35;border-radius:0 12px 12px 0;margin:25px 0;">
+<tr><td style="padding:25px;">
+<div style="font-size:18px;font-weight:700;color:#2c3e50;">📋 Hoe werkt het?</div>
+<ol style="color:#374151;padding-left:20px;">
+<li><strong>Stuur je vacaturetekst</strong> naar <a href="mailto:info@kandidatentekort.nl" style="color:#ff6b35;">info@kandidatentekort.nl</a></li>
+<li>Wij analyseren deze <strong>gratis</strong> op 6 belangrijke onderdelen</li>
+<li>Je ontvangt binnen 24 uur een rapport met concrete verbeterpunten</li>
+<li><strong>Meer sollicitaties</strong> van de juiste kandidaten!</li></ol></td></tr></table>
+<table width="100%" style="background:linear-gradient(135deg,#ff6b35,#e55a2b);border-radius:12px;margin:25px 0;">
+<tr><td style="padding:20px;text-align:center;">
+<a href="mailto:info@kandidatentekort.nl?subject=Vacature%20ter%20analyse&body=Hoi%20Wouter%2C%0A%0AHierbij%20mijn%20vacaturetekst%20ter%20analyse%3A%0A%0A%5BPLAK%20HIER%20JE%20VACATURETEKST%5D%0A%0ABedrijf%3A%20%0AFunctie%3A%20%0A%0AGroet%2C" style="display:inline-block;background:#fff;color:#ff6b35;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:700;font-size:16px;">📧 Stuur je vacature direct</a></td></tr></table>
+<p style="color:#374151;">Of reply gewoon op deze email met je vacaturetekst!</p></td></tr>
+<tr><td style="padding:0 30px 35px;border-top:1px solid #f1f3f4;">
+<table style="padding-top:25px;"><tr><td>
+<p style="margin:0 0 5px;font-weight:700;color:#2c3e50;">Wouter Arts</p>
+<p style="margin:0;color:#6b7280;font-size:14px;">Founder & Recruitment Specialist</p>
+<p style="margin:0;color:#ff6b35;font-size:14px;font-weight:600;">Kandidatentekort.nl</p>
+</td></tr></table></td></tr>
+<tr><td style="background:#2c3e50;color:#fff;padding:20px 30px;text-align:center;font-size:12px;">
+© 2025 Kandidatentekort.nl | Recruitin B.V.</td></tr>
+</table></td></tr></table></body></html>'''
+
+
+def parse_meta_lead_data(data):
+    """Parse data from Meta Lead Ads (direct webhook or via Zapier)"""
+
+    # Try different data formats
+    # Format 1: Direct from Zapier (flat structure)
+    if 'email' in data:
+        return {
+            'email': data.get('email', ''),
+            'voornaam': data.get('voornaam', data.get('first_name', data.get('full_name', '').split()[0] if data.get('full_name') else '')),
+            'achternaam': data.get('achternaam', data.get('last_name', ' '.join(data.get('full_name', '').split()[1:]) if data.get('full_name') else '')),
+            'contact': data.get('full_name', f"{data.get('voornaam', '')} {data.get('achternaam', '')}".strip()),
+            'bedrijf': data.get('bedrijf', data.get('company_name', data.get('company', ''))),
+            'telefoon': data.get('telefoon', data.get('phone_number', data.get('phone', ''))),
+            'lead_id': data.get('lead_id', data.get('leadgen_id', '')),
+            'form_id': data.get('form_id', ''),
+            'source': 'meta_lead_ads'
+        }
+
+    # Format 2: Direct Facebook webhook (nested structure)
+    if 'entry' in data:
+        try:
+            changes = data['entry'][0]['changes'][0]['value']
+            field_data = {f['name']: f['values'][0] for f in changes.get('field_data', [])}
+            full_name = field_data.get('full_name', '')
+            name_parts = full_name.split() if full_name else ['', '']
+            return {
+                'email': field_data.get('email', ''),
+                'voornaam': name_parts[0] if name_parts else '',
+                'achternaam': ' '.join(name_parts[1:]) if len(name_parts) > 1 else '',
+                'contact': full_name,
+                'bedrijf': field_data.get('company_name', field_data.get('company', '')),
+                'telefoon': field_data.get('phone_number', ''),
+                'lead_id': changes.get('leadgen_id', ''),
+                'form_id': changes.get('form_id', ''),
+                'source': 'meta_lead_ads'
+            }
+        except (KeyError, IndexError) as e:
+            logger.error(f"❌ Error parsing Facebook webhook: {e}")
+
+    # Fallback: try to extract whatever we can
+    return {
+        'email': data.get('email', ''),
+        'voornaam': data.get('voornaam', data.get('name', '').split()[0] if data.get('name') else ''),
+        'achternaam': '',
+        'contact': data.get('name', data.get('voornaam', '')),
+        'bedrijf': data.get('bedrijf', data.get('company', '')),
+        'telefoon': data.get('telefoon', data.get('phone', '')),
+        'lead_id': '',
+        'form_id': '',
+        'source': 'meta_lead_ads'
+    }
+
+
+@app.route("/webhook/meta-lead", methods=["POST", "GET"])
+def meta_lead_webhook():
+    """
+    Webhook voor Meta (Facebook) Lead Ads.
+    Accepteert zowel directe Facebook webhooks als Zapier formatted data.
+
+    GET request: Facebook webhook verification
+    POST request: Lead data ontvangen
+    """
+
+    # GET request: Facebook webhook verification
+    if request.method == "GET":
+        verify_token = os.getenv("META_VERIFY_TOKEN", "kandidatentekort_verify_2024")
+        mode = request.args.get("hub.mode")
+        token = request.args.get("hub.verify_token")
+        challenge = request.args.get("hub.challenge")
+
+        if mode == "subscribe" and token == verify_token:
+            logger.info("✅ Meta webhook verified")
+            return challenge, 200
+        else:
+            logger.warning(f"⚠️ Meta webhook verification failed: mode={mode}, token={token}")
+            return "Verification failed", 403
+
+    # POST request: Process lead
+    logger.info("🎯 META LEAD WEBHOOK RECEIVED")
+
+    try:
+        data = request.get_json(force=True, silent=True) or {}
+        logger.info(f"📥 Meta Lead Data Keys: {list(data.keys())}")
+
+        # Parse the lead data
+        lead = parse_meta_lead_data(data)
+        logger.info(f"📋 Parsed Lead: {lead}")
+
+        # Validate email
+        if not lead['email'] or '@' not in lead['email']:
+            logger.error(f"❌ No valid email in Meta lead: {lead}")
+            return jsonify({"error": "No valid email", "parsed": lead}), 400
+
+        # Use voornaam or fallback
+        voornaam = lead['voornaam'] or lead['contact'].split()[0] if lead['contact'] else 'daar'
+
+        # Send welcome email for Meta leads
+        email_sent = send_email(
+            lead['email'],
+            "👋 Welkom! Hier is hoe je gratis vacature-analyse werkt",
+            get_meta_lead_email_html(voornaam, lead['bedrijf'])
+        )
+        logger.info(f"📧 Meta lead welcome email sent: {email_sent}")
+
+        # Create Pipedrive records
+        org_id = None
+        if lead['bedrijf']:
+            org_id = create_pipedrive_organization(lead['bedrijf'])
+
+        person_id = create_pipedrive_person(
+            lead['contact'] or voornaam,
+            lead['email'],
+            lead['telefoon'],
+            org_id
+        )
+
+        # Create deal with Meta lead specific title
+        deal_note = f"""📱 LEAD VIA META/FACEBOOK
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📌 GEGEVENS:
+• Contact: {lead['contact']}
+• Email: {lead['email']}
+• Telefoon: {lead['telefoon']}
+• Bedrijf: {lead['bedrijf'] or 'Niet opgegeven'}
+• Lead ID: {lead['lead_id']}
+• Bron: Facebook Lead Ads
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📝 STATUS:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+✅ Welkom email verstuurd
+⏳ Wacht op vacaturetekst van contact
+"""
+
+        deal_id = create_pipedrive_deal(
+            f"Meta Lead - {lead['bedrijf'] or voornaam}",
+            person_id,
+            org_id,
+            "",  # No vacancy text yet
+            None,  # No file
+            deal_note
+        )
+
+        logger.info(f"✅ Meta Lead processed: email_sent={email_sent}, org={org_id}, person={person_id}, deal={deal_id}")
+
+        return jsonify({
+            "success": True,
+            "source": "meta_lead_ads",
+            "email_sent": email_sent,
+            "org_id": org_id,
+            "person_id": person_id,
+            "deal_id": deal_id,
+            "parsed_lead": lead
+        }), 200
+
+    except Exception as e:
+        logger.error(f"❌ Meta Lead Error: {e}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/test-email", methods=["GET"])
 def test_email():
     to = request.args.get('to', 'artsrecruitin@gmail.com')
