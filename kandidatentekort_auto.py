@@ -984,18 +984,30 @@ def typeform_webhook():
         # Alleen vacature opslaan in Pipedrive voor handmatige verwerking
 
         # Bouw notitie met vacaturetekst voor Pipedrive
-        vacancy_note = f"""VACATURE ONTVANGEN VIA KANDIDATENTEKORT.NL
+        # Inclusief sectie voor PDF URLs (voor Trust-First Email 9)
+        vacancy_note = f"""📋 VACATURE ONTVANGEN VIA KANDIDATENTEKORT.NL
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-Functie: {p['functie']}
-Bedrijf: {p['bedrijf']}
-Contact: {p['contact']}
-Email: {p['email']}
-Telefoon: {p['telefoon']}
-Sector: {p['sector']}
-Bestand: {p['file_url'] if p['file_url'] else 'Geen bestand'}
+📌 GEGEVENS:
+• Functie: {p['functie']}
+• Bedrijf: {p['bedrijf']}
+• Contact: {p['contact']}
+• Email: {p['email']}
+• Telefoon: {p['telefoon']}
+• Sector: {p['sector']}
+• Bestand: {p['file_url'] if p['file_url'] else 'Geen bestand'}
 
----
-VACATURETEKST:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📄 PDF DOCUMENTEN (voor Trust-First Email 9):
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+🔗 Verbeterde Vacaturetekst: [URL HIER PLAKKEN]
+🔗 Analyse Rapport: [URL HIER PLAKKEN]
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📝 ORIGINELE VACATURETEKST:
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
 {vacancy_text[:3000] if vacancy_text else 'Zie bijlage'}
 """
 
