@@ -1270,6 +1270,24 @@ def send_pdf_email():
             timeout=30
         )
 
+        # 8. TRIGGER NURTURE AUTOMATION - Update deal fields
+        today_str = datetime.now().strftime('%Y-%m-%d')
+        nurture_update = requests.put(
+            f"{PIPEDRIVE_BASE}/deals/{deal_id}",
+            params={"api_token": PIPEDRIVE_API_TOKEN},
+            json={
+                FIELD_RAPPORT_VERZONDEN: today_str,      # Datum rapport verzonden - triggers scheduler
+                FIELD_EMAIL_SEQUENCE_STATUS: "active",   # Sequence is nu actief
+                FIELD_LAATSTE_EMAIL: "0"                 # Email 0 (PDF) is verzonden
+            },
+            timeout=30
+        )
+
+        if nurture_update.status_code == 200:
+            logger.info(f"✅ Nurture automation triggered for deal {deal_id} (rapport_verzonden={today_str})")
+        else:
+            logger.warning(f"⚠️ Failed to trigger nurture: {nurture_update.status_code}")
+
         logger.info(f"✅ PDF email sent to {recipient_email} for deal {deal_id}")
 
         return jsonify({
@@ -1279,7 +1297,10 @@ def send_pdf_email():
             "voornaam": voornaam,
             "functie": functie_titel,
             "vacature_url": vacature_url,
-            "rapport_url": rapport_url
+            "rapport_url": rapport_url,
+            "nurture_started": True,
+            "rapport_verzonden": today_str,
+            "next_email": "Email 1 (Check-in) - morgen"
         }), 200
 
     except Exception as e:
