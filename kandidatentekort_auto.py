@@ -980,25 +980,24 @@ def typeform_webhook():
             else:
                 logger.info(f"⚠️ File extraction failed or empty, using text field")
 
-        # Run Claude analysis if we have vacancy text
-        analysis = None
-        analysis_sent = False
-        if vacancy_text and len(vacancy_text) > 50:
-            analysis = analyze_vacancy_with_claude(vacancy_text, p['bedrijf'], p['sector'])
-            if analysis:
-                analysis_sent = send_analysis_email(p['email'], p['voornaam'], p['bedrijf'], analysis, vacancy_text)
+        # GEEN automatische Claude analyse meer - wordt handmatig gedaan
+        # Alleen vacature opslaan in Pipedrive voor handmatige verwerking
 
-        # Build analysis summary for Pipedrive notes
-        analysis_summary = ""
-        if analysis:
-            analysis_summary = f"""SCORE: {analysis.get('overall_score', 'N/A')}/10
-{analysis.get('score_section', '')}
+        # Bouw notitie met vacaturetekst voor Pipedrive
+        vacancy_note = f"""VACATURE ONTVANGEN VIA KANDIDATENTEKORT.NL
 
-TOP 3 VERBETERPUNTEN:
-{chr(10).join(['- ' + imp for imp in analysis.get('top_3_improvements', [])])}
+Functie: {p['functie']}
+Bedrijf: {p['bedrijf']}
+Contact: {p['contact']}
+Email: {p['email']}
+Telefoon: {p['telefoon']}
+Sector: {p['sector']}
+Bestand: {p['file_url'] if p['file_url'] else 'Geen bestand'}
 
-VERBETERDE TEKST:
-{analysis.get('improved_text', '')[:1500]}"""
+---
+VACATURETEKST:
+{vacancy_text[:3000] if vacancy_text else 'Zie bijlage'}
+"""
 
         # Create Pipedrive records (organization first, then person, then deal)
         org_id = create_pipedrive_organization(p['bedrijf'])
@@ -1009,15 +1008,15 @@ VERBETERDE TEKST:
             org_id,
             vacancy_text,  # Use extracted text if available
             p['file_url'],
-            analysis_summary
+            vacancy_note  # Vacature info i.p.v. analyse
         )
 
-        logger.info(f"✅ Done: confirmation={confirmation_sent}, analysis={analysis_sent}, org={org_id}, person={person_id}, deal={deal_id}")
+        logger.info(f"✅ Done: confirmation={confirmation_sent}, org={org_id}, person={person_id}, deal={deal_id}")
 
         return jsonify({
             "success": True,
             "confirmation_sent": confirmation_sent,
-            "analysis_sent": analysis_sent,
+            "analysis_sent": False,  # Geen automatische analyse meer
             "org_id": org_id,
             "person_id": person_id,
             "deal_id": deal_id
