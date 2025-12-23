@@ -1046,6 +1046,78 @@ def test_email():
     return jsonify({"success": ok, "to": to}), 200 if ok else 500
 
 
+@app.route("/update-pdf-urls", methods=["POST"])
+def update_pdf_urls():
+    """
+    Update Pipedrive deal with PDF URLs for Trust-First Email 9.
+
+    POST JSON:
+    {
+        "deal_id": 12345,
+        "vacature_pdf_url": "https://...",
+        "rapport_pdf_url": "https://..."
+    }
+    """
+    try:
+        data = request.get_json(force=True, silent=True) or {}
+
+        deal_id = data.get('deal_id')
+        vacature_url = data.get('vacature_pdf_url', '')
+        rapport_url = data.get('rapport_pdf_url', '')
+
+        if not deal_id:
+            return jsonify({"error": "deal_id is required"}), 400
+
+        if not vacature_url and not rapport_url:
+            return jsonify({"error": "At least one PDF URL is required"}), 400
+
+        if not PIPEDRIVE_API_TOKEN:
+            return jsonify({"error": "Pipedrive not configured"}), 500
+
+        # Create note with PDF URLs
+        note_content = f"""✅ PDF DOCUMENTEN GEREED VOOR VERZENDING
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+📄 Verbeterde Vacaturetekst:
+{vacature_url if vacature_url else '(niet beschikbaar)'}
+
+📊 Analyse Rapport:
+{rapport_url if rapport_url else '(niet beschikbaar)'}
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+🚀 Klaar voor Trust-First Email 9!
+"""
+
+        r = requests.post(
+            f"{PIPEDRIVE_BASE}/notes",
+            params={"api_token": PIPEDRIVE_API_TOKEN},
+            json={
+                "deal_id": int(deal_id),
+                "content": note_content,
+                "pinned_to_deal_flag": True  # Pin zodat het bovenaan staat
+            },
+            timeout=30
+        )
+
+        if r.status_code == 201:
+            note_id = r.json().get('data', {}).get('id')
+            logger.info(f"✅ PDF URLs added to deal {deal_id} (note ID: {note_id})")
+            return jsonify({
+                "success": True,
+                "deal_id": deal_id,
+                "note_id": note_id,
+                "vacature_url": vacature_url,
+                "rapport_url": rapport_url
+            }), 200
+        else:
+            logger.warning(f"Note creation failed: {r.status_code} - {r.text[:200]}")
+            return jsonify({"error": f"Pipedrive error: {r.status_code}"}), 500
+
+    except Exception as e:
+        logger.error(f"❌ Update PDF URLs error: {e}", exc_info=True)
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/debug", methods=["POST"])
 def debug_webhook():
     """Debug endpoint - returns what was received"""
