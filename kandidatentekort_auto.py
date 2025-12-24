@@ -840,12 +840,13 @@ def create_pipedrive_organization(name):
             json={"name": name},
             timeout=30
         )
-        if r.status_code == 201:
-            org_id = r.json().get('data', {}).get('id')
+        result = r.json()
+        if result.get('success'):
+            org_id = result.get('data', {}).get('id')
             logger.info(f"✅ Created organization: {name} (ID: {org_id})")
             return org_id
         else:
-            logger.warning(f"Org creation failed: {r.status_code} - {r.text[:200]}")
+            logger.warning(f"Org creation failed: {r.status_code} - {result.get('error', r.text[:200])}")
     except Exception as e:
         logger.error(f"Pipedrive org error: {e}")
     return None
@@ -869,12 +870,13 @@ def create_pipedrive_person(contact, email, telefoon, org_id=None):
             json=data,
             timeout=30
         )
-        if r.status_code == 201:
-            person_id = r.json().get('data', {}).get('id')
+        result = r.json()
+        if result.get('success'):
+            person_id = result.get('data', {}).get('id')
             logger.info(f"✅ Created person: {contact} (ID: {person_id})")
             return person_id
         else:
-            logger.warning(f"Person creation failed: {r.status_code} - {r.text[:200]}")
+            logger.warning(f"Person creation failed: {r.status_code} - {result.get('error', r.text[:200])}")
     except Exception as e:
         logger.error(f"Pipedrive person error: {e}")
     return None
@@ -899,8 +901,9 @@ def create_pipedrive_deal(title, person_id, org_id=None, vacature="", file_url="
             json=deal_data,
             timeout=30
         )
-        if r.status_code == 201:
-            deal_id = r.json().get('data', {}).get('id')
+        result = r.json()
+        if result.get('success'):
+            deal_id = result.get('data', {}).get('id')
             logger.info(f"✅ Created deal: {title} (ID: {deal_id})")
 
             # Build note content
@@ -924,7 +927,7 @@ def create_pipedrive_deal(title, person_id, org_id=None, vacature="", file_url="
                 )
             return deal_id
         else:
-            logger.warning(f"Deal creation failed: {r.status_code} - {r.text[:200]}")
+            logger.warning(f"Deal creation failed: {r.status_code} - {result.get('error', r.text[:200])}")
     except Exception as e:
         logger.error(f"Pipedrive deal error: {e}")
     return None
@@ -1300,7 +1303,8 @@ def update_pdf_urls():
             },
             timeout=30
         )
-        note_id = note_result.json().get('data', {}).get('id') if note_result.status_code == 201 else None
+        note_json = note_result.json()
+        note_id = note_json.get('data', {}).get('id') if note_json.get('success') else None
 
         # 2. Create reminder activity (deadline: 24 hours)
         due_date = (datetime.now() + timedelta(hours=24)).strftime('%Y-%m-%d')
@@ -1319,7 +1323,8 @@ def update_pdf_urls():
             },
             timeout=30
         )
-        activity_id = activity_result.json().get('data', {}).get('id') if activity_result.status_code == 201 else None
+        activity_json = activity_result.json()
+        activity_id = activity_json.get('data', {}).get('id') if activity_json.get('success') else None
 
         logger.info(f"✅ PDF URLs + reminder added to deal {deal_id} (note: {note_id}, activity: {activity_id})")
 
