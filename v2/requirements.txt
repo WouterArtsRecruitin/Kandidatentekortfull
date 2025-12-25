@@ -1,0 +1,19 @@
+# Kandidatentekort V2 Requirements
+
+# Web framework
+flask>=2.3.0
+
+# HTTP requests
+requests>=2.31.0
+
+# PDF generation (fallback)
+reportlab>=4.0.0
+
+# PDF text extraction
+PyPDF2>=3.0.0
+
+# DOCX text extraction
+python-docx>=0.8.11
+
+# Environment variables (optional, for local dev)
+python-dotenv>=1.0.0
