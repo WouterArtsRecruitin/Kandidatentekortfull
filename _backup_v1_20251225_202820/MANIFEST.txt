@@ -1,0 +1,18 @@
+BACKUP MANIFEST - Thu Dec 25 20:28:20 UTC 2025
+========================
+
+Git commit: 2724f618306e0d6e5360bbb57aabcfa584e54607
+Branch: claude/improve-automation-leads-JEUsn
+
+Files:
+total 197
+drwxr-xr-x  4 root root  4096 Dec 25 20:28 .
+drwxr-xr-x 13 root root  4096 Dec 25 20:28 ..
+-rw-r--r--  1 root root   180 Dec 25 20:28 MANIFEST.txt
+-rw-r--r--  1 root root 91203 Dec 25 20:28 kandidatentekort_auto.py
+drwxr-xr-x  2 root root  4096 Dec 25 20:28 lib
+drwxr-xr-x  3 root root  4096 Dec 25 20:28 netlify
+-rw-r--r--  1 root root  1942 Dec 25 20:28 netlify.toml
+-rw-r--r--  1 root root  2246 Dec 25 20:28 package.json
+-rw-r--r--  1 root root   429 Dec 25 20:28 requirements.txt
+-rw-r--r--  1 root root 87355 Dec 25 20:28 webhook_v6.py
