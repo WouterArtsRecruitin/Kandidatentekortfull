@@ -930,6 +930,104 @@ def create_pipedrive_deal(title, person_id, org_id=None, vacature="", file_url="
     return None
 
 
+def find_person_by_email(email):
+    """Search for existing person by email in Pipedrive"""
+    if not PIPEDRIVE_API_TOKEN or not email:
+        return None
+    try:
+        r = requests.get(
+            f"{PIPEDRIVE_BASE}/persons/search",
+            params={
+                "api_token": PIPEDRIVE_API_TOKEN,
+                "term": email,
+                "fields": "email",
+                "limit": 5
+            },
+            timeout=30
+        )
+        if r.status_code == 200:
+            items = r.json().get('data', {}).get('items', [])
+            for item in items:
+                person = item.get('item', {})
+                person_emails = person.get('emails', [])
+                # Check if email matches exactly
+                for pe in person_emails:
+                    if isinstance(pe, str) and pe.lower() == email.lower():
+                        person_id = person.get('id')
+                        logger.info(f"🔍 Found existing person by email: {email} (ID: {person_id})")
+                        return person_id
+        logger.info(f"🔍 No existing person found for email: {email}")
+    except Exception as e:
+        logger.error(f"Pipedrive person search error: {e}")
+    return None
+
+
+def get_person_deals_in_pipeline(person_id, pipeline_id):
+    """Get existing deals for a person in a specific pipeline"""
+    if not PIPEDRIVE_API_TOKEN or not person_id:
+        return []
+    try:
+        r = requests.get(
+            f"{PIPEDRIVE_BASE}/persons/{person_id}/deals",
+            params={
+                "api_token": PIPEDRIVE_API_TOKEN,
+                "status": "open",
+                "limit": 50
+            },
+            timeout=30
+        )
+        if r.status_code == 200:
+            deals = r.json().get('data', []) or []
+            pipeline_deals = [d for d in deals if d.get('pipeline_id') == pipeline_id]
+            logger.info(f"🔍 Found {len(pipeline_deals)} deals for person {person_id} in pipeline {pipeline_id}")
+            return pipeline_deals
+    except Exception as e:
+        logger.error(f"Pipedrive person deals error: {e}")
+    return []
+
+
+def update_deal_with_vacancy(deal_id, title, vacancy_text, file_url, analysis):
+    """Update an existing deal with vacancy info and add note"""
+    if not PIPEDRIVE_API_TOKEN or not deal_id:
+        return False
+    try:
+        # Update deal title
+        r = requests.put(
+            f"{PIPEDRIVE_BASE}/deals/{deal_id}",
+            params={"api_token": PIPEDRIVE_API_TOKEN},
+            json={"title": title},
+            timeout=30
+        )
+        if r.status_code != 200:
+            logger.warning(f"Deal update failed: {r.status_code}")
+
+        # Add vacancy info as note
+        note_parts = []
+        note_parts.append("🔄 UPDATE VIA TYPEFORM FORMULIER")
+        if vacancy_text:
+            note_parts.append(f"📋 VACATURE:\n{vacancy_text[:2000]}")
+        if file_url:
+            note_parts.append(f"📎 BESTAND:\n{file_url}")
+        if analysis:
+            note_parts.append(f"🤖 ANALYSE:\n{analysis}")
+
+        if note_parts:
+            requests.post(
+                f"{PIPEDRIVE_BASE}/notes",
+                params={"api_token": PIPEDRIVE_API_TOKEN},
+                json={
+                    "deal_id": deal_id,
+                    "content": "\n\n".join(note_parts)
+                },
+                timeout=30
+            )
+        logger.info(f"✅ Updated existing deal {deal_id} with vacancy info")
+        return True
+    except Exception as e:
+        logger.error(f"Pipedrive deal update error: {e}")
+    return False
+
+
 @app.route("/", methods=["GET"])
 def home():
     return jsonify({
@@ -1000,19 +1098,47 @@ TOP 3 VERBETERPUNTEN:
 VERBETERDE TEKST:
 {analysis.get('improved_text', '')[:1500]}"""
 
-        # Create Pipedrive records (organization first, then person, then deal)
-        org_id = create_pipedrive_organization(p['bedrijf'])
-        person_id = create_pipedrive_person(p['contact'], p['email'], p['telefoon'], org_id)
-        deal_id = create_pipedrive_deal(
-            f"Vacature Analyse - {p['functie']} - {p['bedrijf']}",
-            person_id,
-            org_id,
-            vacancy_text,  # Use extracted text if available
-            p['file_url'],
-            analysis_summary
-        )
+        # CHECK FOR EXISTING DEAL (from Meta Lead or previous submission)
+        deal_id = None
+        person_id = None
+        org_id = None
+        updated_existing = False
 
-        logger.info(f"✅ Done: confirmation={confirmation_sent}, analysis={analysis_sent}, org={org_id}, person={person_id}, deal={deal_id}")
+        # First, check if person already exists by email
+        existing_person_id = find_person_by_email(p['email'])
+
+        if existing_person_id:
+            logger.info(f"🔍 Found existing person {existing_person_id}, checking for deals in Pipeline {PIPELINE_ID}")
+            # Check if they have an existing deal in Pipeline 4
+            existing_deals = get_person_deals_in_pipeline(existing_person_id, PIPELINE_ID)
+
+            if existing_deals:
+                # Update the most recent existing deal
+                existing_deal = existing_deals[0]  # Most recent
+                deal_id = existing_deal.get('id')
+                person_id = existing_person_id
+                org_id = existing_deal.get('org_id')
+
+                new_title = f"Vacature Analyse - {p['functie']} - {p['bedrijf']}"
+                update_deal_with_vacancy(deal_id, new_title, vacancy_text, p['file_url'], analysis_summary)
+                updated_existing = True
+                logger.info(f"✅ Updated EXISTING deal {deal_id} with vacancy info (Meta Lead flow)")
+
+        # If no existing deal found, create new records
+        if not deal_id:
+            org_id = create_pipedrive_organization(p['bedrijf'])
+            person_id = existing_person_id or create_pipedrive_person(p['contact'], p['email'], p['telefoon'], org_id)
+            deal_id = create_pipedrive_deal(
+                f"Vacature Analyse - {p['functie']} - {p['bedrijf']}",
+                person_id,
+                org_id,
+                vacancy_text,  # Use extracted text if available
+                p['file_url'],
+                analysis_summary
+            )
+            logger.info(f"✅ Created NEW deal {deal_id} (no existing deal found)")
+
+        logger.info(f"✅ Done: confirmation={confirmation_sent}, analysis={analysis_sent}, org={org_id}, person={person_id}, deal={deal_id}, updated_existing={updated_existing}")
 
         return jsonify({
             "success": True,
