@@ -1,159 +1,138 @@
-// ===============================================
-// Netlify Function - Server-Side Conversion Tracking
-// Facebook CAPI & GA4 Measurement Protocol
-// ===============================================
-
-const crypto = require('crypto');
-
-// Configuration
-const FB_PIXEL_ID = '238226887541404';
-const FB_ACCESS_TOKEN = process.env.FB_ACCESS_TOKEN || '';
-const GA4_MEASUREMENT_ID = 'G-67PJ02SXVN';
-const GA4_API_SECRET = process.env.GA4_API_SECRET || '';
-
-const headers = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'Content-Type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
-  'Content-Type': 'application/json'
-};
-
-// Hash function for Facebook CAPI
-function hashData(data) {
-  if (!data) return null;
-  return crypto.createHash('sha256').update(data.toLowerCase().trim()).digest('hex');
-}
+// Facebook Conversions API Handler
+// Tracks server-side events to improve iOS 14.5+ attribution
 
 exports.handler = async (event, context) => {
-  // Handle preflight
-  if (event.httpMethod === 'OPTIONS') {
-    return { statusCode: 200, headers, body: '' };
-  }
-
+  // Only allow POST requests
   if (event.httpMethod !== 'POST') {
     return {
       statusCode: 405,
-      headers,
-      body: JSON.stringify({ error: 'Method not allowed' })
+      body: JSON.stringify({ error: 'Method Not Allowed' })
     };
   }
 
+  // Parse request body
+  let data;
   try {
-    const data = JSON.parse(event.body || '{}');
-    const {
-      event_name,
-      email,
-      bedrijf_naam,
-      functie_titel,
-      score,
-      sector,
-      client_ip,
-      user_agent,
-      event_id
-    } = data;
-
-    const results = {
-      facebook: null,
-      ga4: null
+    data = JSON.parse(event.body);
+  } catch (error) {
+    return {
+      statusCode: 400,
+      body: JSON.stringify({ error: 'Invalid JSON payload' })
     };
+  }
 
-    // ===============================================
-    // Facebook Conversions API
-    // ===============================================
-    if (FB_ACCESS_TOKEN) {
-      const fbEventData = {
-        data: [{
-          event_name: event_name || 'Lead',
-          event_time: Math.floor(Date.now() / 1000),
-          event_id: event_id || `evt_${Date.now()}`,
-          event_source_url: 'https://kandidatentekort.nl',
-          action_source: 'website',
-          user_data: {
-            em: email ? [hashData(email)] : undefined,
-            client_ip_address: client_ip || event.headers['x-forwarded-for']?.split(',')[0],
-            client_user_agent: user_agent || event.headers['user-agent']
-          },
-          custom_data: {
-            content_name: functie_titel || 'Vacature Analyse',
-            content_category: sector || 'Technical',
-            value: score ? parseFloat(score) : 0,
-            currency: 'EUR'
-          }
-        }]
-      };
+  // Get environment variables
+  // FB_ACCESS_TOKEN is the correct Facebook token, FACEBOOK_API_TOKEN is legacy
+  const FACEBOOK_API_TOKEN = process.env.FB_ACCESS_TOKEN || process.env.FACEBOOK_API_TOKEN;
+  const PIXEL_ID = process.env.FACEBOOK_PIXEL_ID || '238226887541404';
 
-      try {
-        const fbResponse = await fetch(
-          `https://graph.facebook.com/v18.0/${FB_PIXEL_ID}/events?access_token=${FB_ACCESS_TOKEN}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(fbEventData)
-          }
-        );
+  if (!FACEBOOK_API_TOKEN) {
+    console.error('Missing FB_ACCESS_TOKEN environment variable');
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ error: 'Server configuration error' })
+    };
+  }
 
-        results.facebook = await fbResponse.json();
-        console.log('Facebook CAPI response:', results.facebook);
-      } catch (fbError) {
-        console.error('Facebook CAPI error:', fbError);
-        results.facebook = { error: fbError.message };
+  // Extract event data
+  const {
+    event_name = 'Lead',
+    event_time = Math.floor(Date.now() / 1000),
+    email,
+    phone,
+    action_source = 'website',
+    event_source_url = event.headers.referer || 'https://kandidatentekort.nl',
+    user_agent = event.headers['user-agent'],
+    ip_address = event.headers['x-forwarded-for'] || event.headers['client-ip']
+  } = data;
+
+  // Hash user data for privacy
+  const crypto = require('crypto');
+  const hashData = (data) => {
+    if (!data) return undefined;
+    return crypto.createHash('sha256').update(data.toLowerCase().trim()).digest('hex');
+  };
+
+  // Build server event
+  const serverEvent = {
+    event_name,
+    event_time,
+    action_source,
+    event_source_url,
+    user_data: {
+      em: hashData(email),
+      ph: hashData(phone),
+      client_ip_address: ip_address,
+      client_user_agent: user_agent,
+      fbc: getCookie(event.headers.cookie, '_fbc'),
+      fbp: getCookie(event.headers.cookie, '_fbp')
+    },
+    custom_data: data.custom_data || {}
+  };
+
+  // Send to Facebook Conversions API
+  try {
+    const response = await fetch(
+      `https://graph.facebook.com/v18.0/${PIXEL_ID}/events`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          data: [serverEvent],
+          access_token: FACEBOOK_API_TOKEN,
+          test_event_code: process.env.TEST_EVENT_CODE // Optional: for testing in Events Manager
+        })
       }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      console.error('Facebook API error:', result);
+      return {
+        statusCode: 500,
+        body: JSON.stringify({ 
+          error: 'Failed to track event',
+          details: result.error?.message 
+        })
+      };
     }
 
-    // ===============================================
-    // Google Analytics 4 Measurement Protocol
-    // ===============================================
-    if (GA4_API_SECRET) {
-      const ga4EventData = {
-        client_id: event_id || `client_${Date.now()}`,
-        events: [{
-          name: event_name || 'generate_lead',
-          params: {
-            engagement_time_msec: 1000,
-            session_id: `session_${Date.now()}`,
-            company_name: bedrijf_naam || '',
-            job_title: functie_titel || '',
-            sector: sector || '',
-            score: score || 0
-          }
-        }]
-      };
-
-      try {
-        const ga4Response = await fetch(
-          `https://www.google-analytics.com/mp/collect?measurement_id=${GA4_MEASUREMENT_ID}&api_secret=${GA4_API_SECRET}`,
-          {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(ga4EventData)
-          }
-        );
-
-        results.ga4 = { status: ga4Response.status, success: ga4Response.ok };
-        console.log('GA4 MP response:', results.ga4);
-      } catch (ga4Error) {
-        console.error('GA4 MP error:', ga4Error);
-        results.ga4 = { error: ga4Error.message };
-      }
-    }
-
+    // Success response
     return {
       statusCode: 200,
-      headers,
+      headers: {
+        'Content-Type': 'application/json',
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Headers': 'Content-Type'
+      },
       body: JSON.stringify({
         success: true,
         event_name,
-        results,
-        timestamp: new Date().toISOString()
+        events_received: result.events_received,
+        fbtrace_id: result.fbtrace_id
       })
     };
 
   } catch (error) {
-    console.error('Track conversion error:', error);
+    console.error('Conversions API error:', error);
     return {
       statusCode: 500,
-      headers,
-      body: JSON.stringify({ error: error.message })
+      body: JSON.stringify({ 
+        error: 'Internal server error',
+        message: error.message 
+      })
     };
   }
 };
+
+// Helper function to extract cookie value
+function getCookie(cookieString, name) {
+  if (!cookieString) return undefined;
+  const value = `; ${cookieString}`;
+  const parts = value.split(`; ${name}=`);
+  if (parts.length === 2) return parts.pop().split(';').shift();
+  return undefined;
+}
