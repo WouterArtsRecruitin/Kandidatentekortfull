@@ -2,8 +2,7 @@ name: Claude Code Review
 
 on:
   pull_request:
-    # PERFORMANCE: Only run on PR open/ready, not every push
-    types: [opened, ready_for_review]
+    types: [opened, synchronize]
     # Optional: Only run on specific file changes
     # paths:
     #   - "src/**/*.ts"
@@ -11,29 +10,18 @@ on:
     #   - "src/**/*.js"
     #   - "src/**/*.jsx"
 
-# Prevent duplicate runs
-concurrency:
-  group: claude-review-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
-
 jobs:
   claude-review:
-    # SECURITY: Block forks (secrets unavailable anyway)
-    if: github.event.pull_request.head.repo.full_name == github.repository
-    
     # Optional: Filter by PR author
     # if: |
-    #   github.event.pull_request.head.repo.full_name == github.repository &&
-    #   (github.event.pull_request.user.login == 'external-contributor' ||
+    #   github.event.pull_request.user.login == 'external-contributor' ||
     #   github.event.pull_request.user.login == 'new-developer' ||
-    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR')
+    #   github.event.pull_request.author_association == 'FIRST_TIME_CONTRIBUTOR'
 
     runs-on: ubuntu-latest
-    timeout-minutes: 30
-    
     permissions:
       contents: read
-      pull-requests: write
+      pull-requests: read
       issues: read
       id-token: write
 
@@ -41,12 +29,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0 # Full history for proper PR diff analysis
-          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 1
 
       - name: Run Claude Code Review
         id: claude-review
-        continue-on-error: true # Don't block PRs on Claude failures
         uses: anthropics/claude-code-action@v1
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
@@ -65,13 +51,7 @@ jobs:
 
             Use `gh pr comment` with your Bash tool to leave your review as a comment on the PR.
 
-          # SECURITY: Restrict tool access - only allow read-only GitHub CLI commands
-          claude_args: |
-            --model claude-sonnet-4-20250514
-            --max-turns 20
-            --allowed-tools "Bash(gh issue view:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*),Bash(gh search:*)"
+          # See https://github.com/anthropics/claude-code-action/blob/main/docs/usage.md
+          # or https://code.claude.com/docs/en/cli-reference for available options
+          claude_args: '--allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
-      - name: Report failure
-        if: steps.claude-review.outcome == 'failure'
-        run: |
-          echo "::warning::Claude Code review failed but PR is not blocked"
